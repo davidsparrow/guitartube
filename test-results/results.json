@@ -1,0 +1,328 @@
+{
+  "config": {
+    "configFile": "/Users/davidsparrow/Documents/guitartube-b/playwright.config.js",
+    "rootDir": "/Users/davidsparrow/Documents/guitartube-b/tests",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/Users/davidsparrow/Documents/guitartube-b/tests/global-setup.js",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 2
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ],
+      [
+        "list",
+        null
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/Users/davidsparrow/Documents/guitartube-b/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/davidsparrow/Documents/guitartube-b/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/davidsparrow/Documents/guitartube-b/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "/Users/davidsparrow/Documents/guitartube-b/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/davidsparrow/Documents/guitartube-b/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "/Users/davidsparrow/Documents/guitartube-b/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/davidsparrow/Documents/guitartube-b/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "Mobile Chrome",
+        "name": "Mobile Chrome",
+        "testDir": "/Users/davidsparrow/Documents/guitartube-b/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/davidsparrow/Documents/guitartube-b/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "Mobile Safari",
+        "name": "Mobile Safari",
+        "testDir": "/Users/davidsparrow/Documents/guitartube-b/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/davidsparrow/Documents/guitartube-b/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "Tablet",
+        "name": "Tablet",
+        "testDir": "/Users/davidsparrow/Documents/guitartube-b/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.55.0",
+    "workers": 5,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "baseline-screenshots.spec.js",
+      "file": "baseline-screenshots.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Baseline Screenshots - Current Functionality",
+          "file": "baseline-screenshots.spec.js",
+          "line": 6,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Capture All Current UI States",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 11436,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "📸 Capturing baseline screenshots of current functionality...\n"
+                        },
+                        {
+                          "text": "✅ Video loaded successfully\n"
+                        },
+                        {
+                          "text": "🔄 Testing video flip control...\n"
+                        },
+                        {
+                          "text": "✅ Video flip control working\n"
+                        },
+                        {
+                          "text": "📝 Testing caption controls...\n"
+                        },
+                        {
+                          "text": "🎯 Found caption toggle button\n"
+                        },
+                        {
+                          "text": "⚠️ No caption area found - might require authentication\n"
+                        },
+                        {
+                          "text": "🔐 Found auth element: \"button[title=\"Start Me Up\"]\" (2 elements)\n"
+                        },
+                        {
+                          "text": "📱 Testing responsive design...\n"
+                        },
+                        {
+                          "text": "✅ desktop viewport captured\n"
+                        },
+                        {
+                          "text": "✅ tablet viewport captured\n"
+                        },
+                        {
+                          "text": "✅ mobile viewport captured\n"
+                        },
+                        {
+                          "text": "🔍 Analyzing page structure...\n"
+                        },
+                        {
+                          "text": "📊 Page structure analysis:\n"
+                        },
+                        {
+                          "text": "   - Buttons: 13\n"
+                        },
+                        {
+                          "text": "   - Video elements: 1\n"
+                        },
+                        {
+                          "text": "   - Modals: 0\n"
+                        },
+                        {
+                          "text": "   - Fixed positioned elements: 2\n"
+                        },
+                        {
+                          "text": "🔘 Button texts found: [ \u001b[32m''\u001b[39m, \u001b[32m''\u001b[39m, \u001b[32m''\u001b[39m, \u001b[32m''\u001b[39m, \u001b[32m''\u001b[39m, \u001b[32m''\u001b[39m, \u001b[32m''\u001b[39m, \u001b[32m''\u001b[39m, \u001b[32m'0:00 - 0:00'\u001b[39m, \u001b[32m''\u001b[39m ]\n"
+                        },
+                        {
+                          "text": "🎉 Baseline screenshot capture completed!\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-01T23:02:09.557Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ed17e86603532a30f21d-1ce65c81c3441f90c032",
+              "file": "baseline-screenshots.spec.js",
+              "line": 8,
+              "column": 7
+            },
+            {
+              "title": "Performance Baseline",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 6253,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "⚡ Measuring performance baseline...\n"
+                        },
+                        {
+                          "text": "🔄 Load 1: 2364ms\n"
+                        },
+                        {
+                          "text": "🔄 Load 2: 1553ms\n"
+                        },
+                        {
+                          "text": "🔄 Load 3: 1564ms\n"
+                        },
+                        {
+                          "text": "📊 Performance Results:\n"
+                        },
+                        {
+                          "text": "   - Average: 1827ms\n"
+                        },
+                        {
+                          "text": "   - Fastest: 1553ms\n"
+                        },
+                        {
+                          "text": "   - Slowest: 2364ms\n"
+                        },
+                        {
+                          "text": "✅ Performance baseline established\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-01T23:02:09.555Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ed17e86603532a30f21d-f02e400b6e289eb54d18",
+              "file": "baseline-screenshots.spec.js",
+              "line": 157,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-09-01T23:01:49.441Z",
+    "duration": 32041.986,
+    "expected": 2,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}
