@@ -5,10 +5,10 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 if (!supabaseUrl || !supabaseKey) {
-  // TEMP: throw new Error("Missing Supabase environment variables")
+  throw new Error('Missing Supabase environment variables')
 }
 
-export const supabase = createClient(supabaseUrl || "https://dummy.supabase.co", supabaseKey || "dummy-key")
+export const supabase = createClient(supabaseUrl, supabaseKey)
 
 // =============================================================
 // USER PROFILE FUNCTIONS

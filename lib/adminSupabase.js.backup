@@ -5,11 +5,11 @@ const supabaseUrl = process.env.SUPABASE_URL
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 if (!supabaseUrl || !supabaseServiceKey) {
-  // TEMP: throw new Error("Missing Supabase server environment variables")
+  throw new Error('Missing Supabase server environment variables')
 }
 
 // This client bypasses RLS and has full access
-export const adminSupabase = createClient(supabaseUrl || "https://dummy.supabase.co", supabaseServiceKey || "dummy-key", {
+export const adminSupabase = createClient(supabaseUrl, supabaseServiceKey, {
   auth: {
     autoRefreshToken: false,
     persistSession: false
