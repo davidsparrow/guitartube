@@ -2976,6 +2976,17 @@ export default function Watch() {
         onLayoutSelect={(layoutId) => {
           setCurrentLayout(layoutId)
           console.log(`🎨 Layout selected: ${layoutId}`)
+
+          // Navigate to appropriate layout page
+          const currentQuery = router.query
+          const baseUrl = `/watch-${layoutId}`
+          const queryString = new URLSearchParams({
+            v: currentQuery.v,
+            ...(currentQuery.title && { title: currentQuery.title }),
+            ...(currentQuery.channel && { channel: currentQuery.channel })
+          }).toString()
+
+          router.push(`${baseUrl}?${queryString}`)
         }}
       />
     </div>
