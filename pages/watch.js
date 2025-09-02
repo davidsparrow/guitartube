@@ -5,7 +5,7 @@ import { useUser } from '../contexts/UserContext'
 import AuthModal from '../components/AuthModal'
 import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabase'
-import { FaHamburger, FaSearch, FaTimes, FaRegEdit, FaPlus } from "react-icons/fa"
+import { FaHamburger, FaSearch, FaTimes } from "react-icons/fa"
 import { MdCancel } from "react-icons/md"
 import { TiDeleteOutline } from "react-icons/ti"
 
@@ -2402,8 +2402,12 @@ export default function Watch() {
       />
 
       {/* Main Content Area - Theatre Mode Layout with Dynamic Height */}
-      <div className="relative z-10 overflow-hidden px-6 mt-20" style={{ 
-        height: showControlStrips ? `calc(100vh - ${160 + (showRow1 ? 51.2 : 0) + (showRow2 ? 102.4 : 0) + (showRow3 ? 102.4 : 0)}px)` : 'calc(100vh - 155px)',
+      <div className="relative z-10 overflow-hidden px-6 mt-20" style={{
+        height: showControlStrips ? `calc(100vh - ${160 +
+          (showRow1 && getLayoutRowVisibility(currentLayout).showRow1 ? 51.2 : 0) +
+          (showRow2 && getLayoutRowVisibility(currentLayout).showRow2 ? 102.4 : 0) +
+          (showRow3 && getLayoutRowVisibility(currentLayout).showRow3 ? 102.4 : 0)
+        }px)` : 'calc(100vh - 155px)',
         transition: 'height 0.3s ease-in-out'
       }}>
         {/* Video Player Container - Edge-to-Edge Width with Dynamic Height */}
@@ -2463,8 +2467,8 @@ export default function Watch() {
                 (showRow2 && getLayoutRowVisibility(currentLayout).showRow2) ? 'bottom-[38%]' :
                 (showRow3 && getLayoutRowVisibility(currentLayout).showRow3) ? 'bottom-[38%]' : 'bottom-0'
               }`}>
-              {/* Left Column - Main Content (92% width) */}
-              <div className="w-[92%] p-2 bg-transparent border-r-2 border-white flex flex-col justify-center overflow-hidden">
+              {/* Left Column - Main Content (96% width) */}
+              <div className="w-[96%] p-2 bg-transparent border-r-2 border-white flex flex-col justify-center overflow-hidden">
                 {/* Display current caption based on video time */}
                 {(() => {
                   if (!player || captions.length === 0) {
@@ -2531,34 +2535,7 @@ export default function Watch() {
                   }
                 })()}
               </div>
-              {/* Middle Column - ADD + EDIT icons (4% width) */}
-              <div className="w-[4%] p-2 bg-transparent border-r-2 border-white flex flex-col items-center justify-center space-y-3">
-                <button 
-                  onClick={() => handleAddCaptionFromControlStrip(1)}
-                  className={`transition-opacity cursor-pointer ${
-                    isInCaptionMode 
-                      ? 'opacity-30 cursor-not-allowed' 
-                      : 'hover:opacity-70'
-                  }`}
-                  title={isInCaptionMode ? "Disabled while editing" : "Add new caption at current time"}
-                  disabled={isInCaptionMode}
-                >
-                  <FaPlus className="w-4 h-4 text-white" />
-                </button>
-                <button 
-                  onClick={() => handleInlineEditCaption(1)}
-                  className={`transition-colors cursor-pointer ${
-                    isInCaptionMode 
-                      ? 'text-green-400' 
-                      : 'text-white hover:opacity-70'
-                  }`}
-                  title={isInCaptionMode ? "Currently editing captions" : "Edit caption inline"}
-                  disabled={isInCaptionMode}
-                >
-                  <FaRegEdit className="w-4 h-4" />
-                </button>
-              </div>
-              {/* Right Column - EYE + CgViewList icons (4% width) */}
+              {/* Right Column - Hide + TextSelect icons (4% width) */}
               <div className="w-[4%] p-2 bg-transparent flex flex-col items-center justify-center space-y-2">
                 <button 
                   onClick={() => !isInCaptionMode && handleRowToggle(1)}
@@ -2594,38 +2571,11 @@ export default function Watch() {
               <div className={`absolute left-0 right-0 flex border-l-2 border-r-2 border-white overflow-hidden h-[38%] transition-all duration-300 ${
                 (showRow3 && getLayoutRowVisibility(currentLayout).showRow3) ? 'bottom-[38%]' : 'bottom-0'
               }`}>
-              {/* Left Column - Main Content (92% width) */}
-              <div className="w-[92%] p-2 bg-transparent border-r-2 border-white flex items-center">
+              {/* Left Column - Main Content (96% width) */}
+              <div className="w-[96%] p-2 bg-transparent border-r-2 border-white flex items-center">
                 <span className="text-white text-sm font-medium">Chords Captions</span>
               </div>
-              {/* Middle Column - ADD + EDIT icons (4% width) */}
-              <div className="w-[4%] p-2 bg-transparent border-r-2 border-white flex flex-col items-center justify-center space-y-3">
-                <button 
-                  onClick={() => handleAddCaptionFromControlStrip(2)}
-                  className={`transition-opacity cursor-pointer ${
-                    isInCaptionMode 
-                      ? 'opacity-30 cursor-not-allowed' 
-                      : 'hover:opacity-70'
-                  }`}
-                  title={isInCaptionMode ? "Disabled while editing" : "Add new caption at current time"}
-                  disabled={isInCaptionMode}
-                >
-                  <FaPlus className="w-4 h-4 text-white" />
-                </button>
-                <button 
-                  onClick={() => handleInlineEditCaption(2)}
-                  className={`transition-colors cursor-pointer ${
-                    isInCaptionMode 
-                      ? 'text-green-400' 
-                      : 'text-white hover:opacity-70'
-                  }`}
-                  title={isInCaptionMode ? "Currently editing captions" : "Edit caption inline"}
-                  disabled={isInCaptionMode}
-                >
-                  <FaRegEdit className="w-4 h-4" />
-                </button>
-              </div>
-              {/* Right Column - EYE + CgViewList icons (4% width) */}
+              {/* Right Column - Hide + TextSelect icons (4% width) */}
               <div className="w-[4%] p-2 bg-transparent flex flex-col items-center justify-center space-y-2">
                 <button 
                   onClick={() => !isInCaptionMode && handleRowToggle(2)}
@@ -2659,38 +2609,11 @@ export default function Watch() {
             {/* Row 3: Auto-Gen - 38% height, always at bottom */}
             {showRow3 && getLayoutRowVisibility(currentLayout).showRow3 && (
               <div className="absolute bottom-0 left-0 right-0 flex border-2 border-white rounded-b-lg overflow-hidden h-[38%] transition-all duration-300">
-              {/* Left Column - Main Content (92% width) */}
-              <div className="w-[92%] p-2 bg-transparent border-r-2 border-white flex items-center">
+              {/* Left Column - Main Content (96% width) */}
+              <div className="w-[96%] p-2 bg-transparent border-r-2 border-white flex items-center">
                 <span className="text-white text-sm font-medium">Auto-Gen</span>
               </div>
-              {/* Middle Column - ADD + EDIT icons (4% width) */}
-              <div className="w-[4%] p-2 bg-transparent border-r-2 border-white flex flex-col items-center justify-center space-y-3">
-                <button 
-                  onClick={() => handleAddCaptionFromControlStrip(3)}
-                  className={`transition-opacity cursor-pointer ${
-                    isInCaptionMode 
-                      ? 'opacity-30 cursor-not-allowed' 
-                      : 'hover:opacity-70'
-                  }`}
-                  title={isInCaptionMode ? "Disabled while editing" : "Add new caption at current time"}
-                  disabled={isInCaptionMode}
-                >
-                  <FaPlus className="w-4 h-4 text-white" />
-                </button>
-                <button 
-                  onClick={() => handleInlineEditCaption(3)}
-                  className={`transition-colors cursor-pointer ${
-                    isInCaptionMode 
-                      ? 'text-gray-400' 
-                      : 'text-white hover:opacity-70'
-                  }`}
-                  title={isInCaptionMode ? "Currently editing captions" : "Edit caption inline"}
-                  disabled={isInCaptionMode}
-                >
-                  <FaRegEdit className="w-4 h-4" />
-                </button>
-              </div>
-              {/* Right Column - EYE + CgViewList icons (4% width) */}
+              {/* Right Column - Hide + TextSelect icons (4% width) */}
               <div className="w-[4%] p-2 bg-transparent flex flex-col items-center justify-center space-y-2">
                 <button 
                   onClick={() => !isInCaptionMode && handleRowToggle(3)}
