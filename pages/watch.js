@@ -5,10 +5,10 @@ import { useUser } from '../contexts/UserContext'
 import AuthModal from '../components/AuthModal'
 import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabase'
-import { FaHamburger, FaSearch, FaTimes, FaRegEye, FaRegEdit, FaPlus } from "react-icons/fa"
+import { FaHamburger, FaSearch, FaTimes, FaRegEdit, FaPlus } from "react-icons/fa"
 import { MdCancel } from "react-icons/md"
 import { TiDeleteOutline } from "react-icons/ti"
-import { CgViewList } from "react-icons/cg"
+
 import { IoText } from "react-icons/io5"
 import { IoMdPower } from "react-icons/io"
 import { RiLogoutCircleRLine } from "react-icons/ri"
@@ -16,7 +16,9 @@ import { TbGuitarPickFilled } from "react-icons/tb"
 import { MdFlipCameraAndroid } from "react-icons/md"
 import { ImLoop } from "react-icons/im"
 import { BsReverseLayoutSidebarInsetReverse, BsArrowsFullscreen } from "react-icons/bs"
-import { IoGameControllerOutline } from "react-icons/io5"
+import { BiHide } from "react-icons/bi"
+import { LuTextSelect } from "react-icons/lu"
+import { CiGrid31 } from "react-icons/ci"
 import TopBanner from '../components/TopBanner'
 import Header from '../components/Header'
 import MenuModal from '../components/MenuModal'
@@ -2534,7 +2536,7 @@ export default function Watch() {
                   title={isInCaptionMode ? "Disabled while editing" : "Hide this row"}
                   disabled={isInCaptionMode}
                 >
-                  <FaRegEye className="w-5 h-5 text-white" />
+                  <BiHide className="w-5 h-5 text-white" />
                 </button>
                 <button
                   data-testid="text-caption-edit"
@@ -2547,7 +2549,7 @@ export default function Watch() {
                   title={isInCaptionMode ? "Disabled while editing" : "Open caption editor modal"}
                   disabled={isInCaptionMode}
                 >
-                  <CgViewList className="w-5 h-5 text-white" />
+                  <LuTextSelect className="w-5 h-5 text-white" />
                 </button>
               </div>
             </div>
@@ -2601,7 +2603,7 @@ export default function Watch() {
                   title={isInCaptionMode ? "Disabled while editing" : "Hide this row"}
                   disabled={isInCaptionMode}
                 >
-                  <FaRegEye className="w-5 h-5 text-white" />
+                  <BiHide className="w-5 h-5 text-white" />
                 </button>
                 <button
                   data-testid="chord-caption-edit"
@@ -2614,7 +2616,7 @@ export default function Watch() {
                   title={isInCaptionMode ? "Disabled while editing" : "Open chord modal"}
                   disabled={isInCaptionMode}
                 >
-                  <CgViewList className="w-5 h-5 text-white" />
+                  <LuTextSelect className="w-5 h-5 text-white" />
                 </button>
               </div>
             </div>
@@ -2666,7 +2668,7 @@ export default function Watch() {
                   title={isInCaptionMode ? "Disabled while editing" : "Hide this row"}
                   disabled={isInCaptionMode}
                 >
-                  <FaRegEye className="w-5 h-5 text-white" />
+                  <BiHide className="w-5 h-5 text-white" />
                 </button>
                 <button 
                   onClick={() => !isInCaptionMode && handleCaptionEditClick(3)}
@@ -2678,7 +2680,7 @@ export default function Watch() {
                   title={isInCaptionMode ? "Disabled while editing" : "Open caption editor modal"}
                   disabled={isInCaptionMode}
                 >
-                  <CgViewList className="w-5 h-5 text-white" />
+                  <LuTextSelect className="w-5 h-5 text-white" />
                 </button>
               </div>
             </div>
@@ -2815,9 +2817,18 @@ export default function Watch() {
               style={{ padding: '5.5px' }}
               title={showControlStrips ? "Hide Control Strips" : "Show Control Strips"}
             >
-              <IoGameControllerOutline className="w-6 h-6" />
+              <BsReverseLayoutSidebarInsetReverse className="w-6 h-6 transform rotate-90" />
             </button>
-            
+
+            {/* Layout Selection Icon */}
+            <button
+              className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors duration-300"
+              title="Select Caption Layout"
+              onClick={() => console.log('Layout selection modal - coming soon!')}
+            >
+              <CiGrid31 className="w-6 h-6" />
+            </button>
+
             {/* Layout Icon */}
             <button className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors duration-300" title="Inline Search - under development">
               <BsReverseLayoutSidebarInsetReverse className="w-5 h-5" />
