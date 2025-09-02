@@ -11,7 +11,7 @@
     "grepInvert": null,
     "maxFailures": 0,
     "metadata": {
-      "actualWorkers": 2
+      "actualWorkers": 1
     },
     "preserveOutput": "always",
     "reporter": [
@@ -41,7 +41,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 2
+          "actualWorkers": 1
         },
         "id": "chromium",
         "name": "chromium",
@@ -50,14 +50,14 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 30000
+        "timeout": 60000
       },
       {
         "outputDir": "/Users/davidsparrow/Documents/guitartube/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 2
+          "actualWorkers": 1
         },
         "id": "firefox",
         "name": "firefox",
@@ -66,14 +66,14 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 30000
+        "timeout": 60000
       },
       {
         "outputDir": "/Users/davidsparrow/Documents/guitartube/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 2
+          "actualWorkers": 1
         },
         "id": "webkit",
         "name": "webkit",
@@ -82,14 +82,14 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 30000
+        "timeout": 60000
       },
       {
         "outputDir": "/Users/davidsparrow/Documents/guitartube/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 2
+          "actualWorkers": 1
         },
         "id": "Mobile Chrome",
         "name": "Mobile Chrome",
@@ -98,14 +98,14 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 30000
+        "timeout": 60000
       },
       {
         "outputDir": "/Users/davidsparrow/Documents/guitartube/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 2
+          "actualWorkers": 1
         },
         "id": "Mobile Safari",
         "name": "Mobile Safari",
@@ -114,14 +114,14 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 30000
+        "timeout": 60000
       },
       {
         "outputDir": "/Users/davidsparrow/Documents/guitartube/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 2
+          "actualWorkers": 1
         },
         "id": "Tablet",
         "name": "Tablet",
@@ -130,14 +130,14 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 30000
+        "timeout": 60000
       }
     ],
     "shard": null,
     "updateSnapshots": "missing",
     "updateSourceMethod": "patch",
     "version": "1.55.0",
-    "workers": 5,
+    "workers": 1,
     "webServer": null
   },
   "suites": [
@@ -155,12 +155,12 @@
           "column": 6,
           "specs": [
             {
-              "title": "Capture All Current UI States",
+              "title": "Performance Baseline",
               "ok": true,
               "tags": [],
               "tests": [
                 {
-                  "timeout": 30000,
+                  "timeout": 60000,
                   "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
@@ -170,127 +170,32 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 11428,
-                      "errors": [],
-                      "stdout": [
-                        {
-                          "text": "📸 Capturing baseline screenshots of current functionality...\n"
-                        },
-                        {
-                          "text": "✅ Video loaded successfully\n"
-                        },
-                        {
-                          "text": "🔄 Testing video flip control...\n"
-                        },
-                        {
-                          "text": "✅ Video flip control working\n"
-                        },
-                        {
-                          "text": "📝 Testing caption controls...\n"
-                        },
-                        {
-                          "text": "🎯 Found caption toggle button\n"
-                        },
-                        {
-                          "text": "⚠️ No caption area found - might require authentication\n"
-                        },
-                        {
-                          "text": "🔐 Found auth element: \"button[title=\"Start Me Up\"]\" (2 elements)\n"
-                        },
-                        {
-                          "text": "📱 Testing responsive design...\n"
-                        },
-                        {
-                          "text": "✅ desktop viewport captured\n"
-                        },
-                        {
-                          "text": "✅ tablet viewport captured\n"
-                        },
-                        {
-                          "text": "✅ mobile viewport captured\n"
-                        },
-                        {
-                          "text": "🔍 Analyzing page structure...\n"
-                        },
-                        {
-                          "text": "📊 Page structure analysis:\n"
-                        },
-                        {
-                          "text": "   - Buttons: 13\n"
-                        },
-                        {
-                          "text": "   - Video elements: 1\n"
-                        },
-                        {
-                          "text": "   - Modals: 0\n"
-                        },
-                        {
-                          "text": "   - Fixed positioned elements: 2\n"
-                        },
-                        {
-                          "text": "🔘 Button texts found: [ \u001b[32m''\u001b[39m, \u001b[32m''\u001b[39m, \u001b[32m''\u001b[39m, \u001b[32m''\u001b[39m, \u001b[32m''\u001b[39m, \u001b[32m''\u001b[39m, \u001b[32m''\u001b[39m, \u001b[32m''\u001b[39m, \u001b[32m'0:00 - 0:00'\u001b[39m, \u001b[32m''\u001b[39m ]\n"
-                        },
-                        {
-                          "text": "🎉 Baseline screenshot capture completed!\n"
-                        }
-                      ],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-09-02T00:34:02.816Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "ed17e86603532a30f21d-1ce65c81c3441f90c032",
-              "file": "baseline-screenshots.spec.js",
-              "line": 8,
-              "column": 7
-            },
-            {
-              "title": "Performance Baseline",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 5817,
+                      "duration": 5119,
                       "errors": [],
                       "stdout": [
                         {
                           "text": "⚡ Measuring performance baseline...\n"
                         },
                         {
-                          "text": "🔄 Load 1: 2021ms\n"
+                          "text": "🔄 Load 1: 2128ms\n"
                         },
                         {
-                          "text": "🔄 Load 2: 1449ms\n"
+                          "text": "🔄 Load 2: 1300ms\n"
                         },
                         {
-                          "text": "🔄 Load 3: 1272ms\n"
+                          "text": "🔄 Load 3: 1218ms\n"
                         },
                         {
                           "text": "📊 Performance Results:\n"
                         },
                         {
-                          "text": "   - Average: 1581ms\n"
+                          "text": "   - Average: 1549ms\n"
                         },
                         {
-                          "text": "   - Fastest: 1272ms\n"
+                          "text": "   - Fastest: 1218ms\n"
                         },
                         {
-                          "text": "   - Slowest: 2021ms\n"
+                          "text": "   - Slowest: 2128ms\n"
                         },
                         {
                           "text": "✅ Performance baseline established\n"
@@ -298,7 +203,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-09-02T00:34:02.816Z",
+                      "startTime": "2025-09-02T01:47:42.152Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -310,6 +215,316 @@
               "file": "baseline-screenshots.spec.js",
               "line": 157,
               "column": 7
+            },
+            {
+              "title": "Performance Baseline",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5531,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "⚡ Measuring performance baseline...\n"
+                        },
+                        {
+                          "text": "🔄 Load 1: 2119ms\n"
+                        },
+                        {
+                          "text": "🔄 Load 2: 1351ms\n"
+                        },
+                        {
+                          "text": "🔄 Load 3: 1350ms\n"
+                        },
+                        {
+                          "text": "📊 Performance Results:\n"
+                        },
+                        {
+                          "text": "   - Average: 1607ms\n"
+                        },
+                        {
+                          "text": "   - Fastest: 1350ms\n"
+                        },
+                        {
+                          "text": "   - Slowest: 2119ms\n"
+                        },
+                        {
+                          "text": "✅ Performance baseline established\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-02T01:47:47.723Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ed17e86603532a30f21d-d70e552ef97316e1a152",
+              "file": "baseline-screenshots.spec.js",
+              "line": 157,
+              "column": 7
+            },
+            {
+              "title": "Performance Baseline",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5061,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "⚡ Measuring performance baseline...\n"
+                        },
+                        {
+                          "text": "🔄 Load 1: 1953ms\n"
+                        },
+                        {
+                          "text": "🔄 Load 2: 1139ms\n"
+                        },
+                        {
+                          "text": "🔄 Load 3: 1198ms\n"
+                        },
+                        {
+                          "text": "📊 Performance Results:\n"
+                        },
+                        {
+                          "text": "   - Average: 1430ms\n"
+                        },
+                        {
+                          "text": "   - Fastest: 1139ms\n"
+                        },
+                        {
+                          "text": "   - Slowest: 1953ms\n"
+                        },
+                        {
+                          "text": "✅ Performance baseline established\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-02T01:47:54.408Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ed17e86603532a30f21d-5880f84ab03cb28d318f",
+              "file": "baseline-screenshots.spec.js",
+              "line": 157,
+              "column": 7
+            },
+            {
+              "title": "Performance Baseline",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4559,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "⚡ Measuring performance baseline...\n"
+                        },
+                        {
+                          "text": "🔄 Load 1: 1829ms\n"
+                        },
+                        {
+                          "text": "🔄 Load 2: 1190ms\n"
+                        },
+                        {
+                          "text": "🔄 Load 3: 1095ms\n"
+                        },
+                        {
+                          "text": "📊 Performance Results:\n"
+                        },
+                        {
+                          "text": "   - Average: 1371ms\n"
+                        },
+                        {
+                          "text": "   - Fastest: 1095ms\n"
+                        },
+                        {
+                          "text": "   - Slowest: 1829ms\n"
+                        },
+                        {
+                          "text": "✅ Performance baseline established\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-02T01:47:59.953Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ed17e86603532a30f21d-b839f7da14ad360bc6b1",
+              "file": "baseline-screenshots.spec.js",
+              "line": 157,
+              "column": 7
+            },
+            {
+              "title": "Performance Baseline",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5266,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "⚡ Measuring performance baseline...\n"
+                        },
+                        {
+                          "text": "🔄 Load 1: 2026ms\n"
+                        },
+                        {
+                          "text": "🔄 Load 2: 1056ms\n"
+                        },
+                        {
+                          "text": "🔄 Load 3: 1795ms\n"
+                        },
+                        {
+                          "text": "📊 Performance Results:\n"
+                        },
+                        {
+                          "text": "   - Average: 1626ms\n"
+                        },
+                        {
+                          "text": "   - Fastest: 1056ms\n"
+                        },
+                        {
+                          "text": "   - Slowest: 2026ms\n"
+                        },
+                        {
+                          "text": "✅ Performance baseline established\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-02T01:48:04.971Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ed17e86603532a30f21d-c824ccd58df565add48a",
+              "file": "baseline-screenshots.spec.js",
+              "line": 157,
+              "column": 7
+            },
+            {
+              "title": "Performance Baseline",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Tablet",
+                  "projectName": "Tablet",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4226,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "⚡ Measuring performance baseline...\n"
+                        },
+                        {
+                          "text": "🔄 Load 1: 1784ms\n"
+                        },
+                        {
+                          "text": "🔄 Load 2: 1134ms\n"
+                        },
+                        {
+                          "text": "🔄 Load 3: 1086ms\n"
+                        },
+                        {
+                          "text": "📊 Performance Results:\n"
+                        },
+                        {
+                          "text": "   - Average: 1335ms\n"
+                        },
+                        {
+                          "text": "   - Fastest: 1086ms\n"
+                        },
+                        {
+                          "text": "   - Slowest: 1784ms\n"
+                        },
+                        {
+                          "text": "✅ Performance baseline established\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-02T01:48:10.711Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ed17e86603532a30f21d-eb09256f0fb9874cfd40",
+              "file": "baseline-screenshots.spec.js",
+              "line": 157,
+              "column": 7
             }
           ]
         }
@@ -318,9 +533,9 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-09-02T00:34:02.459Z",
-    "duration": 12299.417,
-    "expected": 2,
+    "startTime": "2025-09-02T01:47:41.798Z",
+    "duration": 33263.749,
+    "expected": 6,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0

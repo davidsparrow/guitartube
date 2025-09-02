@@ -66,6 +66,7 @@ import {
 } from '../utils/videoPlayerUtils'
 import ChordCaptionModal from '../components/ChordCaptionModal'
 import { deleteAllChordCaptions, saveChordCaptions } from '../song_data_processing/chord_processing/ChordCaptionDatabase'
+import LayoutSelectionModal from '../components/LayoutSelectionModal'
 
 export default function Watch() {
 
@@ -92,6 +93,39 @@ export default function Watch() {
 
   // Page type for specialized watch experiences
   const [pageType, setPageType] = useState('default') // 'default', 'lyrics', 'chords', 'tabs', 'lyrics-chords', 'lyrics-tabs'
+
+  // Layout selection state
+  const [currentLayout, setCurrentLayout] = useState('default') // 'default' or layout IDs from modal
+  const [showLayoutModal, setShowLayoutModal] = useState(false)
+
+  // Helper function to determine which rows should be visible based on layout
+  const getLayoutRowVisibility = (layoutId) => {
+    switch (layoutId) {
+      case 'single-chords':
+        return { showRow1: false, showRow2: true, showRow3: false }
+      case 'single-tabs':
+        return { showRow1: false, showRow2: false, showRow3: true }
+      case 'chords-tabs':
+        return { showRow1: false, showRow2: true, showRow3: true }
+      case 'lyrics-chords':
+        return { showRow1: true, showRow2: true, showRow3: false }
+      case 'lyrics-tabs':
+        return { showRow1: true, showRow2: false, showRow3: true }
+      case 'tabs-chords':
+        return { showRow1: false, showRow2: true, showRow3: true }
+      case 'lyrics-chords-tabs':
+        return { showRow1: true, showRow2: true, showRow3: true }
+      case 'lyrics-tabs-chords':
+        return { showRow1: true, showRow2: true, showRow3: true }
+      case 'scroll-lyrics-chords':
+        return { showRow1: true, showRow2: true, showRow3: false }
+      case 'scroll-lyrics-tabs':
+        return { showRow1: true, showRow2: false, showRow3: true }
+      case 'default':
+      default:
+        return { showRow1: true, showRow2: true, showRow3: true }
+    }
+  }
   
   // Control strip states - Individual row visibility
   const [showControlStrips, setShowControlStrips] = useState(false)
@@ -2423,11 +2457,11 @@ export default function Watch() {
           <div className="h-full relative">
             
             {/* Row 1: Text Captions - 24% height, positioned from bottom */}
-            {showRow1 && (
+            {showRow1 && getLayoutRowVisibility(currentLayout).showRow1 && (
               <div className={`absolute left-0 right-0 flex border-2 border-white rounded-t-lg overflow-hidden h-[24%] transition-all duration-300 ${
-                showRow2 && showRow3 ? 'bottom-[76%]' : 
-                showRow2 ? 'bottom-[38%]' : 
-                showRow3 ? 'bottom-[38%]' : 'bottom-0'
+                (showRow2 && getLayoutRowVisibility(currentLayout).showRow2) && (showRow3 && getLayoutRowVisibility(currentLayout).showRow3) ? 'bottom-[76%]' :
+                (showRow2 && getLayoutRowVisibility(currentLayout).showRow2) ? 'bottom-[38%]' :
+                (showRow3 && getLayoutRowVisibility(currentLayout).showRow3) ? 'bottom-[38%]' : 'bottom-0'
               }`}>
               {/* Left Column - Main Content (92% width) */}
               <div className="w-[92%] p-2 bg-transparent border-r-2 border-white flex flex-col justify-center overflow-hidden">
@@ -2556,9 +2590,9 @@ export default function Watch() {
             )}
 
             {/* Row 2: Chords Captions - 38% height, positioned from bottom */}
-            {showRow2 && (
+            {showRow2 && getLayoutRowVisibility(currentLayout).showRow2 && (
               <div className={`absolute left-0 right-0 flex border-l-2 border-r-2 border-white overflow-hidden h-[38%] transition-all duration-300 ${
-                showRow3 ? 'bottom-[38%]' : 'bottom-0'
+                (showRow3 && getLayoutRowVisibility(currentLayout).showRow3) ? 'bottom-[38%]' : 'bottom-0'
               }`}>
               {/* Left Column - Main Content (92% width) */}
               <div className="w-[92%] p-2 bg-transparent border-r-2 border-white flex items-center">
@@ -2623,7 +2657,7 @@ export default function Watch() {
             )}
 
             {/* Row 3: Auto-Gen - 38% height, always at bottom */}
-            {showRow3 && (
+            {showRow3 && getLayoutRowVisibility(currentLayout).showRow3 && (
               <div className="absolute bottom-0 left-0 right-0 flex border-2 border-white rounded-b-lg overflow-hidden h-[38%] transition-all duration-300">
               {/* Left Column - Main Content (92% width) */}
               <div className="w-[92%] p-2 bg-transparent border-r-2 border-white flex items-center">
@@ -2817,14 +2851,14 @@ export default function Watch() {
               style={{ padding: '5.5px' }}
               title={showControlStrips ? "Hide Control Strips" : "Show Control Strips"}
             >
-              <BsReverseLayoutSidebarInsetReverse className="w-6 h-6 transform rotate-90" />
+              <BsReverseLayoutSidebarInsetReverse className="w-5 h-5 transform rotate-90" />
             </button>
 
             {/* Layout Selection Icon */}
             <button
               className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors duration-300"
               title="Select Caption Layout"
-              onClick={() => console.log('Layout selection modal - coming soon!')}
+              onClick={() => setShowLayoutModal(true)}
             >
               <CiGrid31 className="w-6 h-6" />
             </button>
@@ -3132,6 +3166,17 @@ export default function Watch() {
         isOpen={showMenuModal}
         onClose={() => setShowMenuModal(false)}
         onSupportClick={() => setShowSupportModal(true)}
+      />
+
+      {/* Layout Selection Modal */}
+      <LayoutSelectionModal
+        isOpen={showLayoutModal}
+        onClose={() => setShowLayoutModal(false)}
+        currentLayout={currentLayout}
+        onLayoutSelect={(layoutId) => {
+          setCurrentLayout(layoutId)
+          console.log(`🎨 Layout selected: ${layoutId}`)
+        }}
       />
     </div>
   )
