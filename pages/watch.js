@@ -87,6 +87,9 @@ export default function Watch() {
   const [showMobileSearch, setShowMobileSearch] = useState(false)
   const [player, setPlayer] = useState(null)
   const playerRef = useRef(null) // Add ref to track player instance
+
+  // Page type for specialized watch experiences
+  const [pageType, setPageType] = useState('default') // 'default', 'lyrics', 'chords', 'tabs', 'lyrics-chords', 'lyrics-tabs'
   
   // Control strip states - Individual row visibility
   const [showControlStrips, setShowControlStrips] = useState(false)
@@ -722,23 +725,37 @@ export default function Watch() {
         router.push('/')
       }
     } else if (mounted && router.isReady) {
-      const { v, title, channel } = router.query
+      const { v, title, channel, type } = router.query
       if (v && typeof v === 'string') {
-        
+
         setVideoId(v)
         setVideoTitle(title ? decodeURIComponent(title) : '')
         setVideoChannel(channel ? decodeURIComponent(channel) : '')
         setIsVideoReady(true)
-        
+
+        // Handle page type parameter for specialized experiences
+        if (type && typeof type === 'string') {
+          const validTypes = ['lyrics', 'chords', 'tabs', 'lyrics-chords', 'lyrics-tabs']
+          if (validTypes.includes(type)) {
+            setPageType(type)
+            console.log(`🎯 Specialized watch page: ${type}`)
+          } else {
+            setPageType('default')
+            console.warn(`⚠️ Invalid page type: ${type}, using default`)
+          }
+        } else {
+          setPageType('default')
+        }
+
         // Query daily watch time total when video loads
         if (user?.id) {
           // Video loaded - querying daily watch time total
           getDailyWatchTimeTotal()
-          
+
           // Check for saved session data to resume video
           checkForSavedSession(v)
         }
-        
+
 
       } else {
         // No video ID provided, redirecting to home
@@ -2297,7 +2314,7 @@ export default function Watch() {
   return (
     <div className="relative h-screen overflow-hidden bg-black">
       {/* Full-Screen Background */}
-      <div 
+      <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
           backgroundImage: `url('/images/gt_splashBG_dark.png')`,
@@ -2307,9 +2324,16 @@ export default function Watch() {
           minHeight: '100vh'
         }}
       />
-      
+
       {/* 75% Black Overlay */}
       <div className="absolute inset-0 bg-black/75 z-0" />
+
+      {/* Page Type Indicator for Specialized Pages */}
+      {pageType !== 'default' && (
+        <div className="fixed top-20 right-4 z-50 bg-blue-600/90 backdrop-blur-sm text-white px-3 py-1 rounded-lg text-sm font-medium shadow-lg">
+          {pageType.toUpperCase().replace('-', ' + ')}
+        </div>
+      )}
       
       {/* Top Banner - Admin controlled */}
       <TopBanner />
