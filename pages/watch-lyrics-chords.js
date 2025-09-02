@@ -1052,10 +1052,10 @@ export default function WatchLyricsChords() {
             // Toggle clicked
     
     if (newState) {
-      // When showing control strips, ensure ALL rows are visible for smallest video size
+      // When showing control strips, ensure ALL rows are visible for smallest video size (L-C layout)
       setShowRow1(true)
       setShowRow2(true)
-      setShowRow3(true)
+      // Row 3 not used in Lyrics + Chords layout
     }
     
     setShowControlStrips(newState)
@@ -1081,7 +1081,7 @@ export default function WatchLyricsChords() {
         setShowRow2(false)
         break
       case 3:
-        setShowRow3(false)
+        // Row 3 not used in Lyrics + Chords layout
         break
       default:
         break
@@ -1102,7 +1102,7 @@ export default function WatchLyricsChords() {
     
     setShowRow1(true)
     setShowRow2(true)
-    setShowRow3(true)
+    // Row 3 not used in Lyrics + Chords layout
   }
 
   // Handle favorite/unfavorite video
