@@ -1,10 +1,10 @@
 {
   "config": {
-    "configFile": "/Users/davidsparrow/Documents/guitartube-b/playwright.config.js",
-    "rootDir": "/Users/davidsparrow/Documents/guitartube-b/tests",
+    "configFile": "/Users/davidsparrow/Documents/guitartube/playwright.config.js",
+    "rootDir": "/Users/davidsparrow/Documents/guitartube/tests",
     "forbidOnly": false,
     "fullyParallel": true,
-    "globalSetup": "/Users/davidsparrow/Documents/guitartube-b/tests/global-setup.js",
+    "globalSetup": null,
     "globalTeardown": null,
     "globalTimeout": 0,
     "grep": {},
@@ -37,7 +37,7 @@
     "quiet": false,
     "projects": [
       {
-        "outputDir": "/Users/davidsparrow/Documents/guitartube-b/test-results",
+        "outputDir": "/Users/davidsparrow/Documents/guitartube/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -45,7 +45,7 @@
         },
         "id": "chromium",
         "name": "chromium",
-        "testDir": "/Users/davidsparrow/Documents/guitartube-b/tests",
+        "testDir": "/Users/davidsparrow/Documents/guitartube/tests",
         "testIgnore": [],
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
@@ -53,7 +53,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Users/davidsparrow/Documents/guitartube-b/test-results",
+        "outputDir": "/Users/davidsparrow/Documents/guitartube/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -61,7 +61,7 @@
         },
         "id": "firefox",
         "name": "firefox",
-        "testDir": "/Users/davidsparrow/Documents/guitartube-b/tests",
+        "testDir": "/Users/davidsparrow/Documents/guitartube/tests",
         "testIgnore": [],
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
@@ -69,7 +69,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Users/davidsparrow/Documents/guitartube-b/test-results",
+        "outputDir": "/Users/davidsparrow/Documents/guitartube/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -77,7 +77,7 @@
         },
         "id": "webkit",
         "name": "webkit",
-        "testDir": "/Users/davidsparrow/Documents/guitartube-b/tests",
+        "testDir": "/Users/davidsparrow/Documents/guitartube/tests",
         "testIgnore": [],
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
@@ -85,7 +85,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Users/davidsparrow/Documents/guitartube-b/test-results",
+        "outputDir": "/Users/davidsparrow/Documents/guitartube/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -93,7 +93,7 @@
         },
         "id": "Mobile Chrome",
         "name": "Mobile Chrome",
-        "testDir": "/Users/davidsparrow/Documents/guitartube-b/tests",
+        "testDir": "/Users/davidsparrow/Documents/guitartube/tests",
         "testIgnore": [],
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
@@ -101,7 +101,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Users/davidsparrow/Documents/guitartube-b/test-results",
+        "outputDir": "/Users/davidsparrow/Documents/guitartube/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -109,7 +109,7 @@
         },
         "id": "Mobile Safari",
         "name": "Mobile Safari",
-        "testDir": "/Users/davidsparrow/Documents/guitartube-b/tests",
+        "testDir": "/Users/davidsparrow/Documents/guitartube/tests",
         "testIgnore": [],
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
@@ -117,7 +117,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/Users/davidsparrow/Documents/guitartube-b/test-results",
+        "outputDir": "/Users/davidsparrow/Documents/guitartube/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -125,7 +125,7 @@
         },
         "id": "Tablet",
         "name": "Tablet",
-        "testDir": "/Users/davidsparrow/Documents/guitartube-b/tests",
+        "testDir": "/Users/davidsparrow/Documents/guitartube/tests",
         "testIgnore": [],
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
@@ -170,7 +170,7 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 11436,
+                      "duration": 11428,
                       "errors": [],
                       "stdout": [
                         {
@@ -236,7 +236,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-09-01T23:02:09.557Z",
+                      "startTime": "2025-09-02T00:34:02.816Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -265,32 +265,32 @@
                       "workerIndex": 1,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 6253,
+                      "duration": 5817,
                       "errors": [],
                       "stdout": [
                         {
                           "text": "⚡ Measuring performance baseline...\n"
                         },
                         {
-                          "text": "🔄 Load 1: 2364ms\n"
+                          "text": "🔄 Load 1: 2021ms\n"
                         },
                         {
-                          "text": "🔄 Load 2: 1553ms\n"
+                          "text": "🔄 Load 2: 1449ms\n"
                         },
                         {
-                          "text": "🔄 Load 3: 1564ms\n"
+                          "text": "🔄 Load 3: 1272ms\n"
                         },
                         {
                           "text": "📊 Performance Results:\n"
                         },
                         {
-                          "text": "   - Average: 1827ms\n"
+                          "text": "   - Average: 1581ms\n"
                         },
                         {
-                          "text": "   - Fastest: 1553ms\n"
+                          "text": "   - Fastest: 1272ms\n"
                         },
                         {
-                          "text": "   - Slowest: 2364ms\n"
+                          "text": "   - Slowest: 2021ms\n"
                         },
                         {
                           "text": "✅ Performance baseline established\n"
@@ -298,7 +298,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-09-01T23:02:09.555Z",
+                      "startTime": "2025-09-02T00:34:02.816Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -318,8 +318,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-09-01T23:01:49.441Z",
-    "duration": 32041.986,
+    "startTime": "2025-09-02T00:34:02.459Z",
+    "duration": 12299.417,
     "expected": 2,
     "skipped": 0,
     "unexpected": 0,

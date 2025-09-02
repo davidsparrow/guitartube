@@ -27,10 +27,10 @@ export default defineConfig({
   // Shared settings for all the projects below
   use: {
     // Base URL to use in actions like `await page.goto('/')`
-    baseURL: 'https://guitar-magic-mvp-1a-git-feature-b4c613-davids-projects-e32e946e.vercel.app?_vercel_share=g27uDyqbNDQ7TjNoNpoVTkYyUQIQp5AE',
+    baseURL: 'https://guitartube.vercel.app',
 
     // Use saved authentication state
-    storageState: 'tests/auth-state.json',
+    // storageState: "tests/auth-state.json",
 
     // Collect trace when retrying the failed test
     trace: 'on-first-retry',
@@ -94,7 +94,7 @@ export default defineConfig({
   ],
 
   // Global setup and teardown
-  globalSetup: require.resolve('./tests/global-setup.js'),
+  // globalSetup: require.resolve("./tests/global-setup-ui-auth.js"),
   
   // Folder for test artifacts such as screenshots, videos, traces, etc.
   outputDir: 'test-results/',

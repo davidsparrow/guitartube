@@ -1,15 +1,4 @@
 {
-  "cookies": [
-    {
-      "name": "_vercel_jwt",
-      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJieXBhc3MiOiJnMjd1RHlxYk5EUTdUak5vTnBvVlRrWXlVUUlRcDVBRSIsImF1ZCI6Imd1aXRhci1tYWdpYy1tdnAtMWEtZ2l0LWZlYXR1cmUtYjRjNjEzLWRhdmlkcy1wcm9qZWN0cy1lMzJlOTQ2ZS52ZXJjZWwuYXBwIiwiaWF0IjoxNzU2NzY3NzA5LCJzdWIiOiJwcm90ZWN0aW9uLWJ5cGFzcy11cmwifQ.R7Cqedia7hpntlesjx3pwyZnpeZWFQaAoVP4YEEIM48",
-      "domain": "guitar-magic-mvp-1a-git-feature-b4c613-davids-projects-e32e946e.vercel.app",
-      "path": "/",
-      "expires": 1757372509.707629,
-      "httpOnly": true,
-      "secure": true,
-      "sameSite": "Lax"
-    }
-  ],
+  "cookies": [],
   "origins": []
 }

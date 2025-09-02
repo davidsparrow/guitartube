@@ -1,7 +1,7 @@
 // tests/baseline-screenshots.spec.js - Capture baseline screenshots of current functionality
 import { test, expect } from '@playwright/test'
 
-const TEST_VIDEO_URL = `https://guitar-magic-mvp-1a-git-feature-b4c613-davids-projects-e32e946e.vercel.app/watch?v=ytwpFJ1uZYY&title=Covers%20Of%20Popular%20Songs%20-%20100%20Hits&channel=Music%20Brokers&_vercel_share=g27uDyqbNDQ7TjNoNpoVTkYyUQIQp5AE`
+const TEST_VIDEO_URL = `https://guitartube.vercel.app/watch?v=ytwpFJ1uZYY&title=Covers%20Of%20Popular%20Songs%20-%20100%20Hits&channel=Music%20Brokers`
 
 test.describe('Baseline Screenshots - Current Functionality', () => {
 

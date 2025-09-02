@@ -1,7 +1,7 @@
 // tests/comprehensive-test.spec.js - Complete test suite with all modals and interactions
 import { test, expect } from '@playwright/test'
 
-const TEST_VIDEO_URL = `https://guitar-magic-mvp-1a-git-feature-b4c613-davids-projects-e32e946e.vercel.app/watch?v=ytwpFJ1uZYY&title=Covers%20Of%20Popular%20Songs%20-%20100%20Hits&channel=Music%20Brokers&_vercel_share=g27uDyqbNDQ7TjNoNpoVTkYyUQIQp5AE`
+const TEST_VIDEO_URL = `https://guitartube.vercel.app/watch?v=ytwpFJ1uZYY&title=Covers%20Of%20Popular%20Songs%20-%20100%20Hits&channel=Music%20Brokers`
 
 test.describe('Comprehensive Watch Page Tests', () => {
 
