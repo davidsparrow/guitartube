@@ -70,7 +70,12 @@ export default function YouTubePlayerManager({
             rel: 0,
             showinfo: 0,
             fs: 0, // Disable YouTube's fullscreen button
-            origin: window.location.origin
+            origin: window.location.origin,
+            // Mobile-specific improvements
+            playsinline: 1, // Prevent fullscreen on mobile
+            enablejsapi: 1, // Enable JavaScript API for better control
+            disablekb: 0, // Keep keyboard controls enabled
+            iv_load_policy: 3 // Hide video annotations
           },
           events: {
             onReady: (event) => {
@@ -152,9 +157,16 @@ export default function YouTubePlayerManager({
       transition: 'height 0.3s ease-in-out'
     }}>
       {/* YouTube Player Container */}
-      <div 
+      <div
         className="w-full h-full bg-black rounded-lg overflow-hidden shadow-2xl"
-        style={getFlipStyles()}
+        style={{
+          ...getFlipStyles(),
+          // Improve mobile touch interaction
+          touchAction: 'manipulation',
+          WebkitTouchCallout: 'none',
+          WebkitUserSelect: 'none',
+          userSelect: 'none'
+        }}
       >
         {youtubeAPILoading && (
           <div className="w-full h-full flex items-center justify-center bg-gray-900">
@@ -176,7 +188,15 @@ export default function YouTubePlayerManager({
         )}
         
         {!youtubeAPILoading && !youtubeAPIError && (
-          <div id="youtube-player" className="w-full h-full"></div>
+          <div
+            id="youtube-player"
+            className="w-full h-full"
+            style={{
+              // Ensure proper mobile touch handling
+              pointerEvents: 'auto',
+              touchAction: 'manipulation'
+            }}
+          ></div>
         )}
       </div>
       
