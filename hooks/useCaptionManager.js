@@ -412,17 +412,9 @@ export default function useCaptionManager({
   // Handle adding new caption from timeline (works with empty captions)
   const handleAddCaptionFromTimeline = async (accessControlParams) => {
     const {
-      canAccessLoops,
-      planType,
-      isVideoFavorited,
-      handleFavoriteToggle,
       showCustomAlertModal,
       hideCustomAlertModal,
-      getAdminMessage,
-      isVideoPlayingFromUtils,
       player,
-      showVideoPlayingRestrictionFromUtils,
-      isPlayerReadyFromUtils,
       videoId,
       user,
       setIsLoadingCaptions,
@@ -432,65 +424,94 @@ export default function useCaptionManager({
 
     console.log('➕ Adding new caption from timeline')
 
-    // Check access permissions
-    if (!canAccessLoops()) {
-      if (planType === 'freebird') {
-        showCustomAlertModal(getAdminMessage('plan_upgrade_message', '🔒 Captions require a paid plan. Please upgrade to access this feature.'), [
-          { text: 'UPGRADE PLAN', action: () => window.open('/pricing', '_blank') },
-          { text: 'OK', action: hideCustomAlertModal }
-        ])
-        return
-      }
-      if (!isVideoFavorited) {
-        showCustomAlertModal(getAdminMessage('save_to_favorites_message', '⭐ Please save this video to favorites before editing captions.'), [
-          { text: 'SAVE TO FAVORITES', action: () => { hideCustomAlertModal(); handleFavoriteToggle(); } },
-          { text: 'OK', action: hideCustomAlertModal }
-        ])
-        return
-      }
-      return
-    }
-
-    // Check if video is playing
-    if (isVideoPlayingFromUtils(player)) {
-      showVideoPlayingRestrictionFromUtils({
-        getAdminMessage,
-        showCustomAlertModal,
-        hideCustomAlertModal
-      })
-      return
-    }
-
-    if (!player || !isPlayerReadyFromUtils(player)) {
-      console.error('❌ Player not ready for caption creation')
-      return
-    }
-
     const currentTime = player.getCurrentTime()
     console.log('🎯 Current video time:', currentTime)
+
+    // RULE 4: Smart caption placement with forward search
+    let startTime = currentTime
+    let endTime = currentTime + (userDefaultCaptionDuration || 10)
 
     // Check if caption already exists at current time for text captions (rowType 1)
     const currentCaption = captions.find(caption => {
       const captionStart = timeToSeconds(caption.startTime)
       const captionEnd = timeToSeconds(caption.endTime)
-      return currentTime >= captionStart && currentTime <= captionEnd && caption.rowType === 1
+      return startTime >= captionStart && endTime <= captionEnd && caption.rowType === 1
     })
 
     if (currentCaption) {
-      console.log('⚠️ Caption already exists at current time')
-      showCustomAlertModal('Caption already exists at this time', [
-        { text: 'OK', action: hideCustomAlertModal }
-      ])
-      return
-    }
+      console.log('🔍 Collision detected at current time, searching forward...')
 
-    // Use utility function for smart duration calculation
-    const { startTime, endTime } = calculateSmartCaptionDuration(
-      currentTime,
-      captions,
-      userDefaultCaptionDuration,
-      player.getDuration ? player.getDuration() : 0
-    )
+      // Find next available space by starting at the end of overlapping caption
+      const overlappingCaptions = captions
+        .filter(caption => caption.rowType === 1)
+        .map(caption => ({
+          start: timeToSeconds(caption.startTime),
+          end: timeToSeconds(caption.endTime)
+        }))
+        .sort((a, b) => a.start - b.start)
+
+      // Try starting at the end of the current overlapping caption
+      const overlappingCaption = overlappingCaptions.find(cap =>
+        currentTime >= cap.start && currentTime <= cap.end
+      )
+
+      if (overlappingCaption) {
+        startTime = overlappingCaption.end
+        endTime = startTime + (userDefaultCaptionDuration || 10)
+        console.log(`🔄 Trying to start at end of overlapping caption: ${startTime}s`)
+      }
+
+      // Check if this new position still has conflicts, search forward
+      let searchAttempts = 0
+      const maxSearchAttempts = 50 // Prevent infinite loops
+      const videoDuration = player.getDuration ? player.getDuration() : 0
+
+      while (searchAttempts < maxSearchAttempts) {
+        // Check if current position conflicts with any existing caption
+        const hasConflict = overlappingCaptions.some(cap =>
+          (startTime >= cap.start && startTime < cap.end) ||
+          (endTime > cap.start && endTime <= cap.end) ||
+          (startTime <= cap.start && endTime >= cap.end)
+        )
+
+        if (!hasConflict) {
+          // Found a good spot!
+          console.log(`✅ Found available space at ${startTime}s - ${endTime}s`)
+          break
+        }
+
+        // Move to next potential position (end of next conflicting caption)
+        const nextConflict = overlappingCaptions.find(cap => cap.start >= startTime)
+        if (nextConflict) {
+          startTime = nextConflict.end
+          endTime = startTime + (userDefaultCaptionDuration || 10)
+          console.log(`🔄 Moving to next position: ${startTime}s`)
+        } else {
+          // No more captions ahead, try moving forward by user duration
+          startTime = endTime
+          endTime = startTime + (userDefaultCaptionDuration || 10)
+        }
+
+        // Check if we're near end of video
+        if (videoDuration > 0 && endTime > videoDuration) {
+          console.error(`❌ Cannot find ${userDefaultCaptionDuration || 10} seconds of space`)
+          showCustomAlertModal(`Cannot find ${userDefaultCaptionDuration || 10} seconds of space to add a new Caption`, [
+            { text: 'OK', action: hideCustomAlertModal }
+          ])
+          return
+        }
+
+        searchAttempts++
+      }
+
+      if (searchAttempts >= maxSearchAttempts) {
+        console.error('❌ Could not find available space after maximum search attempts')
+        showCustomAlertModal('Could not find available space for new caption', [
+          { text: 'OK', action: hideCustomAlertModal }
+        ])
+        return
+      }
+    }
 
     // Convert to MM:SS format
     const startTimeString = formatSecondsToTime(startTime)

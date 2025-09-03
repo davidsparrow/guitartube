@@ -1233,17 +1233,9 @@ export default function Watch() {
   // Handle adding new caption from timeline - NOW PROVIDED BY useCaptionManager HOOK
   const handleAddCaptionFromTimeline = () => {
     handleAddCaptionFromTimelineHook({
-      canAccessLoops,
-      planType,
-      isVideoFavorited,
-      handleFavoriteToggle,
       showCustomAlertModal,
       hideCustomAlertModal,
-      getAdminMessage,
-      isVideoPlayingFromUtils,
       player,
-      showVideoPlayingRestrictionFromUtils,
-      isPlayerReadyFromUtils,
       videoId,
       user,
       setIsLoadingCaptions,
