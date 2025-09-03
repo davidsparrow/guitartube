@@ -106,7 +106,7 @@ export default function Watch() {
     isPlaying,
     formatTime,
     parseTime
-  } = useYouTubePlayer(handlePlayerStateChange)
+  } = useYouTubePlayer()
 
   // Page type for specialized watch experiences
   const [pageType, setPageType] = useState('default') // 'default', 'lyrics', 'chords', 'tabs', 'lyrics-chords', 'lyrics-tabs'
