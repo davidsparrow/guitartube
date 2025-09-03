@@ -8,7 +8,7 @@ import { FaSearch, FaTimes } from "react-icons/fa"
 import { TbGuitarPick, TbGuitarPickFilled } from "react-icons/tb"
 import { VscDebugRestart } from "react-icons/vsc"
 
-export default function Header({
+export default function Header({ 
   showBrainIcon = false,
   showSearchIcon = false,
   logoImage = "/images/gt_logo_wide_on_black_450x90.png",
@@ -26,7 +26,7 @@ export default function Header({
   sortOrder = 'relevance',
   showFavoritesOnly = false,
   savedSession = null,
-  // Resume functionality props
+  // Resume icon props
   showResumeIcon = false,
   onResumeIconClick = () => {},
   userProfile = null,
@@ -89,11 +89,9 @@ export default function Header({
               {showResumeIcon && (
                 <button
                   onClick={() => {
-                    // Check if user has paid plan (roadie or hero)
                     if (userProfile?.subscription_tier === 'roadie' || userProfile?.subscription_tier === 'hero') {
                       onResumeIconClick()
                     } else {
-                      // Show paid plan alert for free users
                       onResumeIconClick('show_plan_alert')
                     }
                   }}
@@ -348,11 +346,9 @@ export default function Header({
               {showResumeIcon && (
                 <button
                   onClick={() => {
-                    // Check if user has paid plan (roadie or hero)
                     if (userProfile?.subscription_tier === 'roadie' || userProfile?.subscription_tier === 'hero') {
                       onResumeIconClick()
                     } else {
-                      // Show paid plan alert for free users
                       onResumeIconClick('show_plan_alert')
                     }
                   }}
@@ -430,11 +426,9 @@ export default function Header({
             {showResumeIcon && (
               <button
                 onClick={() => {
-                  // Check if user has paid plan (roadie or hero)
                   if (userProfile?.subscription_tier === 'roadie' || userProfile?.subscription_tier === 'hero') {
                     onResumeIconClick()
                   } else {
-                    // Show paid plan alert for free users
                     onResumeIconClick('show_plan_alert')
                   }
                 }}
