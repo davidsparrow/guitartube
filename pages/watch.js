@@ -381,34 +381,7 @@ export default function Watch() {
     }
   }
 
-  // Monitor player state for resume session functionality
-  useEffect(() => {
-    if (!player || !isVideoReady || !user?.id) return
-
-    let lastState = null
-    const checkPlayerState = () => {
-      try {
-        if (player.getPlayerState && typeof player.getPlayerState === 'function') {
-          const currentState = player.getPlayerState()
-
-          // If state changed from playing (1) to paused (2), save session
-          if (lastState === 1 && currentState === 2) {
-            console.log('🔄 Video paused - triggering session save...')
-            saveSessionOnPause()
-          }
-
-          lastState = currentState
-        }
-      } catch (error) {
-        console.error('Error checking player state:', error)
-      }
-    }
-
-    // Check player state every second
-    const interval = setInterval(checkPlayerState, 1000)
-
-    return () => clearInterval(interval)
-  }, [player, isVideoReady, user?.id, saveSessionOnPause])
+  // Resume session save functionality integrated into existing watch time tracking system below
 
   // Basic Supabase database operations
   const saveFavorite = async (videoData) => {
