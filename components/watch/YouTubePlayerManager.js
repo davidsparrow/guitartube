@@ -210,12 +210,14 @@ export default function YouTubePlayerManager({
   }
 
   return (
-    <div className="relative z-10 overflow-hidden px-6 mt-20" style={{ 
+    <div className="relative z-10 overflow-hidden px-6 mt-20" style={{
       height: getVideoHeight(),
       transition: 'height 0.3s ease-in-out'
     }}>
       {/* YouTube Player Container */}
       <div
+        id="video-container"
+        data-testid="video-container"
         className="w-full h-full bg-black rounded-lg overflow-hidden shadow-2xl"
         style={{
           ...getFlipStyles(),
