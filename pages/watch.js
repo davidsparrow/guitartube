@@ -66,6 +66,8 @@ import YouTubePlayerManager from '../components/watch/YouTubePlayerManager'
 import useYouTubePlayer from '../hooks/useYouTubePlayer'
 import CaptionManager from '../components/watch/CaptionManager'
 import useCaptionManager from '../hooks/useCaptionManager'
+import LoopManager from '../components/watch/LoopManager'
+import useLoopManager from '../hooks/useLoopManager'
 
 export default function Watch() {
 
@@ -151,13 +153,28 @@ export default function Watch() {
   // Video flip states
   const [flipState, setFlipState] = useState('normal') // 'normal', 'horizontal', 'vertical'
   
-  // Loop segment states
-  const [isLoopActive, setIsLoopActive] = useState(false)
-  const [loopStartTime, setLoopStartTime] = useState('0:00')
-  const [loopEndTime, setLoopEndTime] = useState('0:00')
-  const [showLoopModal, setShowLoopModal] = useState(false)
-  const [tempLoopStart, setTempLoopStart] = useState('0:00')
-  const [tempLoopEnd, setTempLoopEnd] = useState('0:00')
+  // Loop management via custom hook
+  const {
+    isLoopActive,
+    setIsLoopActive,
+    loopStartTime,
+    setLoopStartTime,
+    loopEndTime,
+    setLoopEndTime,
+    showLoopModal,
+    setShowLoopModal,
+    tempLoopStart,
+    setTempLoopStart,
+    tempLoopEnd,
+    setTempLoopEnd,
+    resetLoopState,
+    startLoop,
+    stopLoop,
+    openLoopModal,
+    closeLoopModal,
+    applyLoopSettings,
+    cancelLoopSettings
+  } = useLoopManager()
   
   // Fullscreen state
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -205,6 +222,26 @@ export default function Watch() {
   })
 
   const [userDefaultCaptionDuration, setUserDefaultCaptionDuration] = useState(10) // User's preferred caption duration in seconds
+
+  // Loop management component
+  const loopManager = LoopManager({
+    player,
+    isLoopActive,
+    setIsLoopActive,
+    loopStartTime,
+    setLoopStartTime,
+    loopEndTime,
+    setLoopEndTime,
+    showLoopModal,
+    setShowLoopModal,
+    tempLoopStart,
+    setTempLoopStart,
+    tempLoopEnd,
+    setTempLoopEnd,
+    checkDailyWatchTimeLimits,
+    currentDailyTotal,
+    onUnfavoriteCleanup: resetLoopState
+  })
   
   // 🎸 CHORD CAPTION SYSTEM STATE VARIABLES 🎸
   // =============================================
@@ -1112,10 +1149,8 @@ export default function Watch() {
 
         // TODO: Delete loop records from Supabase
         
-        // Reset loop state
-        setIsLoopActive(false)
-        setLoopStartTime('0:00')
-        setLoopEndTime('0:00')
+        // Reset loop state - NOW HANDLED BY LoopManager
+        loopManager.handleUnfavoriteCleanup()
         
 
       } else {
@@ -2054,8 +2089,10 @@ export default function Watch() {
     }
   }
 
-  // Loop modal handlers
-  const handleLoopClick = () => {
+  // Loop modal handlers - NOW PROVIDED BY LoopManager COMPONENT
+  const handleLoopClick = loopManager.handleLoopClick
+  /*
+  const handleLoopClick_OLD = () => {
     // Check daily watch time limits before allowing loop feature
     if (!checkDailyWatchTimeLimits(currentDailyTotal, { returnBoolean: true })) {
       // Loop access blocked - daily limit exceeded
@@ -2092,8 +2129,11 @@ export default function Watch() {
       setShowLoopModal(true)
     }
   }
+  */
 
-  const handleLoopTimesClick = () => {
+  const handleLoopTimesClick = loopManager.handleLoopTimesClick
+  /*
+  const handleLoopTimesClick_OLD = () => {
     // Check daily watch time limits before allowing loop feature
     if (!checkDailyWatchTimeLimits(currentDailyTotal, { returnBoolean: true })) {
       // Loop access blocked - daily limit exceeded
@@ -2124,8 +2164,11 @@ export default function Watch() {
     setTempLoopEnd(loopEndTime)
     setShowLoopModal(true)
   }
+  */
 
-  const handleSaveLoop = () => {
+  const handleSaveLoop = loopManager.handleSaveLoop
+  /*
+  const handleSaveLoop_OLD = () => {
     // Update the actual loop times
     setLoopStartTime(tempLoopStart)
     setLoopEndTime(tempLoopEnd)
@@ -2153,16 +2196,22 @@ export default function Watch() {
       }
     }
   }
+  */
 
-  const handleCancelLoop = () => {
+  const handleCancelLoop = loopManager.handleCancelLoop
+  /*
+  const handleCancelLoop_OLD = () => {
     // Just close modal, don't start loop or update times
     setShowLoopModal(false)
             // Loop configuration cancelled
   }
+  */
 
+  // Loop timing effect - NOW HANDLED BY LoopManager COMPONENT
+  // The LoopManager component includes the useEffect for loop timing
 
-
-  // Check if video should loop (runs every second when loop is active)
+  /*
+  // OLD: Check if video should loop (runs every second when loop is active)
   useEffect(() => {
     if (!isLoopActive || !player || !isPlayerReadyFromUtils(player)) return
 
@@ -2193,6 +2242,7 @@ export default function Watch() {
 
     return () => clearInterval(loopInterval)
   }, [isLoopActive, player, loopStartTime, loopEndTime])
+  */
 
   // Effect to auto-sort captions by start time
   useEffect(() => {
