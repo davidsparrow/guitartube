@@ -259,8 +259,8 @@ export default function Watch() {
               // Save blocked: No user ID
       return
     }
-    if (!playerRef.current) {
-              // Save blocked: No player ref
+    if (!player) {
+              // Save blocked: No player instance
       return
     }
     if (!isVideoReady) {
@@ -276,13 +276,14 @@ export default function Watch() {
     
     try {
 
-      const currentTime = playerRef.current.getCurrentTime()
+      const currentTime = getCurrentTime()
               // Current time
-      
-      const videoTitle = playerRef.current.getVideoData().title || videoTitle
+
+      const videoData = player.getVideoData ? player.getVideoData() : {}
+      const videoTitleFromPlayer = videoData.title || videoTitle
               // Video title
-      
-      const channelName = playerRef.current.getVideoData().author || videoChannel
+
+      const channelName = videoData.author || videoChannel
               // Channel name
       
 
@@ -848,18 +849,8 @@ export default function Watch() {
     }
   }
 
-  // Video player functions
-  const handleVideoReady = (event, playerInstance) => {
-    // Use utility function for video ready handling
-    handleVideoReadyFromUtils(event, playerInstance, {
-      setIsVideoReady,
-      setPlayer,
-      setPlayerRef: (player) => { playerRef.current = player },
-      captureVideoParameters,
-      videoTitle,
-      videoChannel
-    })
-  }
+  // Video player functions (now handled by YouTubePlayerManager)
+  // These functions are kept for compatibility with existing utility functions
 
   const handleVideoError = (error) => {
     // Use utility function for video error handling
@@ -895,7 +886,7 @@ export default function Watch() {
   const resumeVideo = (timestamp) => {
     // Use utility function for resuming video
     resumeVideoFromUtils(timestamp, {
-      playerRef,
+      playerRef: { current: player },
       hideCustomAlertModal
     })
   }
@@ -904,7 +895,7 @@ export default function Watch() {
   const startFromBeginning = () => {
     // Use utility function for starting video from beginning
     startFromBeginningFromUtils({
-      playerRef,
+      playerRef: { current: player },
       hideCustomAlertModal
     })
   }
@@ -929,9 +920,9 @@ export default function Watch() {
       if (user?.id) {
 
         
-        // Use the ref for immediate access to the player instance
-        if (playerRef.current && playerRef.current.getPlayerState && typeof playerRef.current.getPlayerState === 'function') {
-  
+        // Use the player instance for immediate access
+        if (player && player.getPlayerState && typeof player.getPlayerState === 'function') {
+
           console.log('🔄 Triggering session save on pause...')
           saveSessionOnPause()
         } else {
