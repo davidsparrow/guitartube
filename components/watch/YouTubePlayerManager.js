@@ -264,13 +264,7 @@ export default function YouTubePlayerManager({
     isReady: () => !!playerRef.current && typeof playerRef.current.getCurrentTime === 'function'
   }
 
-  console.log('🎬 YouTubePlayerManager rendering with:', {
-    videoId,
-    youtubeAPILoading,
-    youtubeAPIError,
-    player: !!player,
-    showControlStrips
-  })
+  // Component is rendering properly
 
   return (
     <div className="relative z-10 overflow-hidden px-6 mt-20" style={{
@@ -351,11 +345,7 @@ export default function YouTubePlayerManager({
             style={{
               // Ensure proper mobile touch handling
               pointerEvents: 'auto',
-              touchAction: 'manipulation',
-              // DEBUG: Add visible border to see if element exists
-              border: '2px solid red',
-              minHeight: '200px',
-              backgroundColor: 'rgba(255, 0, 0, 0.1)'
+              touchAction: 'manipulation'
             }}
           ></div>
         )}
