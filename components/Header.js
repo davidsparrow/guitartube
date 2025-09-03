@@ -8,7 +8,7 @@ import { FaSearch, FaTimes } from "react-icons/fa"
 import { TbGuitarPick, TbGuitarPickFilled } from "react-icons/tb"
 import { VscDebugRestart } from "react-icons/vsc"
 
-export default function Header({ 
+export default function Header({
   showBrainIcon = false,
   showSearchIcon = false,
   logoImage = "/images/gt_logo_wide_on_black_450x90.png",
@@ -26,6 +26,10 @@ export default function Header({
   sortOrder = 'relevance',
   showFavoritesOnly = false,
   savedSession = null,
+  // Resume functionality props
+  showResumeIcon = false,
+  onResumeIconClick = () => {},
+  userProfile = null,
   // Standard props
   onAuthClick,
   onMenuClick,
@@ -80,7 +84,26 @@ export default function Header({
                   <LuBrain className="w-5 h-5 group-hover:text-yellow-400 transition-colors" />
                 </button>
               )}
-              
+
+              {/* Resume Icon Button - Conditional */}
+              {showResumeIcon && (
+                <button
+                  onClick={() => {
+                    // Check if user has paid plan (roadie or hero)
+                    if (userProfile?.subscription_tier === 'roadie' || userProfile?.subscription_tier === 'hero') {
+                      onResumeIconClick()
+                    } else {
+                      // Show paid plan alert for free users
+                      onResumeIconClick('show_plan_alert')
+                    }
+                  }}
+                  className="p-2 rounded-lg transition-colors duration-300 relative group text-white hover:bg-white/10"
+                  title="Resume Last Video"
+                >
+                  <VscDebugRestart className="w-6 h-6 group-hover:text-yellow-400 transition-colors" />
+                </button>
+              )}
+
               {/* Search Icon Button - Conditional */}
               {showSearchIcon && (
                 <button
@@ -320,7 +343,26 @@ export default function Header({
                   <LuBrain className="w-5 h-5 group-hover:text-yellow-400 transition-colors" />
                 </button>
               )}
-              
+
+              {/* Resume Icon Button - Conditional */}
+              {showResumeIcon && (
+                <button
+                  onClick={() => {
+                    // Check if user has paid plan (roadie or hero)
+                    if (userProfile?.subscription_tier === 'roadie' || userProfile?.subscription_tier === 'hero') {
+                      onResumeIconClick()
+                    } else {
+                      // Show paid plan alert for free users
+                      onResumeIconClick('show_plan_alert')
+                    }
+                  }}
+                  className="p-2 rounded-lg transition-colors duration-300 relative group text-white hover:bg-white/10"
+                  title="Resume Last Video"
+                >
+                  <VscDebugRestart className="w-6 h-6 group-hover:text-yellow-400 transition-colors" />
+                </button>
+              )}
+
               {/* Search Icon Button - Conditional */}
               {showSearchIcon && (
                 <button
@@ -383,7 +425,26 @@ export default function Header({
                 <LuBrain className="w-5 h-5 group-hover:text-yellow-400 transition-colors" />
               </button>
             )}
-            
+
+            {/* Resume Icon Button - Conditional */}
+            {showResumeIcon && (
+              <button
+                onClick={() => {
+                  // Check if user has paid plan (roadie or hero)
+                  if (userProfile?.subscription_tier === 'roadie' || userProfile?.subscription_tier === 'hero') {
+                    onResumeIconClick()
+                  } else {
+                    // Show paid plan alert for free users
+                    onResumeIconClick('show_plan_alert')
+                  }
+                }}
+                className="p-2 rounded-lg transition-colors duration-300 relative group text-white hover:bg-white/10"
+                title="Resume Last Video"
+              >
+                <VscDebugRestart className="w-6 h-6 group-hover:text-yellow-400 transition-colors" />
+              </button>
+            )}
+
             {/* Search Icon Button - Conditional */}
             {showSearchIcon && (
               <button

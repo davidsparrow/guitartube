@@ -123,10 +123,20 @@ export default function Home() {
       <TopBanner />
       
       {/* Header Component */}
-      <Header 
+      <Header
         showBrainIcon={true}
         showSearchIcon={false}
         logoImage="/images/gt_logoM_PlayButton.png"
+        showResumeIcon={true}
+        userProfile={profile}
+        onResumeIconClick={(action) => {
+          if (action === 'show_plan_alert') {
+            setShowPlanSelectionAlert(true)
+          } else {
+            // Navigate to search page where resume functionality exists
+            router.push('/search')
+          }
+        }}
         onAuthClick={handleAuthClick}
         onMenuClick={() => setShowMenuModal(true)}
         isAuthenticated={isAuthenticated}
