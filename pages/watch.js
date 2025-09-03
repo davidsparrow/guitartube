@@ -64,6 +64,8 @@ import { deleteAllChordCaptions, saveChordCaptions } from '../song_data_processi
 import LayoutSelectionModal from '../components/LayoutSelectionModal'
 import YouTubePlayerManager from '../components/watch/YouTubePlayerManager'
 import useYouTubePlayer from '../hooks/useYouTubePlayer'
+import CaptionManager from '../components/watch/CaptionManager'
+import useCaptionManager from '../hooks/useCaptionManager'
 
 export default function Watch() {
 
@@ -164,20 +166,39 @@ export default function Watch() {
   const [isVideoFavorited, setIsVideoFavorited] = useState(false)
   const [showUnfavoriteWarning, setShowUnfavoriteWarning] = useState(false)
   
-  // Caption management states
-  const [showCaptionModal, setShowCaptionModal] = useState(false)
-  const [captions, setCaptions] = useState([])
-  
-  // Create a wrapped setCaptions that logs all calls
+  // Caption management via custom hook
+  const {
+    captions,
+    setCaptions,
+    isInCaptionMode,
+    setIsInCaptionMode,
+    editingCaptionId,
+    setEditingCaptionId,
+    originalCaptionsSnapshot,
+    setOriginalCaptionsSnapshot,
+    showCaptionModal,
+    setShowCaptionModal,
+    editingCaption,
+    setEditingCaption,
+    isAddingNewCaption,
+    setIsAddingNewCaption,
+    conflictRowIndex,
+    setConflictRowIndex,
+    showDeleteConfirm,
+    setShowDeleteConfirm,
+    captionToDelete,
+    setCaptionToDelete,
+    handleSaveCaptions,
+    handleCancelCaptions,
+    handleDuplicateCaption,
+    handleDeleteCaption
+  } = useCaptionManager({
+    videoId,
+    user,
+    setIsLoadingCaptions,
+    setDbError
+  })
 
-  const [editingCaption, setEditingCaption] = useState(null)
-  const [isAddingNewCaption, setIsAddingNewCaption] = useState(false)
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const [captionToDelete, setCaptionToDelete] = useState(null)
-  const [conflictRowIndex, setConflictRowIndex] = useState(-1)
-  const [isInCaptionMode, setIsInCaptionMode] = useState(false)
-  const [editingCaptionId, setEditingCaptionId] = useState(null)
-  const [originalCaptionsSnapshot, setOriginalCaptionsSnapshot] = useState(null) // Store original state when modal opens
   const [userDefaultCaptionDuration, setUserDefaultCaptionDuration] = useState(10) // User's preferred caption duration in seconds
   
   // 🎸 CHORD CAPTION SYSTEM STATE VARIABLES 🎸
@@ -1626,8 +1647,8 @@ export default function Watch() {
             // Entering inline edit mode for caption
   }
 
-  // Handle saving captions
-  const handleSaveCaptions = async () => {
+  // Handle saving captions - NOW PROVIDED BY useCaptionManager HOOK
+  // const handleSaveCaptions = async () => {
     // Sort captions by start time
     const sortedCaptions = [...captions].sort((a, b) => {
       const aStart = timeToSeconds(a.startTime)
@@ -1751,13 +1772,13 @@ export default function Watch() {
     }
     
     // Close modal
-    setShowCaptionModal(false)
-    setEditingCaption(null)
-    setIsAddingNewCaption(false)
-  }
+    // setShowCaptionModal(false)
+    // setEditingCaption(null)
+    // setIsAddingNewCaption(false)
+  // } // END OF OLD handleSaveCaptions - NOW PROVIDED BY HOOK
 
-  // Handle canceling caption editing
-  const handleCancelCaptions = () => {
+  // Handle canceling caption editing - NOW PROVIDED BY useCaptionManager HOOK
+  // const handleCancelCaptions = () => {
     // Revert all changes back to original state when modal was opened
     if (originalCaptionsSnapshot) {
       setCaptions(JSON.parse(JSON.stringify(originalCaptionsSnapshot)))
