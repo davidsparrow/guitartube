@@ -1029,9 +1029,10 @@ export default function Watch() {
 
   // Resume video at saved timestamp
   const resumeVideo = (timestamp) => {
+    console.log(`🎯 Resuming video at ${timestamp} seconds using playerRef:`, playerRef.current)
     // Use utility function for resuming video
     resumeVideoFromUtils(timestamp, {
-      playerRef: { current: player },
+      playerRef,
       hideCustomAlertModal
     })
   }
