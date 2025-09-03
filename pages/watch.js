@@ -1010,26 +1010,25 @@ export default function Watch() {
 
   // Check for saved session data and resume video if available
   const checkForSavedSession = async (currentVideoId) => {
-    // Auto-popup disabled, but function works for manual resume button
-    console.log('📱 Checking for saved session (auto-popup disabled)')
+    console.log('📱 Checking for saved session with auto-resume enabled')
 
-    // Use utility function for checking saved session but don't show popup
+    // Use utility function for checking saved session with resume prompt enabled
     await checkForSavedSessionFromUtils(currentVideoId, {
       userId: user?.id,
-      showResumePrompt: null, // Disable auto-popup
+      showResumePrompt, // Enable auto-resume prompt
       supabase
     })
   }
 
-  // Show resume prompt to user - DISABLED (better system in place)
-  // const showResumePrompt = (timestamp, title) => {
-  //   // Use utility function for showing resume prompt
-  //   showResumePromptFromUtils(timestamp, title, {
-  //     showCustomAlertModal,
-  //     resumeVideo,
-  //     startFromBeginning
-  //   })
-  // }
+  // Show resume prompt to user
+  const showResumePrompt = (timestamp, title) => {
+    // Use utility function for showing resume prompt
+    showResumePromptFromUtils(timestamp, title, {
+      showCustomAlertModal,
+      resumeVideo,
+      startFromBeginning
+    })
+  }
 
   // Resume video at saved timestamp
   const resumeVideo = (timestamp) => {
