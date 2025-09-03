@@ -34,44 +34,71 @@ export default function YouTubePlayerManager({
 
   // Load YouTube API script
   useEffect(() => {
-    if (!window.YT) {
+    // Check if script is already loading or loaded
+    const existingScript = document.querySelector('script[src="https://www.youtube.com/iframe_api"]')
+
+    if (!window.YT && !existingScript) {
       console.log('🎬 Loading YouTube iframe API')
       setYoutubeAPILoading(true)
       setYoutubeAPIError(false)
-      
+
       const tag = document.createElement('script')
       tag.src = 'https://www.youtube.com/iframe_api'
-      
+      tag.id = 'youtube-iframe-api'
+
       // Add error handling
       tag.onerror = (error) => {
         console.error('❌ Failed to load YouTube iframe API:', error)
-        console.error('❌ Error details:', { 
-          error: error.message, 
+        console.error('❌ Error details:', {
+          error: error.message,
           type: error.type,
-          target: tag.src 
+          target: tag.src
         })
         setYoutubeAPILoading(false)
         setYoutubeAPIError(true)
         if (onAPIError) onAPIError(error)
       }
-      
+
       tag.onload = () => {
         console.log('✅ YouTube iframe API loaded successfully')
         setYoutubeAPILoading(false)
       }
-      
+
       const firstScriptTag = document.getElementsByTagName('script')[0]
       firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
+    } else if (window.YT) {
+      console.log('✅ YouTube API already available')
+      setYoutubeAPILoading(false)
+      setYoutubeAPIError(false)
+    } else if (existingScript) {
+      console.log('⏳ YouTube API script already loading...')
+      setYoutubeAPILoading(true)
+      setYoutubeAPIError(false)
     }
   }, [onAPIError])
 
   // Initialize YouTube player when API is ready
   useEffect(() => {
-    if (!videoId) return
+    if (!videoId) {
+      console.log('⏭️ No videoId provided, skipping player initialization')
+      return
+    }
 
     const initPlayer = () => {
       if (window.YT && window.YT.Player) {
         console.log('🎬 Initializing YouTube player for video:', videoId)
+
+        // Clear any existing player first
+        if (playerRef.current) {
+          console.log('🧹 Cleaning up existing player')
+          try {
+            playerRef.current.destroy()
+          } catch (e) {
+            console.log('⚠️ Error destroying existing player:', e)
+          }
+          playerRef.current = null
+          setPlayer(null)
+        }
 
         // Detect mobile device
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
