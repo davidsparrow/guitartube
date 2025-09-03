@@ -1200,11 +1200,15 @@ export default function Watch() {
     }
 
     // Capture snapshot of current captions state before opening modal
+    console.log('📸 MODAL OPENING - Creating captions snapshot')
+    console.log('📸 Current captions for snapshot:', captions)
+    console.log('📸 Current captions count:', captions.length)
+
     setOriginalCaptionsSnapshot(JSON.parse(JSON.stringify(captions)))
-            // Captured captions snapshot for revert functionality
+    console.log('📸 Snapshot created successfully')
 
     // Open caption edit modal for the specific row
-    
+    console.log('📸 Opening caption modal')
     setShowCaptionModal(true)
     setEditingCaption({ rowType: rowNumber, rowName: rowNumber === 1 ? 'Text Captions' : rowNumber === 2 ? 'Chords Captions' : 'Auto-Gen' })
   }
@@ -1985,25 +1989,42 @@ export default function Watch() {
 
   // Handle delete all captions
   const handleDeleteAllCaptions = () => {
-    if (captions.length === 0) return
-    
+    console.log('🗑️ DELETE ALL CAPTIONS clicked')
+    console.log('🗑️ Current captions count:', captions.length)
+    console.log('🗑️ Current captions:', captions)
+
+    if (captions.length === 0) {
+      console.log('🗑️ No captions to delete, returning early')
+      return
+    }
+
     // Show confirmation dialog
+    console.log('🗑️ Showing delete all confirmation dialog')
     showCustomAlertModal(
       'Are you sure you want to delete ALL captions? This action cannot be undone.',
       [
-        { 
-          text: 'DELETE ALL', 
+        {
+          text: 'DELETE ALL',
           action: async () => {
+            console.log('🗑️ DELETE ALL CONFIRMED - Starting deletion process')
+            console.log('🗑️ Captions to delete:', captions)
+            console.log('🗑️ Captions count before deletion:', captions.length)
+
             try {
               // Delete all captions from database
               for (const caption of captions) {
                 if (caption.id) {
+                  console.log('🗑️ Deleting caption from DB:', caption.id, caption.text)
                   await deleteCaption(caption.id, user?.id, setIsLoadingCaptions, setDbError)
                 }
               }
-              
+
+              console.log('🗑️ All captions deleted from database')
+
               // Clear local state
+              console.log('🗑️ Clearing local caption state')
               setCaptions([])
+              console.log('🗑️ Local captions cleared - count should be 0')
               hideCustomAlertModal()
               
       
@@ -2013,9 +2034,13 @@ export default function Watch() {
             }
           }
         },
-        { 
-          text: 'CANCEL', 
-          action: hideCustomAlertModal 
+        {
+          text: 'CANCEL',
+          action: () => {
+            console.log('🗑️ DELETE ALL CANCELLED - No changes made')
+            console.log('🗑️ Captions remain unchanged, count:', captions.length)
+            hideCustomAlertModal()
+          }
         }
       ]
     )

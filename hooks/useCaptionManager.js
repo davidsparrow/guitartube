@@ -58,13 +58,17 @@ export default function useCaptionManager({
   // Handle saving captions (for modal)
   const handleSaveCaptions = async () => {
     console.log('💾 Starting caption save process...')
-    
+    console.log('💾 Current captions state:', captions)
+    console.log('💾 Captions count:', captions.length)
+
     // Sort captions by start time
     const sortedCaptions = [...captions].sort((a, b) => {
       const aStart = timeToSeconds(a.startTime)
       const bStart = timeToSeconds(b.startTime)
       return aStart - bStart
     })
+
+    console.log('💾 Sorted captions for save:', sortedCaptions)
 
     // Validate all captions before saving
     const validationErrors = []
@@ -154,15 +158,25 @@ export default function useCaptionManager({
   // Handle canceling caption editing
   const handleCancelCaptions = () => {
     console.log('❌ Canceling caption editing...')
-    
+    console.log('❌ Current captions before cancel:', captions)
+    console.log('❌ Current captions count:', captions.length)
+    console.log('❌ Original snapshot exists:', !!originalCaptionsSnapshot)
+    console.log('❌ Original snapshot:', originalCaptionsSnapshot)
+
     // Revert all changes back to original state when modal was opened
     if (originalCaptionsSnapshot) {
-      setCaptionsWithLogging(JSON.parse(JSON.stringify(originalCaptionsSnapshot)))
+      const revertedCaptions = JSON.parse(JSON.stringify(originalCaptionsSnapshot))
+      console.log('❌ Reverting to snapshot:', revertedCaptions)
+      console.log('❌ Snapshot count:', revertedCaptions.length)
+      setCaptionsWithLogging(revertedCaptions)
       console.log('🔄 Reverted captions to original state')
+    } else {
+      console.log('⚠️ No original snapshot found - keeping current captions')
     }
-    
+
     // Clear the snapshot
     setOriginalCaptionsSnapshot(null)
+    console.log('🧹 Cleared original snapshot')
     
     // Close modal and reset states
     setShowCaptionModal(false)
