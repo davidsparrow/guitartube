@@ -22,6 +22,7 @@ export default function Home() {
   const [showMenuModal, setShowMenuModal] = useState(false)
   const [showSupportModal, setShowSupportModal] = useState(false)
   const [showPlanSelectionAlert, setShowPlanSelectionAlert] = useState(false)
+  const [savedSession, setSavedSession] = useState(null) // Store saved video session data
   const searchInputRef = useRef(null)
   const footerRef = useRef()
   const router = useRouter()
@@ -79,6 +80,36 @@ export default function Home() {
     router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
   }
 
+  // Check for saved video session data (copied from search.js)
+  const checkForSavedSession = async () => {
+    if (!user?.id) return null
+
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('last_video_id, last_video_title, last_video_channel_name, last_video_timestamp')
+        .eq('id', user.id)
+        .single()
+
+      if (error) throw error
+      return profile
+    } catch (error) {
+      console.error('❌ Error loading saved session:', error)
+      return null
+    }
+  }
+
+  // Load saved session when user logs in (copied from search.js)
+  useEffect(() => {
+    if (isAuthenticated && user?.id && !loading) {
+      checkForSavedSession().then(sessionData => {
+        setSavedSession(sessionData)
+      })
+    } else {
+      setSavedSession(null)
+    }
+  }, [isAuthenticated, user?.id, loading])
+
   // Handle search button click
   const handleSearchClick = () => {
     handleSearch()
@@ -130,31 +161,13 @@ export default function Home() {
         logoImage="/images/gt_logoM_PlayButton.png"
         showResumeIcon={true}
         userProfile={profile}
-        onResumeIconClick={async (action) => {
+        onResumeIconClick={(action) => {
           if (action === 'show_plan_alert') {
             setShowPlanSelectionAlert(true)
           } else {
-            // Fetch saved session and navigate directly to watch page
-            try {
-              const { data: profile, error } = await supabase
-                .from('profiles')
-                .select('last_video_id, last_video_title, last_video_channel_name, last_video_timestamp')
-                .eq('id', user.id)
-                .single()
-
-              if (error) throw error
-
-              if (profile?.last_video_id) {
-                // Navigate directly to watch page with saved video
-                router.push(`/watch?v=${profile.last_video_id}&title=${encodeURIComponent(profile.last_video_title || '')}&channel=${encodeURIComponent(profile.last_video_channel_name || '')}`)
-              } else {
-                // No saved session, go to search page
-                router.push('/search')
-              }
-            } catch (error) {
-              console.error('Error fetching saved session:', error)
-              // Fallback to search page
-              router.push('/search')
+            // Same logic as search.js resume button
+            if (savedSession?.last_video_id) {
+              router.push(`/watch?v=${savedSession.last_video_id}&title=${encodeURIComponent(savedSession.last_video_title || '')}&channel=${encodeURIComponent(savedSession.last_video_channel_name || '')}`)
             }
           }
         }}
