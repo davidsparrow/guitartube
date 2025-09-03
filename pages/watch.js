@@ -66,7 +66,7 @@ import YouTubePlayerManager from '../components/watch/YouTubePlayerManager'
 import useYouTubePlayer from '../hooks/useYouTubePlayer'
 import CaptionManager from '../components/watch/CaptionManager'
 import useCaptionManager from '../hooks/useCaptionManager'
-import LoopManager from '../components/watch/LoopManager'
+import useLoopManagerComponent from '../components/watch/LoopManager'
 import useLoopManager from '../hooks/useLoopManager'
 
 export default function Watch() {
@@ -222,26 +222,6 @@ export default function Watch() {
   })
 
   const [userDefaultCaptionDuration, setUserDefaultCaptionDuration] = useState(10) // User's preferred caption duration in seconds
-
-  // Loop management component
-  const loopManager = LoopManager({
-    player,
-    isLoopActive,
-    setIsLoopActive,
-    loopStartTime,
-    setLoopStartTime,
-    loopEndTime,
-    setLoopEndTime,
-    showLoopModal,
-    setShowLoopModal,
-    tempLoopStart,
-    setTempLoopStart,
-    tempLoopEnd,
-    setTempLoopEnd,
-    checkDailyWatchTimeLimits,
-    currentDailyTotal,
-    onUnfavoriteCleanup: resetLoopState
-  })
   
   // 🎸 CHORD CAPTION SYSTEM STATE VARIABLES 🎸
   // =============================================
@@ -586,6 +566,26 @@ export default function Watch() {
     
     return { hasExceeded, planType, dailyMinutes, userLimit }
   }
+
+  // Loop management component - initialized after required functions are defined
+  const loopManager = useLoopManagerComponent({
+    player,
+    isLoopActive,
+    setIsLoopActive,
+    loopStartTime,
+    setLoopStartTime,
+    loopEndTime,
+    setLoopEndTime,
+    showLoopModal,
+    setShowLoopModal,
+    tempLoopStart,
+    setTempLoopStart,
+    tempLoopEnd,
+    setTempLoopEnd,
+    checkDailyWatchTimeLimits,
+    currentDailyTotal,
+    onUnfavoriteCleanup: resetLoopState
+  })
 
   // Feature Gates Helper Functions
   const loadFeatureGates = async () => {

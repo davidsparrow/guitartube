@@ -1,9 +1,9 @@
-// components/watch/LoopManager.js - Loop Management Component
-import { useState, useEffect } from 'react'
+// components/watch/LoopManager.js - Loop Management Hook
+import { useEffect } from 'react'
 import { timeToSeconds } from '../../utils/captionUtils'
 import { isPlayerReady as isPlayerReadyFromUtils } from '../../utils/videoPlayerUtils'
 
-export default function LoopManager({
+export default function useLoopManager({
   // Player props
   player,
   
