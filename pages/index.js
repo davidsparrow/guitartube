@@ -11,6 +11,7 @@ import { useRouter } from 'next/router'
 import { FaTimes, FaSearch } from "react-icons/fa"
 import TopBanner from '../components/TopBanner'
 import PlanSelectionAlert from '../components/PlanSelectionAlert'
+import { supabase } from '../lib/supabase'
 export default function Home() {
   const { isAuthenticated, user, loading, signOut } = useAuth()
   const { profile, canSearch } = useUser()
@@ -129,12 +130,32 @@ export default function Home() {
         logoImage="/images/gt_logoM_PlayButton.png"
         showResumeIcon={true}
         userProfile={profile}
-        onResumeIconClick={(action) => {
+        onResumeIconClick={async (action) => {
           if (action === 'show_plan_alert') {
             setShowPlanSelectionAlert(true)
           } else {
-            // Navigate to search page where resume functionality exists
-            router.push('/search')
+            // Fetch saved session and navigate directly to watch page
+            try {
+              const { data: profile, error } = await supabase
+                .from('profiles')
+                .select('last_video_id, last_video_title, last_video_channel_name, last_video_timestamp')
+                .eq('id', user.id)
+                .single()
+
+              if (error) throw error
+
+              if (profile?.last_video_id) {
+                // Navigate directly to watch page with saved video
+                router.push(`/watch?v=${profile.last_video_id}&title=${encodeURIComponent(profile.last_video_title || '')}&channel=${encodeURIComponent(profile.last_video_channel_name || '')}`)
+              } else {
+                // No saved session, go to search page
+                router.push('/search')
+              }
+            } catch (error) {
+              console.error('Error fetching saved session:', error)
+              // Fallback to search page
+              router.push('/search')
+            }
           }
         }}
         onAuthClick={handleAuthClick}
