@@ -204,8 +204,6 @@ export default function Watch() {
     setEditingCaption,
     isAddingNewCaption,
     setIsAddingNewCaption,
-    conflictRowIndex,
-    setConflictRowIndex,
     showDeleteConfirm,
     setShowDeleteConfirm,
     captionToDelete,
@@ -230,6 +228,7 @@ export default function Watch() {
   })
 
   const [userDefaultCaptionDuration, setUserDefaultCaptionDuration] = useState(10) // User's preferred caption duration in seconds
+  const [conflictRowIndex, setConflictRowIndex] = useState(null) // For highlighting invalid captions
   
   // 🎸 CHORD CAPTION SYSTEM STATE VARIABLES 🎸
   // =============================================
