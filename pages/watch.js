@@ -189,6 +189,24 @@ export default function Watch() {
   const [dbError, setDbError] = useState(null)
   const [conflictRowIndex, setConflictRowIndex] = useState(null) // For highlighting invalid captions
 
+  // Custom alert modal states (must be before useCaptionManager)
+  const [showCustomAlert, setShowCustomAlert] = useState(false)
+  const [customAlertMessage, setCustomAlertMessage] = useState('')
+  const [customAlertButtons, setCustomAlertButtons] = useState([])
+
+  // Custom alert modal utility functions (must be before useCaptionManager)
+  const showCustomAlertModal = (message, buttons = []) => {
+    setCustomAlertMessage(message)
+    setCustomAlertButtons(buttons)
+    setShowCustomAlert(true)
+  }
+
+  const hideCustomAlertModal = () => {
+    setShowCustomAlert(false)
+    setCustomAlertMessage('')
+    setCustomAlertButtons([])
+  }
+
   // Caption management via custom hook
   const {
     captions,
@@ -368,13 +386,6 @@ export default function Watch() {
 
 
 
-  // Custom alert modal states
-  const [showCustomAlert, setShowCustomAlert] = useState(false)
-  const [customAlertMessage, setCustomAlertMessage] = useState('')
-  const [customAlertButtons, setCustomAlertButtons] = useState([])
-
-
-
   // Basic Supabase database operations
   const saveFavorite = async (videoData) => {
     try {
@@ -412,19 +423,6 @@ export default function Watch() {
   // removeFavorite function - now imported from CaptionDatabase
 
 
-
-  // Custom alert modal utility functions
-  const showCustomAlertModal = (message, buttons = []) => {
-    setCustomAlertMessage(message)
-    setCustomAlertButtons(buttons)
-    setShowCustomAlert(true)
-  }
-
-  const hideCustomAlertModal = () => {
-    setShowCustomAlert(false)
-    setCustomAlertMessage('')
-    setCustomAlertButtons([])
-  }
 
   // Helper functions to get messages from Admin Settings
   const getAdminMessage = (messageKey, fallback) => {
