@@ -2432,19 +2432,29 @@ export default function Watch() {
       />
 
       {/* Main Content Area - Theatre Mode Layout with Dynamic Height */}
-      {/* YouTube Player Manager Component */}
-      <YouTubePlayerManager
-        videoId={videoId}
-        onPlayerReady={onPlayerReady}
-        onPlayerStateChange={onPlayerStateChange}
-        onPlayerError={onPlayerError}
-        onAPIError={onAPIError}
-        flipState={flipState}
-        showControlStrips={showControlStrips}
-        showRow1={showRow1 && getLayoutRowVisibility(currentLayout).showRow1}
-        showRow2={showRow2 && getLayoutRowVisibility(currentLayout).showRow2}
-        showRow3={showRow3 && getLayoutRowVisibility(currentLayout).showRow3}
-      />
+      {/* Direct YouTube Player Container */}
+      <div className="w-full h-full bg-black rounded-lg overflow-hidden shadow-2xl">
+        <div id="youtube-player" className="w-full h-full"></div>
+
+        {/* Loading state */}
+        {youtubeAPILoading && (
+          <div className="w-full h-full flex items-center justify-center bg-gray-900 absolute inset-0">
+            <div className="text-center text-white">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+              <p>Loading YouTube Player...</p>
+            </div>
+          </div>
+        )}
+
+        {/* Error state */}
+        {youtubeAPIError && (
+          <div className="w-full h-full flex items-center justify-center bg-gray-900 absolute inset-0">
+            <div className="text-center text-white">
+              <p>Failed to load YouTube player</p>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* STICKY CONTROL STRIPS FOOTER */}
       {showControlStrips && (
