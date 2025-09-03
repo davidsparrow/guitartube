@@ -358,15 +358,20 @@ export default function Search() {
       checkForSavedSession().then(sessionData => {
         setSavedSession(sessionData)
 
+        // Auto-trigger resume if coming from homepage resume icon
+        if (router.query.auto_resume === 'true' && sessionData?.last_video_id) {
+          // Navigate directly to watch page
+          router.push(`/watch?v=${sessionData.last_video_id}&title=${encodeURIComponent(sessionData.last_video_title || '')}&channel=${encodeURIComponent(sessionData.last_video_channel_name || '')}`)
+        }
       })
-      
+
       // Load user favorites from database
       loadUserFavorites()
     } else {
       // Clear saved session and favorites when user logs out
       setSavedSession(null)
       setUserFavorites([])
-      
+
       // Clear user's search cache when they log out
       if (user?.id) {
         try {
@@ -374,7 +379,7 @@ export default function Search() {
           keys.forEach(key => {
             if (key.startsWith(`search_cache_${user.id}_`)) {
               localStorage.removeItem(key)
-  
+
             }
           })
         } catch (error) {
@@ -382,7 +387,7 @@ export default function Search() {
         }
       }
     }
-  }, [isAuthenticated, user?.id, loading])
+  }, [isAuthenticated, user?.id, loading, router.query.auto_resume])
 
   // Handle login/logout
   const handleAuthClick = async () => {

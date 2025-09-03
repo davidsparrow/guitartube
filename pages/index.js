@@ -78,8 +78,6 @@ export default function Home() {
     router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
   }
 
-
-
   // Handle search button click
   const handleSearchClick = () => {
     handleSearch()
@@ -135,8 +133,8 @@ export default function Home() {
           if (action === 'show_plan_alert') {
             setShowPlanSelectionAlert(true)
           } else {
-            // Navigate to search page where resume button works
-            router.push('/search')
+            // Navigate to search page and auto-trigger resume
+            router.push('/search?auto_resume=true')
           }
         }}
         onAuthClick={handleAuthClick}
