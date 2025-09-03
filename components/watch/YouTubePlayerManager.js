@@ -185,6 +185,3 @@ export default function YouTubePlayerManager({
     </div>
   )
 }
-
-// Export player utilities for external use
-export { YouTubePlayerManager as default }
