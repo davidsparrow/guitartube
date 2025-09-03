@@ -84,23 +84,21 @@ export default function YouTubePlayerManager({
       return
     }
 
-    // Add a small delay to ensure DOM is ready
-    const initTimer = setTimeout(() => {
-      const initPlayer = () => {
-        if (window.YT && window.YT.Player) {
-          console.log('🎬 Initializing YouTube player for video:', videoId)
+    const initPlayer = () => {
+      if (window.YT && window.YT.Player) {
+        console.log('🎬 Initializing YouTube player for video:', videoId)
 
-          // Clear any existing player first
-          if (playerRef.current) {
-            console.log('🧹 Cleaning up existing player')
-            try {
-              playerRef.current.destroy()
-            } catch (e) {
-              console.log('⚠️ Error destroying existing player:', e)
-            }
-            playerRef.current = null
-            setPlayer(null)
+        // Clear any existing player first
+        if (playerRef.current) {
+          console.log('🧹 Cleaning up existing player')
+          try {
+            playerRef.current.destroy()
+          } catch (e) {
+            console.log('⚠️ Error destroying existing player:', e)
           }
+          playerRef.current = null
+          setPlayer(null)
+        }
 
         // Detect mobile device
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
@@ -195,6 +193,8 @@ export default function YouTubePlayerManager({
       }
     }
 
+    // Add a small delay to ensure DOM is ready, then initialize
+    const initTimer = setTimeout(() => {
       // Check if API is already loaded
       if (window.YT && window.YT.Player) {
         console.log('✅ YouTube API already loaded, initializing player')
@@ -204,7 +204,8 @@ export default function YouTubePlayerManager({
         console.log('⏳ Setting up YouTube API ready callback')
         window.onYouTubeIframeAPIReady = () => {
           console.log('✅ YouTube API ready callback triggered')
-          initPlayer()
+          // Add another small delay after API is ready
+          setTimeout(initPlayer, 50)
         }
       }
     }, 100) // Small delay to ensure DOM is ready
