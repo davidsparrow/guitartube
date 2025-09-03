@@ -104,6 +104,16 @@ export default function YouTubePlayerManager({
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
         console.log('📱 Device detection:', { isMobile, userAgent: navigator.userAgent })
         
+        // Check if the target element exists
+        const targetElement = document.getElementById('youtube-player')
+        if (!targetElement) {
+          console.error('❌ YouTube player target element not found!')
+          setYoutubeAPIError(true)
+          return
+        }
+
+        console.log('🎯 Target element found, creating player:', targetElement)
+
         const newPlayer = new window.YT.Player('youtube-player', {
           height: '100%',
           width: '100%',
@@ -236,6 +246,14 @@ export default function YouTubePlayerManager({
     isReady: () => !!playerRef.current && typeof playerRef.current.getCurrentTime === 'function'
   }
 
+  console.log('🎬 YouTubePlayerManager rendering with:', {
+    videoId,
+    youtubeAPILoading,
+    youtubeAPIError,
+    player: !!player,
+    showControlStrips
+  })
+
   return (
     <div className="relative z-10 overflow-hidden px-6 mt-20" style={{
       height: getVideoHeight(),
@@ -284,12 +302,26 @@ export default function YouTubePlayerManager({
           </div>
         )}
         
-        {youtubeAPIError && (
+        {youtubeAPIError && videoId && (
+          <div className="w-full h-full">
+            <iframe
+              src={`https://www.youtube.com/embed/${videoId}?controls=1&modestbranding=1&rel=0&showinfo=0&origin=${window.location.origin}`}
+              title="YouTube Video Player (Fallback)"
+              className="w-full h-full"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+              style={getFlipStyles()}
+            />
+          </div>
+        )}
+
+        {youtubeAPIError && !videoId && (
           <div className="w-full h-full flex items-center justify-center bg-red-900">
             <div className="text-center text-white">
               <div className="text-4xl mb-4">⚠️</div>
               <p className="text-lg font-semibold">YouTube Player Error</p>
-              <p className="text-sm">Failed to load video player</p>
+              <p className="text-sm">No video ID provided</p>
             </div>
           </div>
         )}
