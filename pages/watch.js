@@ -89,24 +89,18 @@ export default function Watch() {
   const [videoChannel, setVideoChannel] = useState('')
   const [showMobileSearch, setShowMobileSearch] = useState(false)
 
-  // YouTube player management via custom hook
-  const {
-    player,
-    isPlayerReady: isVideoReady,
-    playerError,
-    handlePlayerReady: onPlayerReady,
-    handlePlayerStateChange: onPlayerStateChange,
-    handlePlayerError: onPlayerError,
-    handleAPIError: onAPIError,
-    getCurrentTime,
-    getDuration,
-    seekTo,
-    play,
-    pause,
-    isPlaying,
-    formatTime,
-    parseTime
-  } = useYouTubePlayer()
+  // Direct YouTube player states
+  const [player, setPlayer] = useState(null)
+  const [isVideoReady, setIsVideoReady] = useState(false)
+  const playerRef = useRef(null)
+
+  // Direct YouTube player utility functions
+  const getCurrentTime = () => playerRef.current?.getCurrentTime() || 0
+  const getDuration = () => playerRef.current?.getDuration() || 0
+  const seekTo = (time) => playerRef.current?.seekTo(time, true)
+  const play = () => playerRef.current?.playVideo()
+  const pause = () => playerRef.current?.pauseVideo()
+  const isPlaying = () => playerRef.current?.getPlayerState() === 1
 
   // Page type for specialized watch experiences
   const [pageType, setPageType] = useState('default') // 'default', 'lyrics', 'chords', 'tabs', 'lyrics-chords', 'lyrics-tabs'
@@ -748,6 +742,49 @@ export default function Watch() {
       }
     }
   }, [mounted])
+
+  // Initialize YouTube player when API is ready
+  useEffect(() => {
+    if (mounted && videoId && !youtubeAPILoading && !youtubeAPIError) {
+      console.log('🎬 Initializing YouTube player for video:', videoId)
+
+      const initPlayer = () => {
+        if (window.YT && window.YT.Player) {
+          const newPlayer = new window.YT.Player('youtube-player', {
+            height: '100%',
+            width: '100%',
+            videoId: videoId,
+            playerVars: {
+              controls: 1,
+              modestbranding: 1,
+              rel: 0,
+              showinfo: 0,
+              fs: 0,
+              origin: window.location.origin,
+              playsinline: 1 // Mobile improvement
+            },
+            events: {
+              onReady: (event) => {
+                console.log('✅ YouTube player ready')
+                setPlayer(newPlayer)
+                playerRef.current = newPlayer
+                setIsVideoReady(true)
+              },
+              onStateChange: handlePlayerStateChange,
+              onError: handleVideoError
+            }
+          })
+        }
+      }
+
+      // Check if API is ready
+      if (window.YT && window.YT.Player) {
+        initPlayer()
+      } else {
+        window.onYouTubeIframeAPIReady = initPlayer
+      }
+    }
+  }, [mounted, videoId, youtubeAPILoading, youtubeAPIError])
 
   // Load video from URL parameters when page loads
   useEffect(() => {
