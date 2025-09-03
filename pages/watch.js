@@ -1648,7 +1648,8 @@ export default function Watch() {
   }
 
   // Handle saving captions - NOW PROVIDED BY useCaptionManager HOOK
-  // const handleSaveCaptions = async () => {
+  /*
+  const handleSaveCaptions = async () => {
     // Sort captions by start time
     const sortedCaptions = [...captions].sort((a, b) => {
       const aStart = timeToSeconds(a.startTime)
@@ -1754,8 +1755,8 @@ export default function Watch() {
       }
       
       // Wait for all database operations to complete
-      console.log('🔍 Waiting for', savePromises.length, 'database operations to complete')
-      const savedResults = await Promise.all(savePromises)
+      // console.log('🔍 Waiting for', savePromises.length, 'database operations to complete')
+      // const savedResults = await Promise.all(savePromises)
       console.log('🔍 Database save results:', savedResults)
       
       // Update local state with saved captions (now with database IDs)
@@ -1775,26 +1776,29 @@ export default function Watch() {
     // setShowCaptionModal(false)
     // setEditingCaption(null)
     // setIsAddingNewCaption(false)
-  // } // END OF OLD handleSaveCaptions - NOW PROVIDED BY HOOK
+  } // END OF OLD handleSaveCaptions - NOW PROVIDED BY HOOK
+  */
 
   // Handle canceling caption editing - NOW PROVIDED BY useCaptionManager HOOK
-  // const handleCancelCaptions = () => {
+  /*
+  const handleCancelCaptions = () => {
     // Revert all changes back to original state when modal was opened
     if (originalCaptionsSnapshot) {
       setCaptions(JSON.parse(JSON.stringify(originalCaptionsSnapshot)))
               // Reverted captions to original state
     }
-    
+
     // Clear the snapshot
     setOriginalCaptionsSnapshot(null)
-    
+
     // Close modal and reset states
     setShowCaptionModal(false)
     setIsAddingNewCaption(false)
     setEditingCaption(null)
-    
+
             // Caption editing cancelled - all changes reverted
   }
+  */
 
   // 🎸 Handle canceling chord caption editing
   const handleCancelChordCaptions = async () => {
@@ -1847,7 +1851,8 @@ export default function Watch() {
     }
   }
 
-  // Handle duplicate caption
+  // Handle duplicate caption - NOW PROVIDED BY useCaptionManager HOOK
+  /*
   const handleDuplicateCaption = (captionIndex) => {
     try {
       const originalCaption = captions[captionIndex]
@@ -1929,14 +1934,17 @@ export default function Watch() {
       setDbError('Failed to duplicate caption')
     }
   }
+  */
 
-  // Handle delete caption confirmation
+  // Handle delete caption confirmation - NOW PROVIDED BY useCaptionManager HOOK
+  /*
   const handleDeleteCaption = (captionIndex) => {
     console.log('🔍 handleDeleteCaption called with index:', captionIndex)
     setCaptionToDelete(captionIndex)
     setShowDeleteConfirm(true)
     console.log('🔍 Set captionToDelete to:', captionIndex, 'and showDeleteConfirm to true')
   }
+  */
 
   // Handle delete all captions
   const handleDeleteAllCaptions = () => {
