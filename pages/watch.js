@@ -2322,6 +2322,9 @@ export default function Watch() {
         onAPIError={onAPIError}
         flipState={flipState}
         showControlStrips={showControlStrips}
+        showRow1={showRow1 && getLayoutRowVisibility(currentLayout).showRow1}
+        showRow2={showRow2 && getLayoutRowVisibility(currentLayout).showRow2}
+        showRow3={showRow3 && getLayoutRowVisibility(currentLayout).showRow3}
       />
 
       {/* STICKY CONTROL STRIPS FOOTER */}

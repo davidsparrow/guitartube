@@ -8,7 +8,10 @@ export default function YouTubePlayerManager({
   onPlayerError,
   onAPIError,
   flipState = 'normal',
-  showControlStrips = false
+  showControlStrips = false,
+  showRow1 = true,
+  showRow2 = true,
+  showRow3 = true
 }) {
   // YouTube API states
   const [youtubeAPILoading, setYoutubeAPILoading] = useState(false)
@@ -104,11 +107,16 @@ export default function YouTubePlayerManager({
     }
   }, [videoId, onPlayerReady, onPlayerStateChange, onPlayerError])
 
-  // Calculate video container height based on control strips
+  // Calculate video container height based on control strips (matches original calculation)
   const getVideoHeight = () => {
     if (showControlStrips) {
-      // Account for control strips height
-      return 'calc(100vh - 320px)'
+      // Calculate height based on visible rows (matches original watch.js logic)
+      const baseHeight = 160
+      const row1Height = showRow1 ? 51.2 : 0
+      const row2Height = showRow2 ? 102.4 : 0
+      const row3Height = showRow3 ? 102.4 : 0
+      const totalHeight = baseHeight + row1Height + row2Height + row3Height
+      return `calc(100vh - ${totalHeight}px)`
     }
     return 'calc(100vh - 155px)'
   }
