@@ -213,7 +213,9 @@ export default function Watch() {
     handleSaveCaptions,
     handleCancelCaptions,
     handleDuplicateCaption,
-    handleDeleteCaption
+    handleDeleteCaption,
+    handleDeleteAllCaptions,
+    handleOpenCaptionModal
   } = useCaptionManager({
     videoId,
     user,
@@ -1168,49 +1170,20 @@ export default function Watch() {
     setShowUnfavoriteWarning(false)
   }
 
-  // Handle caption edit click with access control
+  // Handle caption edit click - NOW PROVIDED BY useCaptionManager HOOK
   const handleCaptionEditClick = (rowNumber) => {
-    // Check if video is playing
-    if (isVideoPlayingFromUtils(player)) {
-      showVideoPlayingRestrictionFromUtils({
-        getAdminMessage,
-        showCustomAlertModal,
-        hideCustomAlertModal
-      })
-      return
-    }
-    
-    // Check if user can access captions (same as loops)
-    if (!canAccessLoops()) {
-      if (planType === 'freebird') {
-        showCustomAlertModal(getAdminMessage('plan_upgrade_message', '🔒 Captions require a paid plan. Please upgrade to access this feature.'), [
-          { text: 'UPGRADE PLAN', action: () => window.open('/pricing', '_blank') },
-          { text: 'OK', action: hideCustomAlertModal }
-        ])
-        return
-      }
-      if (!isVideoFavorited) {
-        showCustomAlertModal(getAdminMessage('save_to_favorites_message', '⭐ Please save this video to favorites before editing captions.'), [
-          { text: 'SAVE TO FAVORITES', action: () => { hideCustomAlertModal(); handleFavoriteToggle(); } },
-          { text: 'OK', action: hideCustomAlertModal }
-        ])
-        return
-      }
-      return
-    }
-
-    // Capture snapshot of current captions state before opening modal
-    console.log('📸 MODAL OPENING - Creating captions snapshot')
-    console.log('📸 Current captions for snapshot:', captions)
-    console.log('📸 Current captions count:', captions.length)
-
-    setOriginalCaptionsSnapshot(JSON.parse(JSON.stringify(captions)))
-    console.log('📸 Snapshot created successfully')
-
-    // Open caption edit modal for the specific row
-    console.log('📸 Opening caption modal')
-    setShowCaptionModal(true)
-    setEditingCaption({ rowType: rowNumber, rowName: rowNumber === 1 ? 'Text Captions' : rowNumber === 2 ? 'Chords Captions' : 'Auto-Gen' })
+    handleOpenCaptionModal(rowNumber, {
+      isVideoPlayingFromUtils,
+      player,
+      showVideoPlayingRestrictionFromUtils,
+      getAdminMessage,
+      showCustomAlertModal,
+      hideCustomAlertModal,
+      canAccessLoops,
+      planType,
+      isVideoFavorited,
+      handleFavoriteToggle
+    })
   }
 
   // Handle chord modal open for Row 2
@@ -1987,8 +1960,9 @@ export default function Watch() {
   }
   */
 
-  // Handle delete all captions
-  const handleDeleteAllCaptions = () => {
+  // Handle delete all captions - NOW PROVIDED BY useCaptionManager HOOK
+  /*
+  const handleDeleteAllCaptions_OLD = () => {
     console.log('🗑️ DELETE ALL CAPTIONS clicked')
     console.log('🗑️ Current captions count:', captions.length)
     console.log('🗑️ Current captions:', captions)
@@ -2045,6 +2019,7 @@ export default function Watch() {
       ]
     )
   }
+  */
 
   // Confirm caption deletion
   const handleConfirmDelete = async () => {
@@ -2778,7 +2753,7 @@ export default function Watch() {
         setUserDefaultCaptionDuration={setUserDefaultCaptionDuration}
         handleCancelCaptions={handleCancelCaptions}
         handleAddCaptionFromTimeline={handleAddCaptionFromTimeline}
-        handleDeleteAllCaptions={handleDeleteAllCaptions}
+        handleDeleteAllCaptions={() => handleDeleteAllCaptions(showCustomAlertModal, hideCustomAlertModal, deleteCaption, user, setIsLoadingCaptions, setDbError)}
         handleSaveCaptions={handleSaveCaptions}
         handleDuplicateCaption={handleDuplicateCaption}
         handleDeleteCaption={handleDeleteCaption}

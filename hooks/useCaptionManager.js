@@ -290,6 +290,124 @@ export default function useCaptionManager({
     console.log('🔍 Set captionToDelete to:', captionIndex, 'and showDeleteConfirm to true')
   }
 
+  // Handle delete all captions
+  const handleDeleteAllCaptions = (showCustomAlertModal, hideCustomAlertModal, deleteCaption, user, setIsLoadingCaptions, setDbError) => {
+    console.log('🗑️ DELETE ALL CAPTIONS clicked')
+    console.log('🗑️ Current captions count:', captions.length)
+    console.log('🗑️ Current captions:', captions)
+
+    if (captions.length === 0) {
+      console.log('🗑️ No captions to delete, returning early')
+      return
+    }
+
+    // Show confirmation dialog
+    console.log('🗑️ Showing delete all confirmation dialog')
+    showCustomAlertModal(
+      'Are you sure you want to delete ALL captions? This action cannot be undone.',
+      [
+        {
+          text: 'DELETE ALL',
+          action: async () => {
+            console.log('🗑️ DELETE ALL CONFIRMED - Starting deletion process')
+            console.log('🗑️ Captions to delete:', captions)
+            console.log('🗑️ Captions count before deletion:', captions.length)
+
+            try {
+              // Delete all captions from database
+              for (const caption of captions) {
+                if (caption.id) {
+                  console.log('🗑️ Deleting caption from DB:', caption.id, caption.text)
+                  await deleteCaption(caption.id, user?.id, setIsLoadingCaptions, setDbError)
+                }
+              }
+
+              console.log('🗑️ All captions deleted from database')
+
+              // Clear local state
+              console.log('🗑️ Clearing local caption state')
+              setCaptionsWithLogging([])
+              console.log('🗑️ Local captions cleared - count should be 0')
+              hideCustomAlertModal()
+
+            } catch (error) {
+              console.error('❌ Error deleting all captions:', error)
+              setDbError('Failed to delete all captions')
+            }
+          }
+        },
+        {
+          text: 'CANCEL',
+          action: () => {
+            console.log('🗑️ DELETE ALL CANCELLED - No changes made')
+            console.log('🗑️ Captions remain unchanged, count:', captions.length)
+            hideCustomAlertModal()
+          }
+        }
+      ]
+    )
+  }
+
+  // Handle opening caption modal with snapshot creation and access control
+  const handleOpenCaptionModal = (rowNumber, accessControlParams) => {
+    const {
+      isVideoPlayingFromUtils,
+      player,
+      showVideoPlayingRestrictionFromUtils,
+      getAdminMessage,
+      showCustomAlertModal,
+      hideCustomAlertModal,
+      canAccessLoops,
+      planType,
+      isVideoFavorited,
+      handleFavoriteToggle
+    } = accessControlParams
+
+    // Check if video is playing
+    if (isVideoPlayingFromUtils(player)) {
+      showVideoPlayingRestrictionFromUtils({
+        getAdminMessage,
+        showCustomAlertModal,
+        hideCustomAlertModal
+      })
+      return
+    }
+
+    // Check if user can access captions (same as loops)
+    if (!canAccessLoops()) {
+      if (planType === 'freebird') {
+        showCustomAlertModal(getAdminMessage('plan_upgrade_message', '🔒 Captions require a paid plan. Please upgrade to access this feature.'), [
+          { text: 'UPGRADE PLAN', action: () => window.open('/pricing', '_blank') },
+          { text: 'OK', action: hideCustomAlertModal }
+        ])
+        return
+      }
+      if (!isVideoFavorited) {
+        showCustomAlertModal(getAdminMessage('save_to_favorites_message', '⭐ Please save this video to favorites before editing captions.'), [
+          { text: 'SAVE TO FAVORITES', action: () => { hideCustomAlertModal(); handleFavoriteToggle(); } },
+          { text: 'OK', action: hideCustomAlertModal }
+        ])
+        return
+      }
+      return
+    }
+
+    console.log('📸 MODAL OPENING - Creating captions snapshot')
+    console.log('📸 Current captions for snapshot:', captions)
+    console.log('📸 Current captions count:', captions.length)
+
+    setOriginalCaptionsSnapshot(JSON.parse(JSON.stringify(captions)))
+    console.log('📸 Snapshot created successfully')
+
+    // Open caption edit modal for the specific row
+    console.log('📸 Opening caption modal')
+    setShowCaptionModal(true)
+    setEditingCaption({
+      rowType: rowNumber,
+      rowName: rowNumber === 1 ? 'Text Captions' : rowNumber === 2 ? 'Chords Captions' : 'Auto-Gen'
+    })
+  }
+
   return {
     // State
     captions,
@@ -321,6 +439,8 @@ export default function useCaptionManager({
     handleSaveCaptions,
     handleCancelCaptions,
     handleDuplicateCaption,
-    handleDeleteCaption
+    handleDeleteCaption,
+    handleDeleteAllCaptions,
+    handleOpenCaptionModal
   }
 }
