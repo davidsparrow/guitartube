@@ -221,7 +221,12 @@ export default function Watch() {
     videoId,
     user,
     setIsLoadingCaptions,
-    setDbError
+    setDbError,
+    player,
+    getVideoDuration,
+    setConflictRowIndex,
+    showCustomAlertModal,
+    hideCustomAlertModal
   })
 
   const [userDefaultCaptionDuration, setUserDefaultCaptionDuration] = useState(10) // User's preferred caption duration in seconds

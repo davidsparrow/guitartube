@@ -5,7 +5,8 @@ import {
   formatSecondsToTime,
   autoResolveCaptionConflicts,
   assignSerialNumbersToCaptions,
-  calculateSmartCaptionDuration
+  calculateSmartCaptionDuration,
+  validateAllCaptions
 } from '../utils/captionUtils'
 import {
   saveCaption,
@@ -17,7 +18,12 @@ export default function useCaptionManager({
   videoId,
   user,
   setIsLoadingCaptions,
-  setDbError
+  setDbError,
+  player,
+  getVideoDuration,
+  setConflictRowIndex,
+  showCustomAlertModal,
+  hideCustomAlertModal
 }) {
   // Caption state
   const [captions, setCaptions] = useState([])
@@ -29,7 +35,7 @@ export default function useCaptionManager({
   const [showCaptionModal, setShowCaptionModal] = useState(false)
   const [editingCaption, setEditingCaption] = useState(null)
   const [isAddingNewCaption, setIsAddingNewCaption] = useState(false)
-  const [conflictRowIndex, setConflictRowIndex] = useState(null)
+  // conflictRowIndex is passed as parameter from parent
   
   // Delete confirmation states
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -71,24 +77,53 @@ export default function useCaptionManager({
 
     console.log('💾 Sorted captions for save:', sortedCaptions)
 
-    // Validate all captions before saving
-    const validationErrors = []
-    for (const caption of sortedCaptions) {
-      if (!caption.startTime || !caption.endTime) {
-        validationErrors.push(`Caption missing time data: ${caption.line1 || 'Empty caption'}`)
+    // Get video duration for validation
+    let videoDurationSeconds = 0
+    try {
+      if (typeof getVideoDuration === 'function') {
+        videoDurationSeconds = getVideoDuration()
+        console.log('🔍 Video duration from getVideoDuration():', videoDurationSeconds)
+      } else if (typeof player?.getDuration === 'function') {
+        videoDurationSeconds = player.getDuration()
+        console.log('🔍 Video duration from player.getDuration():', videoDurationSeconds)
       }
-      
-      const startSeconds = timeToSeconds(caption.startTime)
-      const endSeconds = timeToSeconds(caption.endTime)
-      
-      if (startSeconds >= endSeconds) {
-        validationErrors.push(`Invalid time range for caption: ${caption.line1 || 'Empty caption'}`)
-      }
+    } catch (error) {
+      console.warn('⚠️ Could not get video duration for validation:', error)
     }
 
-    if (validationErrors.length > 0) {
-      console.error('❌ Caption validation failed:', validationErrors)
-      setDbError('Caption validation failed: ' + validationErrors.join(', '))
+    // Validate all captions using comprehensive validation
+    const validationResults = validateAllCaptions(sortedCaptions, videoDurationSeconds)
+
+    if (!validationResults.isValid) {
+      console.log('❌ Validation failed:', validationResults)
+
+      // Find the first caption with validation failures for highlighting
+      const firstFailedCaption = validationResults.captionResults.find(result => !result.isValid)
+      if (firstFailedCaption && setConflictRowIndex) {
+        setConflictRowIndex(firstFailedCaption.captionIndex)
+      }
+
+      // Get the first failure reason for the alert
+      const firstFailure = validationResults.allFailures[0]
+
+      // Show validation failure alert
+      if (showCustomAlertModal && hideCustomAlertModal) {
+        showCustomAlertModal(
+          `Caption validation failed!\n\n` +
+          `Rule ${firstFailure.rule} failed: ${firstFailure.reason}\n\n` +
+          `Suggestion: ${firstFailure.suggestion}\n\n` +
+          `Please fix the validation errors before saving.`,
+          [
+            {
+              text: 'OK - I\'ll Fix It',
+              action: hideCustomAlertModal
+            }
+          ]
+        )
+      } else {
+        // Fallback error handling
+        setDbError(`Caption validation failed: ${firstFailure.reason}`)
+      }
       return
     }
 
@@ -430,6 +465,16 @@ export default function useCaptionManager({
     // RULE 4: Smart caption placement with forward search
     let startTime = currentTime
     let endTime = currentTime + (userDefaultCaptionDuration || 10)
+    const videoDuration = player.getDuration ? player.getDuration() : 0
+
+    // Check if initial placement would exceed video duration
+    if (videoDuration > 0 && endTime > videoDuration) {
+      console.error(`❌ Cannot find ${userDefaultCaptionDuration || 10} seconds of space - would exceed video duration`)
+      showCustomAlertModal(`Cannot find ${userDefaultCaptionDuration || 10} seconds of space to add a new Caption`, [
+        { text: 'OK', action: hideCustomAlertModal }
+      ])
+      return
+    }
 
     // Check if caption already exists at current time for text captions (rowType 1)
     const currentCaption = captions.find(caption => {
@@ -563,8 +608,6 @@ export default function useCaptionManager({
     setEditingCaption,
     isAddingNewCaption,
     setIsAddingNewCaption,
-    conflictRowIndex,
-    setConflictRowIndex,
     
     // Delete states
     showDeleteConfirm,
