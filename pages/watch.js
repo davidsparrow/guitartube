@@ -2469,28 +2469,42 @@ export default function Watch() {
       />
 
       {/* Main Content Area - Theatre Mode Layout with Dynamic Height */}
-      {/* Direct YouTube Player Container */}
-      <div className="w-full h-full bg-black rounded-lg overflow-hidden shadow-2xl">
-        <div id="youtube-player" className="w-full h-full"></div>
+      <div className="relative z-10 overflow-hidden px-6 mt-20" style={{
+        height: showControlStrips ? `calc(100vh - ${160 + (showRow1 ? 51.2 : 0) + (showRow2 ? 102.4 : 0) + (showRow3 ? 102.4 : 0)}px)` : 'calc(100vh - 155px)',
+        transition: 'height 0.3s ease-in-out'
+      }}>
+        {/* Video Player Container - Edge-to-Edge Width with Dynamic Height */}
+        <div id="video-container" data-testid="video-container" className="w-full max-w-none h-full flex items-center justify-center">
+          {/* YouTube Video Player - Theatre Mode with Dynamic Sizing */}
+          {videoId && (
+            <div className="relative w-full h-full bg-black rounded-lg overflow-hidden shadow-2xl">
+              {/* Video Container - Dynamic height based on available space */}
+              <div className="relative w-full h-full">
+                {/* YouTube API Player */}
+                <div id="youtube-player" className="w-full h-full" />
 
-        {/* Loading state */}
-        {youtubeAPILoading && (
-          <div className="w-full h-full flex items-center justify-center bg-gray-900 absolute inset-0">
-            <div className="text-center text-white">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-              <p>Loading YouTube Player...</p>
-            </div>
-          </div>
-        )}
+                {/* Loading state */}
+                {youtubeAPILoading && (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-900 absolute inset-0">
+                    <div className="text-center text-white">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+                      <p>Loading YouTube Player...</p>
+                    </div>
+                  </div>
+                )}
 
-        {/* Error state */}
-        {youtubeAPIError && (
-          <div className="w-full h-full flex items-center justify-center bg-gray-900 absolute inset-0">
-            <div className="text-center text-white">
-              <p>Failed to load YouTube player</p>
+                {/* Error state */}
+                {youtubeAPIError && (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-900 absolute inset-0">
+                    <div className="text-center text-white">
+                      <p>Failed to load YouTube player</p>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* STICKY CONTROL STRIPS FOOTER */}
