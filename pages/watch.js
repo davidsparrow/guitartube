@@ -62,6 +62,8 @@ import {
 import ChordCaptionModal from '../components/ChordCaptionModal'
 import { deleteAllChordCaptions, saveChordCaptions } from '../song_data_processing/chord_processing/ChordCaptionDatabase'
 import LayoutSelectionModal from '../components/LayoutSelectionModal'
+import YouTubePlayerManager from '../components/watch/YouTubePlayerManager'
+import useYouTubePlayer from '../hooks/useYouTubePlayer'
 
 export default function Watch() {
 
@@ -81,10 +83,26 @@ export default function Watch() {
   const [videoId, setVideoId] = useState('')
   const [videoTitle, setVideoTitle] = useState('')
   const [videoChannel, setVideoChannel] = useState('')
-  const [isVideoReady, setIsVideoReady] = useState(false)
   const [showMobileSearch, setShowMobileSearch] = useState(false)
-  const [player, setPlayer] = useState(null)
-  const playerRef = useRef(null) // Add ref to track player instance
+
+  // YouTube player management via custom hook
+  const {
+    player,
+    isPlayerReady: isVideoReady,
+    playerError,
+    handlePlayerReady: onPlayerReady,
+    handlePlayerStateChange: onPlayerStateChange,
+    handlePlayerError: onPlayerError,
+    handleAPIError: onAPIError,
+    getCurrentTime,
+    getDuration,
+    seekTo,
+    play,
+    pause,
+    isPlaying,
+    formatTime,
+    parseTime
+  } = useYouTubePlayer()
 
   // Page type for specialized watch experiences
   const [pageType, setPageType] = useState('default') // 'default', 'lyrics', 'chords', 'tabs', 'lyrics-chords', 'lyrics-tabs'
@@ -635,103 +653,9 @@ export default function Watch() {
     // User data useEffect triggered
   }, [user, profile, loading, isAuthenticated])
 
-  // Load YouTube API script
-  useEffect(() => {
-    if (mounted && !window.YT) {
-      // Loading YouTube iframe API
-      setYoutubeAPILoading(true)
-      setYoutubeAPIError(false)
-      
-      const tag = document.createElement('script')
-      tag.src = 'https://www.youtube.com/iframe_api'
-      
-      // Add more detailed error handling
-      tag.onerror = (error) => {
-        console.error('❌ Failed to load YouTube iframe API:', error)
-        console.error('❌ Error details:', { 
-          error: error.message, 
-          type: error.type,
-          target: tag.src 
-        })
-        setYoutubeAPILoading(false)
-        setYoutubeAPIError(true)
-        handleYouTubeAPIError()
-      }
-      
-      tag.onload = () => {
+  // YouTube API and player initialization now handled by YouTubePlayerManager component
 
-        setYoutubeAPILoading(false)
-      }
-      
-      // Add timeout to detect hanging script loading
-      const timeoutId = setTimeout(() => {
-        if (!window.YT) {
-          console.error('⏰ YouTube API script loading timeout - script may be hanging')
-          setYoutubeAPILoading(false)
-          setYoutubeAPIError(true)
-        }
-      }, 10000) // 10 second timeout
-      
-      const firstScriptTag = document.getElementsByTagName('script')[0]
-      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
-      
-      // Cleanup timeout if script loads successfully
-      if (window.YT) {
-        clearTimeout(timeoutId)
-      }
-    } else if (mounted && window.YT) {
-      
-    }
-  }, [mounted])
-
-  // Initialize YouTube player when API is ready
-  useEffect(() => {
-    if (mounted && videoId) {
-      // Initializing YouTube player for video
-      
-      const initPlayer = () => {
-        if (window.YT && window.YT.Player) {
-  
-          const newPlayer = new window.YT.Player('youtube-player', {
-            height: '100%',
-            width: '100%',
-            videoId: videoId,
-            playerVars: {
-              controls: 1,
-              modestbranding: 1,
-              rel: 0,
-              showinfo: 0,
-              fs: 0, // Disable YouTube's fullscreen button
-              origin: window.location.origin
-            },
-            events: {
-              onReady: (event) => handleVideoReady(event, newPlayer),
-              onStateChange: (event) => handlePlayerStateChange(event),
-              onError: handleVideoError
-            }
-          })
-          
-          // Store the player reference for later use
-          // Player created, waiting for onReady event
-        } else {
-
-        }
-      }
-
-      // Check if API is already loaded
-      if (window.YT && window.YT.Player) {
-
-        initPlayer()
-      } else {
-        // Wait for API to be ready
-        // Setting up YouTube API ready callback
-        window.onYouTubeIframeAPIReady = () => {
-                      // YouTube API ready callback triggered
-          initPlayer()
-        }
-      }
-    }
-  }, [mounted, videoId])
+  // Player initialization now handled by YouTubePlayerManager component
 
   // Load video from URL parameters when page loads
   useEffect(() => {
@@ -750,7 +674,7 @@ export default function Watch() {
         setVideoId(v)
         setVideoTitle(title ? decodeURIComponent(title) : '')
         setVideoChannel(channel ? decodeURIComponent(channel) : '')
-        setIsVideoReady(true)
+        // Video ready state now managed by YouTubePlayerManager
       } else {
         // No video ID in URL, redirecting to home
         router.push('/')
@@ -762,7 +686,7 @@ export default function Watch() {
         setVideoId(v)
         setVideoTitle(title ? decodeURIComponent(title) : '')
         setVideoChannel(channel ? decodeURIComponent(channel) : '')
-        setIsVideoReady(true)
+        // Video ready state now managed by YouTubePlayerManager
 
         // Handle page type parameter for specialized experiences
         if (type && typeof type === 'string') {
@@ -812,7 +736,7 @@ export default function Watch() {
         setVideoId(v)
         setVideoTitle(title ? decodeURIComponent(title) : '')
         setVideoChannel(channel ? decodeURIComponent(channel) : '')
-        setIsVideoReady(true)
+        // Video ready state now managed by YouTubePlayerManager
         
         // Check for saved session data in fallback case too
         if (user?.id) {
@@ -2397,57 +2321,16 @@ export default function Watch() {
       />
 
       {/* Main Content Area - Theatre Mode Layout with Dynamic Height */}
-      <div className="relative z-10 overflow-hidden px-6 mt-20" style={{
-        height: showControlStrips ? `calc(100vh - ${160 +
-          (showRow1 && getLayoutRowVisibility(currentLayout).showRow1 ? 51.2 : 0) +
-          (showRow2 && getLayoutRowVisibility(currentLayout).showRow2 ? 102.4 : 0) +
-          (showRow3 && getLayoutRowVisibility(currentLayout).showRow3 ? 102.4 : 0)
-        }px)` : 'calc(100vh - 155px)',
-        transition: 'height 0.3s ease-in-out'
-      }}>
-        {/* Video Player Container - Edge-to-Edge Width with Dynamic Height */}
-        <div id="video-container" data-testid="video-container" className="w-full max-w-none h-full flex items-center justify-center">
-          {/* YouTube Video Player - Theatre Mode with Dynamic Sizing */}
-          {videoId && (
-            <div className="relative w-full h-full bg-black rounded-lg overflow-hidden shadow-2xl">
-              {/* Video Container - Dynamic height based on available space with flip transformations */}
-              <div 
-                className="relative w-full h-full transition-transform duration-300"
-                style={{
-                  // Calculate height to maintain 16:9 aspect ratio within available space
-                  height: '100%',
-                  maxHeight: '100%',
-                  // Ensure video never exceeds container bounds
-                  objectFit: 'contain',
-                  // Apply flip transformations based on state
-                  transform: flipState === 'horizontal' 
-                    ? 'scaleX(-1)' 
-                    : flipState === 'both'
-                    ? 'scaleX(-1) scaleY(-1)'
-                    : 'none'
-                }}
-              >
-                {/* YouTube API Player */}
-                <div id="youtube-player" className="w-full h-full" />
-                
-                {/* Fallback iframe if API fails */}
-                {!player && (
-                  <iframe
-                    src={`https://www.youtube.com/embed/${videoId}?controls=1&modestbranding=1&rel=0&showinfo=0&origin=${window.location.origin}`}
-                    title={videoTitle}
-                    className="w-full h-full absolute inset-0"
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                  />
-                )}
-              </div>
-              
-
-            </div>
-          )}
-        </div>
-      </div>
+      {/* YouTube Player Manager Component */}
+      <YouTubePlayerManager
+        videoId={videoId}
+        onPlayerReady={onPlayerReady}
+        onPlayerStateChange={onPlayerStateChange}
+        onPlayerError={onPlayerError}
+        onAPIError={onAPIError}
+        flipState={flipState}
+        showControlStrips={showControlStrips}
+      />
 
       {/* STICKY CONTROL STRIPS FOOTER */}
       {showControlStrips && (
