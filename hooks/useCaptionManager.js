@@ -4,7 +4,8 @@ import {
   timeToSeconds,
   formatSecondsToTime,
   autoResolveCaptionConflicts,
-  assignSerialNumbersToCaptions
+  assignSerialNumbersToCaptions,
+  calculateSmartCaptionDuration
 } from '../utils/captionUtils'
 import {
   saveCaption,
