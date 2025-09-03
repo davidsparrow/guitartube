@@ -882,6 +882,7 @@ export default function Watch() {
     }
 
     // Set up polling to check player state
+    let lastPlayerState = null
     const checkPlayerState = () => {
       // Use utility function for checking player state and managing watch time tracking
       const result = checkPlayerStateForWatchTimeFromUtils({
@@ -894,9 +895,26 @@ export default function Watch() {
         setIsTrackingWatchTime,
         watchStartTime
       })
-      
+
       if (result.changed) {
         console.log(`🔄 Watch time tracking ${result.action}`)
+      }
+
+      // Also check for resume session save when video is paused
+      if (user?.id && player && player.getPlayerState && typeof player.getPlayerState === 'function') {
+        try {
+          const currentState = player.getPlayerState()
+
+          // If state changed from playing (1) to paused (2), save session
+          if (lastPlayerState === 1 && currentState === 2) {
+            console.log('🔄 Video paused - triggering session save...')
+            saveSessionOnPause()
+          }
+
+          lastPlayerState = currentState
+        } catch (error) {
+          console.error('Error checking player state for resume session:', error)
+        }
       }
     }
 
