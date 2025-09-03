@@ -435,6 +435,12 @@ export default function useCaptionManager({
     setOriginalCaptionsSnapshot(JSON.parse(JSON.stringify(captions)))
     console.log('📸 Snapshot created successfully')
 
+    // Clear any previous validation highlighting when opening modal
+    if (setConflictRowIndex) {
+      setConflictRowIndex(null)
+      console.log('🔄 Cleared previous validation highlighting')
+    }
+
     // Open caption edit modal for the specific row
     console.log('📸 Opening caption modal')
     setShowCaptionModal(true)
@@ -476,11 +482,13 @@ export default function useCaptionManager({
       return
     }
 
-    // Check if caption already exists at current time for text captions (rowType 1)
+    // Check if new caption would overlap with any existing text captions (rowType 1)
     const currentCaption = captions.find(caption => {
+      if (caption.rowType !== 1) return false
       const captionStart = timeToSeconds(caption.startTime)
       const captionEnd = timeToSeconds(caption.endTime)
-      return startTime >= captionStart && endTime <= captionEnd && caption.rowType === 1
+      // Check for ANY overlap: new caption overlaps if it starts before existing ends AND ends after existing starts
+      return startTime < captionEnd && endTime > captionStart
     })
 
     if (currentCaption) {
