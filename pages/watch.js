@@ -187,6 +187,7 @@ export default function Watch() {
   const [isLoadingCaptions, setIsLoadingCaptions] = useState(false)
   const [isLoadingFavorites, setIsLoadingFavorites] = useState(false)
   const [dbError, setDbError] = useState(null)
+  const [conflictRowIndex, setConflictRowIndex] = useState(null) // For highlighting invalid captions
 
   // Caption management via custom hook
   const {
@@ -228,7 +229,6 @@ export default function Watch() {
   })
 
   const [userDefaultCaptionDuration, setUserDefaultCaptionDuration] = useState(10) // User's preferred caption duration in seconds
-  const [conflictRowIndex, setConflictRowIndex] = useState(null) // For highlighting invalid captions
   
   // 🎸 CHORD CAPTION SYSTEM STATE VARIABLES 🎸
   // =============================================
