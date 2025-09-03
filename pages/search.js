@@ -358,18 +358,7 @@ export default function Search() {
       checkForSavedSession().then(sessionData => {
         setSavedSession(sessionData)
 
-        // Auto-trigger resume if coming from homepage resume icon
-        if (router.query.auto_resume === 'true' && sessionData?.last_video_id) {
-          console.log('🎯 Auto-resume triggered from homepage')
-          // Clear the auto_resume parameter to prevent repeated triggers
-          const { auto_resume, ...cleanQuery } = router.query
-          router.replace({ pathname: '/search', query: cleanQuery }, undefined, { shallow: true })
 
-          // Small delay to ensure URL is cleaned before navigation
-          setTimeout(() => {
-            router.push(`/watch?v=${sessionData.last_video_id}&title=${encodeURIComponent(sessionData.last_video_title || '')}&channel=${encodeURIComponent(sessionData.last_video_channel_name || '')}`)
-          }, 100)
-        }
       })
 
       // Load user favorites from database
