@@ -778,13 +778,8 @@ export const ChordCaptionModal = ({
   if (!showChordModal) return null
   
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) {
-          setShowChordModal(false)
-        }
-      }}
     >
       <div className="bg-black rounded-2xl shadow-2xl max-w-4xl w-full relative text-white p-6 max-h-[90vh] overflow-y-auto border-2 border-white/80">
         {/* Modal Title - Centered at top */}
