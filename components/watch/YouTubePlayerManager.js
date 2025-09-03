@@ -84,21 +84,23 @@ export default function YouTubePlayerManager({
       return
     }
 
-    const initPlayer = () => {
-      if (window.YT && window.YT.Player) {
-        console.log('🎬 Initializing YouTube player for video:', videoId)
+    // Add a small delay to ensure DOM is ready
+    const initTimer = setTimeout(() => {
+      const initPlayer = () => {
+        if (window.YT && window.YT.Player) {
+          console.log('🎬 Initializing YouTube player for video:', videoId)
 
-        // Clear any existing player first
-        if (playerRef.current) {
-          console.log('🧹 Cleaning up existing player')
-          try {
-            playerRef.current.destroy()
-          } catch (e) {
-            console.log('⚠️ Error destroying existing player:', e)
+          // Clear any existing player first
+          if (playerRef.current) {
+            console.log('🧹 Cleaning up existing player')
+            try {
+              playerRef.current.destroy()
+            } catch (e) {
+              console.log('⚠️ Error destroying existing player:', e)
+            }
+            playerRef.current = null
+            setPlayer(null)
           }
-          playerRef.current = null
-          setPlayer(null)
-        }
 
         // Detect mobile device
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
@@ -193,16 +195,31 @@ export default function YouTubePlayerManager({
       }
     }
 
-    // Check if API is already loaded
-    if (window.YT && window.YT.Player) {
-      console.log('✅ YouTube API already loaded, initializing player')
-      initPlayer()
-    } else {
-      // Wait for API to be ready
-      console.log('⏳ Setting up YouTube API ready callback')
-      window.onYouTubeIframeAPIReady = () => {
-        console.log('✅ YouTube API ready callback triggered')
+      // Check if API is already loaded
+      if (window.YT && window.YT.Player) {
+        console.log('✅ YouTube API already loaded, initializing player')
         initPlayer()
+      } else {
+        // Wait for API to be ready
+        console.log('⏳ Setting up YouTube API ready callback')
+        window.onYouTubeIframeAPIReady = () => {
+          console.log('✅ YouTube API ready callback triggered')
+          initPlayer()
+        }
+      }
+    }, 100) // Small delay to ensure DOM is ready
+
+    // Cleanup function
+    return () => {
+      clearTimeout(initTimer)
+      if (playerRef.current) {
+        console.log('🧹 Cleaning up player on unmount')
+        try {
+          playerRef.current.destroy()
+        } catch (e) {
+          console.log('⚠️ Error destroying player on unmount:', e)
+        }
+        playerRef.current = null
       }
     }
   }, [videoId, onPlayerReady, onPlayerStateChange, onPlayerError])
@@ -333,7 +350,11 @@ export default function YouTubePlayerManager({
             style={{
               // Ensure proper mobile touch handling
               pointerEvents: 'auto',
-              touchAction: 'manipulation'
+              touchAction: 'manipulation',
+              // DEBUG: Add visible border to see if element exists
+              border: '2px solid red',
+              minHeight: '200px',
+              backgroundColor: 'rgba(255, 0, 0, 0.1)'
             }}
           ></div>
         )}
