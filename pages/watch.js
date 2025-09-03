@@ -1020,14 +1020,11 @@ export default function Watch() {
     })
   }
 
-  // Show resume prompt to user
+  // Auto-resume video without dialog
   const showResumePrompt = (timestamp, title) => {
-    // Use utility function for showing resume prompt
-    showResumePromptFromUtils(timestamp, title, {
-      showCustomAlertModal,
-      resumeVideo,
-      startFromBeginning
-    })
+    console.log(`🎯 Auto-resuming video at ${timestamp} seconds`)
+    // Skip dialog and directly resume video
+    resumeVideo(timestamp)
   }
 
   // Resume video at saved timestamp
