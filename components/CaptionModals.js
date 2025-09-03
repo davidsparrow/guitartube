@@ -20,13 +20,8 @@ export const DeleteConfirmModal = ({
   if (!showDeleteConfirm) return null
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) {
-          setShowDeleteConfirm(false)
-        }
-      }}
     >
       <div className="bg-black rounded-2xl shadow-2xl max-w-sm w-full relative text-white p-6">
         {/* Modal Content */}
@@ -86,14 +81,8 @@ export const CaptionEditorModal = ({
   if (!showCaptionModal) return null
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) {
-          // Same behavior as Cancel button - revert changes and close modal
-          handleCancelCaptions()
-        }
-      }}
     >
       <div className="bg-black rounded-2xl shadow-2xl max-w-4xl w-full relative text-white p-6 max-h-[90vh] overflow-y-auto border-2 border-white/80">
         {/* Modal Title - Centered at top */}
@@ -505,13 +494,8 @@ export const LoopConfigModal = ({
   if (!showLoopModal) return null
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) {
-          setShowLoopModal(false)
-        }
-      }}
     >
       <div className="bg-black rounded-2xl shadow-2xl max-w-sm w-full relative text-white p-6">
         {/* Close Button */}
