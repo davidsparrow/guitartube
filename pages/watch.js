@@ -165,7 +165,12 @@ export default function Watch() {
   // User access control states
   const [isVideoFavorited, setIsVideoFavorited] = useState(false)
   const [showUnfavoriteWarning, setShowUnfavoriteWarning] = useState(false)
-  
+
+  // Database operation states (needed by useCaptionManager)
+  const [isLoadingCaptions, setIsLoadingCaptions] = useState(false)
+  const [isLoadingFavorites, setIsLoadingFavorites] = useState(false)
+  const [dbError, setDbError] = useState(null)
+
   // Caption management via custom hook
   const {
     captions,
@@ -247,10 +252,7 @@ export default function Watch() {
   const [showAddCaptionDialog, setShowAddCaptionDialog] = useState(false)
   const [selectedSerialNumber, setSelectedSerialNumber] = useState(null)
 
-  // Database operation states
-  const [isLoadingCaptions, setIsLoadingCaptions] = useState(false)
-  const [isLoadingFavorites, setIsLoadingFavorites] = useState(false)
-  const [dbError, setDbError] = useState(null)
+  // Database operation states - MOVED ABOVE useCaptionManager hook
   
   // Watch time tracking states
   const [watchStartTime, setWatchStartTime] = useState(null)
