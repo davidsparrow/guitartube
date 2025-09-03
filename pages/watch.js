@@ -1246,6 +1246,16 @@ export default function Watch() {
     })
   }
 
+  // Handle duplicate caption - NOW PROVIDED BY useCaptionManager HOOK
+  const handleDuplicateCaptionWrapper = (serialNumber) => {
+    handleDuplicateCaption(serialNumber, {
+      showCustomAlertModal,
+      hideCustomAlertModal,
+      player,
+      userDefaultCaptionDuration
+    })
+  }
+
 
 
   // Handle adding new caption at specific position
@@ -2737,7 +2747,7 @@ export default function Watch() {
         handleAddCaptionFromTimeline={handleAddCaptionFromTimeline}
         handleDeleteAllCaptions={() => handleDeleteAllCaptions(showCustomAlertModal, hideCustomAlertModal, deleteCaption, user, setIsLoadingCaptions, setDbError)}
         handleSaveCaptions={handleSaveCaptions}
-        handleDuplicateCaption={handleDuplicateCaption}
+        handleDuplicateCaption={handleDuplicateCaptionWrapper}
         handleDeleteCaption={handleDeleteCaption}
         player={player}
         isPlayerReady={isPlayerReadyFromUtils}

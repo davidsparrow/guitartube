@@ -223,9 +223,9 @@ export default function useCaptionManager({
   }
 
   // Handle duplicate caption
-  const handleDuplicateCaption = async (serialNumber) => {
+  const handleDuplicateCaption = async (serialNumber, accessControlParams = {}) => {
     console.log('📋 Duplicating caption with serial number:', serialNumber)
-    
+
     try {
       // Find the target caption by serial number
       const targetCaption = captions.find(caption => caption.serial_number === serialNumber)
@@ -237,85 +237,204 @@ export default function useCaptionManager({
 
       console.log('🎯 Found caption to duplicate:', targetCaption)
 
-      // Create a copy of the caption
-      const duplicatedCaption = {
-        ...targetCaption,
-        id: null, // Will get new ID when saved
-        serial_number: null // Will be assigned new serial number
-      }
-
-      // Determine timing for the duplicated caption
-      let newCaptionStartTime, newCaptionEndTime
-      let modifiedCaptions = [...captions]
-
-      // Check if there's a caption immediately after this one
-      const currentStartTime = timeToSeconds(targetCaption.startTime)
-      const currentEndTime = timeToSeconds(targetCaption.endTime)
-      
-      const nextCaption = captions.find(caption => {
-        const nextStart = timeToSeconds(caption.startTime)
-        return nextStart > currentEndTime
-      })
-
-      if (!nextCaption) {
-        // Option A: No caption after - extend duration by 50%
-        const originalDuration = currentEndTime - currentStartTime
-        const extensionDuration = originalDuration * 0.5
-        
-        newCaptionStartTime = targetCaption.endTime
-        newCaptionEndTime = formatSecondsToTime(currentEndTime + extensionDuration)
-        
-        console.log('📈 Extending caption duration (no next caption)')
+      // DIFFERENT RULES FOR TEXT CAPTIONS vs CHORD CAPTIONS
+      if (targetCaption.rowType === 1) {
+        // TEXT CAPTIONS: Apply smart placement rules (no overlaps allowed)
+        console.log('📝 Applying Text Caption duplicate rules (smart placement)')
+        await handleTextCaptionDuplicate(targetCaption, accessControlParams)
       } else {
-        // Option B: Between existing captions - use duplicate logic
-        const startTime = timeToSeconds(targetCaption.startTime)
-        const endTime = timeToSeconds(targetCaption.endTime)
-        const originalDuration = endTime - startTime
-        
-        // Modify original caption - reduce duration by 50%
-        const newOriginalEndTime = startTime + (originalDuration / 2)
-        const newOriginalEndTimeFormatted = formatSecondsToTime(newOriginalEndTime)
-        
-        // Update original caption
-        modifiedCaptions = modifiedCaptions.map(caption => 
-          caption.serial_number === serialNumber 
-            ? { ...caption, endTime: newOriginalEndTimeFormatted }
-            : caption
-        )
-        
-        // New caption takes the second half
-        newCaptionStartTime = newOriginalEndTimeFormatted
-        newCaptionEndTime = targetCaption.endTime
-        
-        console.log('✂️ Splitting caption duration (between captions)')
+        // CHORD CAPTIONS: Keep existing behavior (overlaps allowed)
+        console.log('🎸 Applying Chord Caption duplicate rules (existing behavior)')
+        await handleChordCaptionDuplicate(targetCaption, serialNumber)
       }
 
-      // Set timing for duplicated caption
-      duplicatedCaption.startTime = newCaptionStartTime
-      duplicatedCaption.endTime = newCaptionEndTime
-
-      // Add duplicated caption to modified captions
-      modifiedCaptions.push(duplicatedCaption)
-
-      // Sort captions by start time
-      const sortedCaptions = modifiedCaptions.sort((a, b) => {
-        const aStart = timeToSeconds(a.startTime)
-        const bStart = timeToSeconds(b.startTime)
-        return aStart - bStart
-      })
-
-      // Assign new serial numbers
-      const captionsWithSerialNumbers = assignSerialNumbersToCaptions(sortedCaptions)
-      
-      // Update state with sorted captions and new serial numbers
-      setCaptionsWithLogging(captionsWithSerialNumbers)
-      
-      console.log('✅ Caption duplicated successfully with consistent logic')
-      
     } catch (error) {
       console.error('❌ Error duplicating caption:', error)
       setDbError('Failed to duplicate caption')
     }
+  }
+
+  // Text Caption duplicate with smart placement (no overlaps)
+  const handleTextCaptionDuplicate = async (targetCaption, accessControlParams) => {
+    const {
+      showCustomAlertModal,
+      hideCustomAlertModal,
+      player,
+      userDefaultCaptionDuration
+    } = accessControlParams || {}
+
+    const originalStartTime = timeToSeconds(targetCaption.startTime)
+    const originalEndTime = timeToSeconds(targetCaption.endTime)
+    const originalDuration = originalEndTime - originalStartTime
+
+    // RULE: Start new caption at original caption's end time
+    let startTime = originalEndTime
+    let endTime = startTime + (userDefaultCaptionDuration || originalDuration)
+    const videoDuration = player?.getDuration ? player.getDuration() : 0
+
+    console.log(`🎯 Trying to place duplicate at ${startTime}s - ${endTime}s`)
+
+    // Check if initial placement would exceed video duration
+    if (videoDuration > 0 && endTime > videoDuration) {
+      console.error(`❌ Cannot duplicate - would exceed video duration`)
+      if (showCustomAlertModal && hideCustomAlertModal) {
+        showCustomAlertModal(`Cannot duplicate caption - would extend beyond video end`, [
+          { text: 'OK', action: hideCustomAlertModal }
+        ])
+      } else {
+        setDbError('Cannot duplicate caption - would extend beyond video end')
+      }
+      return
+    }
+
+    // Find all text captions for collision detection
+    const textCaptions = captions
+      .filter(caption => caption.rowType === 1)
+      .map(caption => ({
+        start: timeToSeconds(caption.startTime),
+        end: timeToSeconds(caption.endTime)
+      }))
+      .sort((a, b) => a.start - b.start)
+
+    // Check for collision and search forward if needed
+    let searchAttempts = 0
+    const maxSearchAttempts = 50
+
+    while (searchAttempts < maxSearchAttempts) {
+      // Check if current position conflicts with any existing text caption
+      const hasConflict = textCaptions.some(cap =>
+        startTime < cap.end && endTime > cap.start
+      )
+
+      if (!hasConflict) {
+        // Found a good spot!
+        console.log(`✅ Found available space at ${startTime}s - ${endTime}s`)
+        break
+      }
+
+      // Move to next potential position (end of next conflicting caption)
+      const nextConflict = textCaptions.find(cap => cap.start >= startTime)
+      if (nextConflict) {
+        startTime = nextConflict.end
+        endTime = startTime + (userDefaultCaptionDuration || originalDuration)
+        console.log(`🔄 Moving to next position: ${startTime}s`)
+      } else {
+        // No more captions ahead, try moving forward by duration
+        startTime = endTime
+        endTime = startTime + (userDefaultCaptionDuration || originalDuration)
+      }
+
+      // Check if we're near end of video
+      if (videoDuration > 0 && endTime > videoDuration) {
+        console.error(`❌ Cannot find space for duplicate caption`)
+        if (showCustomAlertModal && hideCustomAlertModal) {
+          showCustomAlertModal(`Cannot find space to duplicate caption`, [
+            { text: 'OK', action: hideCustomAlertModal }
+          ])
+        } else {
+          setDbError('Cannot find space to duplicate caption')
+        }
+        return
+      }
+
+      searchAttempts++
+    }
+
+    if (searchAttempts >= maxSearchAttempts) {
+      console.error('❌ Could not find available space after maximum search attempts')
+      if (showCustomAlertModal && hideCustomAlertModal) {
+        showCustomAlertModal('Could not find available space for duplicate caption', [
+          { text: 'OK', action: hideCustomAlertModal }
+        ])
+      } else {
+        setDbError('Could not find available space for duplicate caption')
+      }
+      return
+    }
+
+    // Create duplicate with smart placement
+    const duplicatedCaption = {
+      ...targetCaption,
+      id: null,
+      serial_number: null,
+      startTime: formatSecondsToTime(startTime),
+      endTime: formatSecondsToTime(endTime)
+    }
+
+    // Add to captions and sort
+    const newCaptions = [...captions, duplicatedCaption]
+    const sortedCaptions = newCaptions.sort((a, b) => {
+      const aStart = timeToSeconds(a.startTime)
+      const bStart = timeToSeconds(b.startTime)
+      return aStart - bStart
+    })
+
+    const captionsWithSerialNumbers = assignSerialNumbersToCaptions(sortedCaptions)
+    setCaptionsWithLogging(captionsWithSerialNumbers)
+
+    console.log('✅ Text caption duplicated with smart placement')
+  }
+
+  // Chord Caption duplicate with existing behavior (overlaps allowed)
+  const handleChordCaptionDuplicate = async (targetCaption, serialNumber) => {
+    // Keep existing chord caption duplicate logic unchanged
+    const duplicatedCaption = {
+      ...targetCaption,
+      id: null,
+      serial_number: null
+    }
+
+    let modifiedCaptions = [...captions]
+    const currentStartTime = timeToSeconds(targetCaption.startTime)
+    const currentEndTime = timeToSeconds(targetCaption.endTime)
+
+    const nextCaption = captions.find(caption => {
+      const nextStart = timeToSeconds(caption.startTime)
+      return nextStart > currentEndTime
+    })
+
+    if (!nextCaption) {
+      // No caption after - extend duration by 50%
+      const originalDuration = currentEndTime - currentStartTime
+      const extensionDuration = originalDuration * 0.5
+
+      duplicatedCaption.startTime = targetCaption.endTime
+      duplicatedCaption.endTime = formatSecondsToTime(currentEndTime + extensionDuration)
+
+      console.log('📈 Extending chord caption duration (no next caption)')
+    } else {
+      // Between existing captions - split duration
+      const startTime = timeToSeconds(targetCaption.startTime)
+      const endTime = timeToSeconds(targetCaption.endTime)
+      const originalDuration = endTime - startTime
+
+      const newOriginalEndTime = startTime + (originalDuration / 2)
+      const newOriginalEndTimeFormatted = formatSecondsToTime(newOriginalEndTime)
+
+      modifiedCaptions = modifiedCaptions.map(caption =>
+        caption.serial_number === serialNumber
+          ? { ...caption, endTime: newOriginalEndTimeFormatted }
+          : caption
+      )
+
+      duplicatedCaption.startTime = newOriginalEndTimeFormatted
+      duplicatedCaption.endTime = targetCaption.endTime
+
+      console.log('✂️ Splitting chord caption duration (between captions)')
+    }
+
+    modifiedCaptions.push(duplicatedCaption)
+
+    const sortedCaptions = modifiedCaptions.sort((a, b) => {
+      const aStart = timeToSeconds(a.startTime)
+      const bStart = timeToSeconds(b.startTime)
+      return aStart - bStart
+    })
+
+    const captionsWithSerialNumbers = assignSerialNumbersToCaptions(sortedCaptions)
+    setCaptionsWithLogging(captionsWithSerialNumbers)
+
+    console.log('✅ Chord caption duplicated with existing logic')
   }
 
   // Handle delete caption confirmation
