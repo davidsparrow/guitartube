@@ -1,7 +1,7 @@
 // hooks/useYouTubePlayer.js - Custom hook for YouTube player management
 import { useState, useRef, useCallback } from 'react'
 
-export default function useYouTubePlayer() {
+export default function useYouTubePlayer(customStateChangeHandler = null) {
   // Player states
   const [player, setPlayer] = useState(null)
   const [isPlayerReady, setIsPlayerReady] = useState(false)
@@ -21,10 +21,15 @@ export default function useYouTubePlayer() {
     // Handle player state changes (playing, paused, etc.)
     const state = event.data
     console.log('🎬 Player state changed:', state)
-    
+
     // YouTube player states:
     // -1 (unstarted), 0 (ended), 1 (playing), 2 (paused), 3 (buffering), 5 (cued)
-  }, [])
+
+    // Call custom state change handler if provided
+    if (customStateChangeHandler && typeof customStateChangeHandler === 'function') {
+      customStateChangeHandler(event)
+    }
+  }, [customStateChangeHandler])
 
   const handlePlayerError = useCallback((error) => {
     console.error('❌ YouTube player error in hook:', error)

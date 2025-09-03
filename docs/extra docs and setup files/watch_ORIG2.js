@@ -5,17 +5,20 @@ import { useUser } from '../contexts/UserContext'
 import AuthModal from '../components/AuthModal'
 import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabase'
-import { FaHamburger, FaSearch, FaTimes } from "react-icons/fa"
+import { FaHamburger, FaSearch, FaTimes, FaRegEye, FaRegEdit, FaPlus } from "react-icons/fa"
 import { MdCancel } from "react-icons/md"
 import { TiDeleteOutline } from "react-icons/ti"
-
+import { CgViewList } from "react-icons/cg"
+import { IoText } from "react-icons/io5"
 import { IoMdPower } from "react-icons/io"
 import { RiLogoutCircleRLine } from "react-icons/ri"
-import { BiHide } from "react-icons/bi"
-import { LuTextSelect } from "react-icons/lu"
+import { TbGuitarPickFilled } from "react-icons/tb"
+import { MdFlipCameraAndroid } from "react-icons/md"
+import { ImLoop } from "react-icons/im"
+import { BsReverseLayoutSidebarInsetReverse, BsArrowsFullscreen } from "react-icons/bs"
+import { IoGameControllerOutline } from "react-icons/io5"
 import TopBanner from '../components/TopBanner'
 import Header from '../components/Header'
-import WatchFooter from '../components/WatchFooter'
 import MenuModal from '../components/MenuModal'
 import SupportModal from '../components/SupportModal'
 import {
@@ -61,13 +64,6 @@ import {
 } from '../utils/videoPlayerUtils'
 import ChordCaptionModal from '../components/ChordCaptionModal'
 import { deleteAllChordCaptions, saveChordCaptions } from '../song_data_processing/chord_processing/ChordCaptionDatabase'
-import LayoutSelectionModal from '../components/LayoutSelectionModal'
-import YouTubePlayerManager from '../components/watch/YouTubePlayerManager'
-import useYouTubePlayer from '../hooks/useYouTubePlayer'
-import CaptionManager from '../components/watch/CaptionManager'
-import useCaptionManager from '../hooks/useCaptionManager'
-import useLoopManagerComponent from '../components/watch/LoopManager'
-import useLoopManager from '../hooks/useLoopManager'
 
 export default function Watch() {
 
@@ -87,62 +83,10 @@ export default function Watch() {
   const [videoId, setVideoId] = useState('')
   const [videoTitle, setVideoTitle] = useState('')
   const [videoChannel, setVideoChannel] = useState('')
+  const [isVideoReady, setIsVideoReady] = useState(false)
   const [showMobileSearch, setShowMobileSearch] = useState(false)
-
-  // YouTube player management via custom hook
-  const {
-    player,
-    isPlayerReady: isVideoReady,
-    playerError,
-    handlePlayerReady: onPlayerReady,
-    handlePlayerStateChange: onPlayerStateChange,
-    handlePlayerError: onPlayerError,
-    handleAPIError: onAPIError,
-    getCurrentTime,
-    getDuration,
-    seekTo,
-    play,
-    pause,
-    isPlaying,
-    formatTime,
-    parseTime
-  } = useYouTubePlayer(handlePlayerStateChange)
-
-  // Page type for specialized watch experiences
-  const [pageType, setPageType] = useState('default') // 'default', 'lyrics', 'chords', 'tabs', 'lyrics-chords', 'lyrics-tabs'
-
-  // Layout selection state
-  const [currentLayout, setCurrentLayout] = useState('default') // 'default' or layout IDs from modal
-  const [showLayoutModal, setShowLayoutModal] = useState(false)
-
-  // Helper function to determine which rows should be visible based on layout
-  const getLayoutRowVisibility = (layoutId) => {
-    switch (layoutId) {
-      case 'single-chords':
-        return { showRow1: false, showRow2: true, showRow3: false }
-      case 'single-tabs':
-        return { showRow1: false, showRow2: false, showRow3: true }
-      case 'chords-tabs':
-        return { showRow1: false, showRow2: true, showRow3: true }
-      case 'lyrics-chords':
-        return { showRow1: true, showRow2: true, showRow3: false }
-      case 'lyrics-tabs':
-        return { showRow1: true, showRow2: false, showRow3: true }
-      case 'tabs-chords':
-        return { showRow1: false, showRow2: true, showRow3: true }
-      case 'lyrics-chords-tabs':
-        return { showRow1: true, showRow2: true, showRow3: true }
-      case 'lyrics-tabs-chords':
-        return { showRow1: true, showRow2: true, showRow3: true }
-      case 'scroll-lyrics-chords':
-        return { showRow1: true, showRow2: true, showRow3: false }
-      case 'scroll-lyrics-tabs':
-        return { showRow1: true, showRow2: false, showRow3: true }
-      case 'default':
-      default:
-        return { showRow1: true, showRow2: true, showRow3: true }
-    }
-  }
+  const [player, setPlayer] = useState(null)
+  const playerRef = useRef(null) // Add ref to track player instance
   
   // Control strip states - Individual row visibility
   const [showControlStrips, setShowControlStrips] = useState(false)
@@ -153,28 +97,13 @@ export default function Watch() {
   // Video flip states
   const [flipState, setFlipState] = useState('normal') // 'normal', 'horizontal', 'vertical'
   
-  // Loop management via custom hook
-  const {
-    isLoopActive,
-    setIsLoopActive,
-    loopStartTime,
-    setLoopStartTime,
-    loopEndTime,
-    setLoopEndTime,
-    showLoopModal,
-    setShowLoopModal,
-    tempLoopStart,
-    setTempLoopStart,
-    tempLoopEnd,
-    setTempLoopEnd,
-    resetLoopState,
-    startLoop,
-    stopLoop,
-    openLoopModal,
-    closeLoopModal,
-    applyLoopSettings,
-    cancelLoopSettings
-  } = useLoopManager()
+  // Loop segment states
+  const [isLoopActive, setIsLoopActive] = useState(false)
+  const [loopStartTime, setLoopStartTime] = useState('0:00')
+  const [loopEndTime, setLoopEndTime] = useState('0:00')
+  const [showLoopModal, setShowLoopModal] = useState(false)
+  const [tempLoopStart, setTempLoopStart] = useState('0:00')
+  const [tempLoopEnd, setTempLoopEnd] = useState('0:00')
   
   // Fullscreen state
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -182,70 +111,21 @@ export default function Watch() {
   // User access control states
   const [isVideoFavorited, setIsVideoFavorited] = useState(false)
   const [showUnfavoriteWarning, setShowUnfavoriteWarning] = useState(false)
+  
+  // Caption management states
+  const [showCaptionModal, setShowCaptionModal] = useState(false)
+  const [captions, setCaptions] = useState([])
+  
+  // Create a wrapped setCaptions that logs all calls
 
-  // Database operation states (needed by useCaptionManager)
-  const [isLoadingCaptions, setIsLoadingCaptions] = useState(false)
-  const [isLoadingFavorites, setIsLoadingFavorites] = useState(false)
-  const [dbError, setDbError] = useState(null)
-  const [conflictRowIndex, setConflictRowIndex] = useState(null) // For highlighting invalid captions
-
-  // Custom alert modal states (must be before useCaptionManager)
-  const [showCustomAlert, setShowCustomAlert] = useState(false)
-  const [customAlertMessage, setCustomAlertMessage] = useState('')
-  const [customAlertButtons, setCustomAlertButtons] = useState([])
-
-  // Custom alert modal utility functions (must be before useCaptionManager)
-  const showCustomAlertModal = (message, buttons = []) => {
-    setCustomAlertMessage(message)
-    setCustomAlertButtons(buttons)
-    setShowCustomAlert(true)
-  }
-
-  const hideCustomAlertModal = () => {
-    setShowCustomAlert(false)
-    setCustomAlertMessage('')
-    setCustomAlertButtons([])
-  }
-
-  // Caption management via custom hook
-  const {
-    captions,
-    setCaptions,
-    isInCaptionMode,
-    setIsInCaptionMode,
-    editingCaptionId,
-    setEditingCaptionId,
-    originalCaptionsSnapshot,
-    setOriginalCaptionsSnapshot,
-    showCaptionModal,
-    setShowCaptionModal,
-    editingCaption,
-    setEditingCaption,
-    isAddingNewCaption,
-    setIsAddingNewCaption,
-    showDeleteConfirm,
-    setShowDeleteConfirm,
-    captionToDelete,
-    setCaptionToDelete,
-    handleSaveCaptions,
-    handleCancelCaptions,
-    handleDuplicateCaption,
-    handleDeleteCaption,
-    handleDeleteAllCaptions,
-    handleOpenCaptionModal,
-    handleAddCaptionFromTimeline: handleAddCaptionFromTimelineHook
-  } = useCaptionManager({
-    videoId,
-    user,
-    setIsLoadingCaptions,
-    setDbError,
-    player,
-    getVideoDuration,
-    setConflictRowIndex,
-    showCustomAlertModal,
-    hideCustomAlertModal
-  })
-
+  const [editingCaption, setEditingCaption] = useState(null)
+  const [isAddingNewCaption, setIsAddingNewCaption] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [captionToDelete, setCaptionToDelete] = useState(null)
+  const [conflictRowIndex, setConflictRowIndex] = useState(-1)
+  const [isInCaptionMode, setIsInCaptionMode] = useState(false)
+  const [editingCaptionId, setEditingCaptionId] = useState(null)
+  const [originalCaptionsSnapshot, setOriginalCaptionsSnapshot] = useState(null) // Store original state when modal opens
   const [userDefaultCaptionDuration, setUserDefaultCaptionDuration] = useState(10) // User's preferred caption duration in seconds
   
   // 🎸 CHORD CAPTION SYSTEM STATE VARIABLES 🎸
@@ -294,7 +174,10 @@ export default function Watch() {
   const [showAddCaptionDialog, setShowAddCaptionDialog] = useState(false)
   const [selectedSerialNumber, setSelectedSerialNumber] = useState(null)
 
-  // Database operation states - MOVED ABOVE useCaptionManager hook
+  // Database operation states
+  const [isLoadingCaptions, setIsLoadingCaptions] = useState(false)
+  const [isLoadingFavorites, setIsLoadingFavorites] = useState(false)
+  const [dbError, setDbError] = useState(null)
   
   // Watch time tracking states
   const [watchStartTime, setWatchStartTime] = useState(null)
@@ -317,41 +200,42 @@ export default function Watch() {
 
   // Save session data when user pauses video for Login-Resume functionality
   const saveSessionOnPause = async () => {
-    console.log('💾 SAVING LAST WATCHED SESSION - Starting save process...')
 
+
+    
     if (!user?.id) {
-      console.log('❌ Save blocked: No user ID')
+              // Save blocked: No user ID
       return
     }
-    if (!player) {
-      console.log('❌ Save blocked: No player instance')
+    if (!playerRef.current) {
+              // Save blocked: No player ref
       return
     }
     if (!isVideoReady) {
-      console.log('❌ Save blocked: Video not ready')
+              // Save blocked: Video not ready
       return
     }
     if (!videoId) {
-      console.log('❌ Save blocked: No video ID')
+              // Save blocked: No video ID
       return
     }
+    
 
+    
     try {
-      const currentTime = getCurrentTime()
-      console.log('💾 Current video time:', currentTime, 'seconds')
 
-      const videoData = player.getVideoData ? player.getVideoData() : {}
-      const videoTitleFromPlayer = videoData.title || videoTitle
-      const channelName = videoData.author || videoChannel
+      const currentTime = playerRef.current.getCurrentTime()
+              // Current time
+      
+      const videoTitle = playerRef.current.getVideoData().title || videoTitle
+              // Video title
+      
+      const channelName = playerRef.current.getVideoData().author || videoChannel
+              // Channel name
+      
 
-      console.log('💾 Saving watch data:', {
-        userId: user.id,
-        videoId,
-        timestamp: currentTime,
-        title: videoTitle,
-        channelName
-      })
-
+      
+              // Making API call to update session
       const response = await fetch('/api/user/update-session', {
         method: 'POST',
         headers: {
@@ -366,10 +250,11 @@ export default function Watch() {
           channelName
         })
       })
-
+      
+              // API response received
+      
       if (response.ok) {
-        const result = await response.json()
-        console.log('✅ LAST WATCHED SESSION SAVED successfully:', result)
+
       } else {
         console.error('❌ Failed to save session data on pause:', response.status)
         const errorText = await response.text()
@@ -380,6 +265,13 @@ export default function Watch() {
       console.error('❌ Error stack:', error.stack)
     }
   }
+
+
+
+  // Custom alert modal states
+  const [showCustomAlert, setShowCustomAlert] = useState(false)
+  const [customAlertMessage, setCustomAlertMessage] = useState('')
+  const [customAlertButtons, setCustomAlertButtons] = useState([])
 
 
 
@@ -420,6 +312,19 @@ export default function Watch() {
   // removeFavorite function - now imported from CaptionDatabase
 
 
+
+  // Custom alert modal utility functions
+  const showCustomAlertModal = (message, buttons = []) => {
+    setCustomAlertMessage(message)
+    setCustomAlertButtons(buttons)
+    setShowCustomAlert(true)
+  }
+
+  const hideCustomAlertModal = () => {
+    setShowCustomAlert(false)
+    setCustomAlertMessage('')
+    setCustomAlertButtons([])
+  }
 
   // Helper functions to get messages from Admin Settings
   const getAdminMessage = (messageKey, fallback) => {
@@ -569,26 +474,6 @@ export default function Watch() {
     return { hasExceeded, planType, dailyMinutes, userLimit }
   }
 
-  // Loop management component - initialized after required functions are defined
-  const loopManager = useLoopManagerComponent({
-    player,
-    isLoopActive,
-    setIsLoopActive,
-    loopStartTime,
-    setLoopStartTime,
-    loopEndTime,
-    setLoopEndTime,
-    showLoopModal,
-    setShowLoopModal,
-    tempLoopStart,
-    setTempLoopStart,
-    tempLoopEnd,
-    setTempLoopEnd,
-    checkDailyWatchTimeLimits,
-    currentDailyTotal,
-    onUnfavoriteCleanup: resetLoopState
-  })
-
   // Feature Gates Helper Functions
   const loadFeatureGates = async () => {
     try {
@@ -716,9 +601,103 @@ export default function Watch() {
     // User data useEffect triggered
   }, [user, profile, loading, isAuthenticated])
 
-  // YouTube API and player initialization now handled by YouTubePlayerManager component
+  // Load YouTube API script
+  useEffect(() => {
+    if (mounted && !window.YT) {
+      // Loading YouTube iframe API
+      setYoutubeAPILoading(true)
+      setYoutubeAPIError(false)
+      
+      const tag = document.createElement('script')
+      tag.src = 'https://www.youtube.com/iframe_api'
+      
+      // Add more detailed error handling
+      tag.onerror = (error) => {
+        console.error('❌ Failed to load YouTube iframe API:', error)
+        console.error('❌ Error details:', { 
+          error: error.message, 
+          type: error.type,
+          target: tag.src 
+        })
+        setYoutubeAPILoading(false)
+        setYoutubeAPIError(true)
+        handleYouTubeAPIError()
+      }
+      
+      tag.onload = () => {
 
-  // Player initialization now handled by YouTubePlayerManager component
+        setYoutubeAPILoading(false)
+      }
+      
+      // Add timeout to detect hanging script loading
+      const timeoutId = setTimeout(() => {
+        if (!window.YT) {
+          console.error('⏰ YouTube API script loading timeout - script may be hanging')
+          setYoutubeAPILoading(false)
+          setYoutubeAPIError(true)
+        }
+      }, 10000) // 10 second timeout
+      
+      const firstScriptTag = document.getElementsByTagName('script')[0]
+      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
+      
+      // Cleanup timeout if script loads successfully
+      if (window.YT) {
+        clearTimeout(timeoutId)
+      }
+    } else if (mounted && window.YT) {
+      
+    }
+  }, [mounted])
+
+  // Initialize YouTube player when API is ready
+  useEffect(() => {
+    if (mounted && videoId) {
+      // Initializing YouTube player for video
+      
+      const initPlayer = () => {
+        if (window.YT && window.YT.Player) {
+  
+          const newPlayer = new window.YT.Player('youtube-player', {
+            height: '100%',
+            width: '100%',
+            videoId: videoId,
+            playerVars: {
+              controls: 1,
+              modestbranding: 1,
+              rel: 0,
+              showinfo: 0,
+              fs: 0, // Disable YouTube's fullscreen button
+              origin: window.location.origin
+            },
+            events: {
+              onReady: (event) => handleVideoReady(event, newPlayer),
+              onStateChange: (event) => handlePlayerStateChange(event),
+              onError: handleVideoError
+            }
+          })
+          
+          // Store the player reference for later use
+          // Player created, waiting for onReady event
+        } else {
+
+        }
+      }
+
+      // Check if API is already loaded
+      if (window.YT && window.YT.Player) {
+
+        initPlayer()
+      } else {
+        // Wait for API to be ready
+        // Setting up YouTube API ready callback
+        window.onYouTubeIframeAPIReady = () => {
+                      // YouTube API ready callback triggered
+          initPlayer()
+        }
+      }
+    }
+  }, [mounted, videoId])
 
   // Load video from URL parameters when page loads
   useEffect(() => {
@@ -737,43 +716,29 @@ export default function Watch() {
         setVideoId(v)
         setVideoTitle(title ? decodeURIComponent(title) : '')
         setVideoChannel(channel ? decodeURIComponent(channel) : '')
-        // Video ready state now managed by YouTubePlayerManager
+        setIsVideoReady(true)
       } else {
         // No video ID in URL, redirecting to home
         router.push('/')
       }
     } else if (mounted && router.isReady) {
-      const { v, title, channel, type } = router.query
+      const { v, title, channel } = router.query
       if (v && typeof v === 'string') {
-
+        
         setVideoId(v)
         setVideoTitle(title ? decodeURIComponent(title) : '')
         setVideoChannel(channel ? decodeURIComponent(channel) : '')
-        // Video ready state now managed by YouTubePlayerManager
-
-        // Handle page type parameter for specialized experiences
-        if (type && typeof type === 'string') {
-          const validTypes = ['lyrics', 'chords', 'tabs', 'lyrics-chords', 'lyrics-tabs']
-          if (validTypes.includes(type)) {
-            setPageType(type)
-            console.log(`🎯 Specialized watch page: ${type}`)
-          } else {
-            setPageType('default')
-            console.warn(`⚠️ Invalid page type: ${type}, using default`)
-          }
-        } else {
-          setPageType('default')
-        }
-
+        setIsVideoReady(true)
+        
         // Query daily watch time total when video loads
         if (user?.id) {
           // Video loaded - querying daily watch time total
           getDailyWatchTimeTotal()
-
+          
           // Check for saved session data to resume video
           checkForSavedSession(v)
         }
-
+        
 
       } else {
         // No video ID provided, redirecting to home
@@ -799,7 +764,7 @@ export default function Watch() {
         setVideoId(v)
         setVideoTitle(title ? decodeURIComponent(title) : '')
         setVideoChannel(channel ? decodeURIComponent(channel) : '')
-        // Video ready state now managed by YouTubePlayerManager
+        setIsVideoReady(true)
         
         // Check for saved session data in fallback case too
         if (user?.id) {
@@ -911,8 +876,18 @@ export default function Watch() {
     }
   }
 
-  // Video player functions (now handled by YouTubePlayerManager)
-  // These functions are kept for compatibility with existing utility functions
+  // Video player functions
+  const handleVideoReady = (event, playerInstance) => {
+    // Use utility function for video ready handling
+    handleVideoReadyFromUtils(event, playerInstance, {
+      setIsVideoReady,
+      setPlayer,
+      setPlayerRef: (player) => { playerRef.current = player },
+      captureVideoParameters,
+      videoTitle,
+      videoChannel
+    })
+  }
 
   const handleVideoError = (error) => {
     // Use utility function for video error handling
@@ -926,32 +901,29 @@ export default function Watch() {
 
   // Check for saved session data and resume video if available
   const checkForSavedSession = async (currentVideoId) => {
-    // Auto-popup disabled, but function works for manual resume button
-    console.log('📱 Checking for saved session (auto-popup disabled)')
-
-    // Use utility function for checking saved session but don't show popup
+    // Use utility function for checking saved session
     await checkForSavedSessionFromUtils(currentVideoId, {
       userId: user?.id,
-      showResumePrompt: null, // Disable auto-popup
+      showResumePrompt,
       supabase
     })
   }
 
-  // Show resume prompt to user - DISABLED (better system in place)
-  // const showResumePrompt = (timestamp, title) => {
-  //   // Use utility function for showing resume prompt
-  //   showResumePromptFromUtils(timestamp, title, {
-  //     showCustomAlertModal,
-  //     resumeVideo,
-  //     startFromBeginning
-  //   })
-  // }
+  // Show resume prompt to user
+  const showResumePrompt = (timestamp, title) => {
+    // Use utility function for showing resume prompt
+    showResumePromptFromUtils(timestamp, title, {
+      showCustomAlertModal,
+      resumeVideo,
+      startFromBeginning
+    })
+  }
 
   // Resume video at saved timestamp
   const resumeVideo = (timestamp) => {
     // Use utility function for resuming video
     resumeVideoFromUtils(timestamp, {
-      playerRef: { current: player },
+      playerRef,
       hideCustomAlertModal
     })
   }
@@ -960,7 +932,7 @@ export default function Watch() {
   const startFromBeginning = () => {
     // Use utility function for starting video from beginning
     startFromBeginningFromUtils({
-      playerRef: { current: player },
+      playerRef,
       hideCustomAlertModal
     })
   }
@@ -985,9 +957,9 @@ export default function Watch() {
       if (user?.id) {
 
         
-        // Use the player instance for immediate access
-        if (player && player.getPlayerState && typeof player.getPlayerState === 'function') {
-
+        // Use the ref for immediate access to the player instance
+        if (playerRef.current && playerRef.current.getPlayerState && typeof playerRef.current.getPlayerState === 'function') {
+  
           console.log('🔄 Triggering session save on pause...')
           saveSessionOnPause()
         } else {
@@ -1153,8 +1125,10 @@ export default function Watch() {
 
         // TODO: Delete loop records from Supabase
         
-        // Reset loop state - NOW HANDLED BY LoopManager
-        loopManager.handleUnfavoriteCleanup()
+        // Reset loop state
+        setIsLoopActive(false)
+        setLoopStartTime('0:00')
+        setLoopEndTime('0:00')
         
 
       } else {
@@ -1172,20 +1146,45 @@ export default function Watch() {
     setShowUnfavoriteWarning(false)
   }
 
-  // Handle caption edit click - NOW PROVIDED BY useCaptionManager HOOK
+  // Handle caption edit click with access control
   const handleCaptionEditClick = (rowNumber) => {
-    handleOpenCaptionModal(rowNumber, {
-      isVideoPlayingFromUtils,
-      player,
-      showVideoPlayingRestrictionFromUtils,
-      getAdminMessage,
-      showCustomAlertModal,
-      hideCustomAlertModal,
-      canAccessLoops,
-      planType,
-      isVideoFavorited,
-      handleFavoriteToggle
-    })
+    // Check if video is playing
+    if (isVideoPlayingFromUtils(player)) {
+      showVideoPlayingRestrictionFromUtils({
+        getAdminMessage,
+        showCustomAlertModal,
+        hideCustomAlertModal
+      })
+      return
+    }
+    
+    // Check if user can access captions (same as loops)
+    if (!canAccessLoops()) {
+      if (planType === 'freebird') {
+        showCustomAlertModal(getAdminMessage('plan_upgrade_message', '🔒 Captions require a paid plan. Please upgrade to access this feature.'), [
+          { text: 'UPGRADE PLAN', action: () => window.open('/pricing', '_blank') },
+          { text: 'OK', action: hideCustomAlertModal }
+        ])
+        return
+      }
+      if (!isVideoFavorited) {
+        showCustomAlertModal(getAdminMessage('save_to_favorites_message', '⭐ Please save this video to favorites before editing captions.'), [
+          { text: 'SAVE TO FAVORITES', action: () => { hideCustomAlertModal(); handleFavoriteToggle(); } },
+          { text: 'OK', action: hideCustomAlertModal }
+        ])
+        return
+      }
+      return
+    }
+
+    // Capture snapshot of current captions state before opening modal
+    setOriginalCaptionsSnapshot(JSON.parse(JSON.stringify(captions)))
+            // Captured captions snapshot for revert functionality
+
+    // Open caption edit modal for the specific row
+    
+    setShowCaptionModal(true)
+    setEditingCaption({ rowType: rowNumber, rowName: rowNumber === 1 ? 'Text Captions' : rowNumber === 2 ? 'Chords Captions' : 'Auto-Gen' })
   }
 
   // Handle chord modal open for Row 2
@@ -1231,28 +1230,39 @@ export default function Watch() {
 
 
 
-  // Handle adding new caption from timeline - NOW PROVIDED BY useCaptionManager HOOK
+  // Handle adding new caption from timeline
   const handleAddCaptionFromTimeline = () => {
-    handleAddCaptionFromTimelineHook({
-      showCustomAlertModal,
-      hideCustomAlertModal,
-      player,
-      videoId,
-      user,
-      setIsLoadingCaptions,
-      setDbError,
-      userDefaultCaptionDuration
-    })
-  }
+    if (!canAccessLoops()) {
+      if (planType === 'freebird') {
+        showCustomAlertModal(getAdminMessage('plan_upgrade_message', '🔒 Captions require a paid plan. Please upgrade to access this feature.'), [
+          { text: 'UPGRADE PLAN', action: () => window.open('/pricing', '_blank') },
+          { text: 'OK', action: hideCustomAlertModal }
+        ])
+        return
+      }
+      if (!isVideoFavorited) {
+        showCustomAlertModal(getAdminMessage('save_to_favorites_message', '⭐ Please save this video to favorites before editing captions.'), [
+          { text: 'SAVE TO FAVORITES', action: () => { hideCustomAlertModal(); handleFavoriteToggle(); } },
+          { text: 'OK', action: hideCustomAlertModal }
+        ])
+        return
+      }
+      return
+    }
 
-  // Handle duplicate caption - NOW PROVIDED BY useCaptionManager HOOK
-  const handleDuplicateCaptionWrapper = (serialNumber) => {
-    handleDuplicateCaption(serialNumber, {
-      showCustomAlertModal,
-      hideCustomAlertModal,
-      player,
-      userDefaultCaptionDuration
-    })
+    // Capture snapshot of current captions state before opening modal
+    if (!originalCaptionsSnapshot) {
+      setOriginalCaptionsSnapshot(JSON.parse(JSON.stringify(captions)))
+
+    }
+
+    // Open the caption placement dialog instead of directly adding
+    // Set default selection to last caption if available
+    if (captions.length > 0) {
+      const lastSerialNumber = Math.max(...captions.map(c => c.serial_number))
+      setSelectedSerialNumber(lastSerialNumber)
+    }
+    setShowAddCaptionDialog(true)
   }
 
 
@@ -1652,8 +1662,7 @@ export default function Watch() {
             // Entering inline edit mode for caption
   }
 
-  // Handle saving captions - NOW PROVIDED BY useCaptionManager HOOK
-  /*
+  // Handle saving captions
   const handleSaveCaptions = async () => {
     // Sort captions by start time
     const sortedCaptions = [...captions].sort((a, b) => {
@@ -1760,8 +1769,8 @@ export default function Watch() {
       }
       
       // Wait for all database operations to complete
-      // console.log('🔍 Waiting for', savePromises.length, 'database operations to complete')
-      // const savedResults = await Promise.all(savePromises)
+      console.log('🔍 Waiting for', savePromises.length, 'database operations to complete')
+      const savedResults = await Promise.all(savePromises)
       console.log('🔍 Database save results:', savedResults)
       
       // Update local state with saved captions (now with database IDs)
@@ -1778,32 +1787,29 @@ export default function Watch() {
     }
     
     // Close modal
-    // setShowCaptionModal(false)
-    // setEditingCaption(null)
-    // setIsAddingNewCaption(false)
-  } // END OF OLD handleSaveCaptions - NOW PROVIDED BY HOOK
-  */
+    setShowCaptionModal(false)
+    setEditingCaption(null)
+    setIsAddingNewCaption(false)
+  }
 
-  // Handle canceling caption editing - NOW PROVIDED BY useCaptionManager HOOK
-  /*
+  // Handle canceling caption editing
   const handleCancelCaptions = () => {
     // Revert all changes back to original state when modal was opened
     if (originalCaptionsSnapshot) {
       setCaptions(JSON.parse(JSON.stringify(originalCaptionsSnapshot)))
               // Reverted captions to original state
     }
-
+    
     // Clear the snapshot
     setOriginalCaptionsSnapshot(null)
-
+    
     // Close modal and reset states
     setShowCaptionModal(false)
     setIsAddingNewCaption(false)
     setEditingCaption(null)
-
+    
             // Caption editing cancelled - all changes reverted
   }
-  */
 
   // 🎸 Handle canceling chord caption editing
   const handleCancelChordCaptions = async () => {
@@ -1856,8 +1862,7 @@ export default function Watch() {
     }
   }
 
-  // Handle duplicate caption - NOW PROVIDED BY useCaptionManager HOOK
-  /*
+  // Handle duplicate caption
   const handleDuplicateCaption = (captionIndex) => {
     try {
       const originalCaption = captions[captionIndex]
@@ -1939,57 +1944,36 @@ export default function Watch() {
       setDbError('Failed to duplicate caption')
     }
   }
-  */
 
-  // Handle delete caption confirmation - NOW PROVIDED BY useCaptionManager HOOK
-  /*
+  // Handle delete caption confirmation
   const handleDeleteCaption = (captionIndex) => {
     console.log('🔍 handleDeleteCaption called with index:', captionIndex)
     setCaptionToDelete(captionIndex)
     setShowDeleteConfirm(true)
     console.log('🔍 Set captionToDelete to:', captionIndex, 'and showDeleteConfirm to true')
   }
-  */
 
-  // Handle delete all captions - NOW PROVIDED BY useCaptionManager HOOK
-  /*
-  const handleDeleteAllCaptions_OLD = () => {
-    console.log('🗑️ DELETE ALL CAPTIONS clicked')
-    console.log('🗑️ Current captions count:', captions.length)
-    console.log('🗑️ Current captions:', captions)
-
-    if (captions.length === 0) {
-      console.log('🗑️ No captions to delete, returning early')
-      return
-    }
-
+  // Handle delete all captions
+  const handleDeleteAllCaptions = () => {
+    if (captions.length === 0) return
+    
     // Show confirmation dialog
-    console.log('🗑️ Showing delete all confirmation dialog')
     showCustomAlertModal(
       'Are you sure you want to delete ALL captions? This action cannot be undone.',
       [
-        {
-          text: 'DELETE ALL',
+        { 
+          text: 'DELETE ALL', 
           action: async () => {
-            console.log('🗑️ DELETE ALL CONFIRMED - Starting deletion process')
-            console.log('🗑️ Captions to delete:', captions)
-            console.log('🗑️ Captions count before deletion:', captions.length)
-
             try {
               // Delete all captions from database
               for (const caption of captions) {
                 if (caption.id) {
-                  console.log('🗑️ Deleting caption from DB:', caption.id, caption.text)
                   await deleteCaption(caption.id, user?.id, setIsLoadingCaptions, setDbError)
                 }
               }
-
-              console.log('🗑️ All captions deleted from database')
-
+              
               // Clear local state
-              console.log('🗑️ Clearing local caption state')
               setCaptions([])
-              console.log('🗑️ Local captions cleared - count should be 0')
               hideCustomAlertModal()
               
       
@@ -1999,18 +1983,13 @@ export default function Watch() {
             }
           }
         },
-        {
-          text: 'CANCEL',
-          action: () => {
-            console.log('🗑️ DELETE ALL CANCELLED - No changes made')
-            console.log('🗑️ Captions remain unchanged, count:', captions.length)
-            hideCustomAlertModal()
-          }
+        { 
+          text: 'CANCEL', 
+          action: hideCustomAlertModal 
         }
       ]
     )
   }
-  */
 
   // Confirm caption deletion
   const handleConfirmDelete = async () => {
@@ -2080,10 +2059,8 @@ export default function Watch() {
     }
   }
 
-  // Loop modal handlers - NOW PROVIDED BY LoopManager COMPONENT
-  const handleLoopClick = loopManager.handleLoopClick
-  /*
-  const handleLoopClick_OLD = () => {
+  // Loop modal handlers
+  const handleLoopClick = () => {
     // Check daily watch time limits before allowing loop feature
     if (!checkDailyWatchTimeLimits(currentDailyTotal, { returnBoolean: true })) {
       // Loop access blocked - daily limit exceeded
@@ -2120,11 +2097,8 @@ export default function Watch() {
       setShowLoopModal(true)
     }
   }
-  */
 
-  const handleLoopTimesClick = loopManager.handleLoopTimesClick
-  /*
-  const handleLoopTimesClick_OLD = () => {
+  const handleLoopTimesClick = () => {
     // Check daily watch time limits before allowing loop feature
     if (!checkDailyWatchTimeLimits(currentDailyTotal, { returnBoolean: true })) {
       // Loop access blocked - daily limit exceeded
@@ -2155,11 +2129,8 @@ export default function Watch() {
     setTempLoopEnd(loopEndTime)
     setShowLoopModal(true)
   }
-  */
 
-  const handleSaveLoop = loopManager.handleSaveLoop
-  /*
-  const handleSaveLoop_OLD = () => {
+  const handleSaveLoop = () => {
     // Update the actual loop times
     setLoopStartTime(tempLoopStart)
     setLoopEndTime(tempLoopEnd)
@@ -2187,22 +2158,16 @@ export default function Watch() {
       }
     }
   }
-  */
 
-  const handleCancelLoop = loopManager.handleCancelLoop
-  /*
-  const handleCancelLoop_OLD = () => {
+  const handleCancelLoop = () => {
     // Just close modal, don't start loop or update times
     setShowLoopModal(false)
             // Loop configuration cancelled
   }
-  */
 
-  // Loop timing effect - NOW HANDLED BY LoopManager COMPONENT
-  // The LoopManager component includes the useEffect for loop timing
 
-  /*
-  // OLD: Check if video should loop (runs every second when loop is active)
+
+  // Check if video should loop (runs every second when loop is active)
   useEffect(() => {
     if (!isLoopActive || !player || !isPlayerReadyFromUtils(player)) return
 
@@ -2233,7 +2198,6 @@ export default function Watch() {
 
     return () => clearInterval(loopInterval)
   }, [isLoopActive, player, loopStartTime, loopEndTime])
-  */
 
   // Effect to auto-sort captions by start time
   useEffect(() => {
@@ -2333,7 +2297,7 @@ export default function Watch() {
   return (
     <div className="relative h-screen overflow-hidden bg-black">
       {/* Full-Screen Background */}
-      <div
+      <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
           backgroundImage: `url('/images/gt_splashBG_dark.png')`,
@@ -2343,16 +2307,9 @@ export default function Watch() {
           minHeight: '100vh'
         }}
       />
-
+      
       {/* 75% Black Overlay */}
       <div className="absolute inset-0 bg-black/75 z-0" />
-
-      {/* Page Type Indicator for Specialized Pages */}
-      {pageType !== 'default' && (
-        <div className="fixed top-20 right-4 z-50 bg-blue-600/90 backdrop-blur-sm text-white px-3 py-1 rounded-lg text-sm font-medium shadow-lg">
-          {pageType.toUpperCase().replace('-', ' + ')}
-        </div>
-      )}
       
       {/* Top Banner - Admin controlled */}
       <TopBanner />
@@ -2385,19 +2342,53 @@ export default function Watch() {
       />
 
       {/* Main Content Area - Theatre Mode Layout with Dynamic Height */}
-      {/* YouTube Player Manager Component */}
-      <YouTubePlayerManager
-        videoId={videoId}
-        onPlayerReady={onPlayerReady}
-        onPlayerStateChange={onPlayerStateChange}
-        onPlayerError={onPlayerError}
-        onAPIError={onAPIError}
-        flipState={flipState}
-        showControlStrips={showControlStrips}
-        showRow1={showRow1 && getLayoutRowVisibility(currentLayout).showRow1}
-        showRow2={showRow2 && getLayoutRowVisibility(currentLayout).showRow2}
-        showRow3={showRow3 && getLayoutRowVisibility(currentLayout).showRow3}
-      />
+      <div className="relative z-10 overflow-hidden px-6 mt-20" style={{ 
+        height: showControlStrips ? `calc(100vh - ${160 + (showRow1 ? 51.2 : 0) + (showRow2 ? 102.4 : 0) + (showRow3 ? 102.4 : 0)}px)` : 'calc(100vh - 155px)',
+        transition: 'height 0.3s ease-in-out'
+      }}>
+        {/* Video Player Container - Edge-to-Edge Width with Dynamic Height */}
+        <div id="video-container" className="w-full max-w-none h-full flex items-center justify-center">
+          {/* YouTube Video Player - Theatre Mode with Dynamic Sizing */}
+          {videoId && (
+            <div className="relative w-full h-full bg-black rounded-lg overflow-hidden shadow-2xl">
+              {/* Video Container - Dynamic height based on available space with flip transformations */}
+              <div 
+                className="relative w-full h-full transition-transform duration-300"
+                style={{
+                  // Calculate height to maintain 16:9 aspect ratio within available space
+                  height: '100%',
+                  maxHeight: '100%',
+                  // Ensure video never exceeds container bounds
+                  objectFit: 'contain',
+                  // Apply flip transformations based on state
+                  transform: flipState === 'horizontal' 
+                    ? 'scaleX(-1)' 
+                    : flipState === 'both'
+                    ? 'scaleX(-1) scaleY(-1)'
+                    : 'none'
+                }}
+              >
+                {/* YouTube API Player */}
+                <div id="youtube-player" className="w-full h-full" />
+                
+                {/* Fallback iframe if API fails */}
+                {!player && (
+                  <iframe
+                    src={`https://www.youtube.com/embed/${videoId}?controls=1&modestbranding=1&rel=0&showinfo=0&origin=${window.location.origin}`}
+                    title={videoTitle}
+                    className="w-full h-full absolute inset-0"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                  />
+                )}
+              </div>
+              
+
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* STICKY CONTROL STRIPS FOOTER */}
       {showControlStrips && (
@@ -2406,14 +2397,14 @@ export default function Watch() {
           <div className="h-full relative">
             
             {/* Row 1: Text Captions - 24% height, positioned from bottom */}
-            {showRow1 && getLayoutRowVisibility(currentLayout).showRow1 && (
+            {showRow1 && (
               <div className={`absolute left-0 right-0 flex border-2 border-white rounded-t-lg overflow-hidden h-[24%] transition-all duration-300 ${
-                (showRow2 && getLayoutRowVisibility(currentLayout).showRow2) && (showRow3 && getLayoutRowVisibility(currentLayout).showRow3) ? 'bottom-[76%]' :
-                (showRow2 && getLayoutRowVisibility(currentLayout).showRow2) ? 'bottom-[38%]' :
-                (showRow3 && getLayoutRowVisibility(currentLayout).showRow3) ? 'bottom-[38%]' : 'bottom-0'
+                showRow2 && showRow3 ? 'bottom-[76%]' : 
+                showRow2 ? 'bottom-[38%]' : 
+                showRow3 ? 'bottom-[38%]' : 'bottom-0'
               }`}>
-              {/* Left Column - Main Content (96% width) */}
-              <div className="w-[96%] p-2 bg-transparent border-r-2 border-white flex flex-col justify-center overflow-hidden">
+              {/* Left Column - Main Content (92% width) */}
+              <div className="w-[92%] p-2 bg-transparent border-r-2 border-white flex flex-col justify-center overflow-hidden">
                 {/* Display current caption based on video time */}
                 {(() => {
                   if (!player || captions.length === 0) {
@@ -2480,7 +2471,34 @@ export default function Watch() {
                   }
                 })()}
               </div>
-              {/* Right Column - Hide + TextSelect icons (4% width) */}
+              {/* Middle Column - ADD + EDIT icons (4% width) */}
+              <div className="w-[4%] p-2 bg-transparent border-r-2 border-white flex flex-col items-center justify-center space-y-3">
+                <button 
+                  onClick={() => handleAddCaptionFromControlStrip(1)}
+                  className={`transition-opacity cursor-pointer ${
+                    isInCaptionMode 
+                      ? 'opacity-30 cursor-not-allowed' 
+                      : 'hover:opacity-70'
+                  }`}
+                  title={isInCaptionMode ? "Disabled while editing" : "Add new caption at current time"}
+                  disabled={isInCaptionMode}
+                >
+                  <FaPlus className="w-4 h-4 text-white" />
+                </button>
+                <button 
+                  onClick={() => handleInlineEditCaption(1)}
+                  className={`transition-colors cursor-pointer ${
+                    isInCaptionMode 
+                      ? 'text-green-400' 
+                      : 'text-white hover:opacity-70'
+                  }`}
+                  title={isInCaptionMode ? "Currently editing captions" : "Edit caption inline"}
+                  disabled={isInCaptionMode}
+                >
+                  <FaRegEdit className="w-4 h-4" />
+                </button>
+              </div>
+              {/* Right Column - EYE + CgViewList icons (4% width) */}
               <div className="w-[4%] p-2 bg-transparent flex flex-col items-center justify-center space-y-2">
                 <button 
                   onClick={() => !isInCaptionMode && handleRowToggle(1)}
@@ -2492,35 +2510,61 @@ export default function Watch() {
                   title={isInCaptionMode ? "Disabled while editing" : "Hide this row"}
                   disabled={isInCaptionMode}
                 >
-                  <BiHide className="w-5 h-5 text-white" />
+                  <FaRegEye className="w-5 h-5 text-white" />
                 </button>
-                <button
-                  data-testid="text-caption-edit"
+                <button 
                   onClick={() => !isInCaptionMode && handleCaptionEditClick(1)}
                   className={`transition-opacity cursor-pointer ${
-                    isInCaptionMode
-                      ? 'opacity-30 cursor-not-allowed'
+                    isInCaptionMode 
+                      ? 'opacity-30 cursor-not-allowed' 
                       : 'hover:opacity-70'
                   }`}
                   title={isInCaptionMode ? "Disabled while editing" : "Open caption editor modal"}
                   disabled={isInCaptionMode}
                 >
-                  <LuTextSelect className="w-5 h-5 text-white" />
+                  <CgViewList className="w-5 h-5 text-white" />
                 </button>
               </div>
             </div>
             )}
 
             {/* Row 2: Chords Captions - 38% height, positioned from bottom */}
-            {showRow2 && getLayoutRowVisibility(currentLayout).showRow2 && (
+            {showRow2 && (
               <div className={`absolute left-0 right-0 flex border-l-2 border-r-2 border-white overflow-hidden h-[38%] transition-all duration-300 ${
-                (showRow3 && getLayoutRowVisibility(currentLayout).showRow3) ? 'bottom-[38%]' : 'bottom-0'
+                showRow3 ? 'bottom-[38%]' : 'bottom-0'
               }`}>
-              {/* Left Column - Main Content (96% width) */}
-              <div className="w-[96%] p-2 bg-transparent border-r-2 border-white flex items-center">
+              {/* Left Column - Main Content (92% width) */}
+              <div className="w-[92%] p-2 bg-transparent border-r-2 border-white flex items-center">
                 <span className="text-white text-sm font-medium">Chords Captions</span>
               </div>
-              {/* Right Column - Hide + TextSelect icons (4% width) */}
+              {/* Middle Column - ADD + EDIT icons (4% width) */}
+              <div className="w-[4%] p-2 bg-transparent border-r-2 border-white flex flex-col items-center justify-center space-y-3">
+                <button 
+                  onClick={() => handleAddCaptionFromControlStrip(2)}
+                  className={`transition-opacity cursor-pointer ${
+                    isInCaptionMode 
+                      ? 'opacity-30 cursor-not-allowed' 
+                      : 'hover:opacity-70'
+                  }`}
+                  title={isInCaptionMode ? "Disabled while editing" : "Add new caption at current time"}
+                  disabled={isInCaptionMode}
+                >
+                  <FaPlus className="w-4 h-4 text-white" />
+                </button>
+                <button 
+                  onClick={() => handleInlineEditCaption(2)}
+                  className={`transition-colors cursor-pointer ${
+                    isInCaptionMode 
+                      ? 'text-green-400' 
+                      : 'text-white hover:opacity-70'
+                  }`}
+                  title={isInCaptionMode ? "Currently editing captions" : "Edit caption inline"}
+                  disabled={isInCaptionMode}
+                >
+                  <FaRegEdit className="w-4 h-4" />
+                </button>
+              </div>
+              {/* Right Column - EYE + CgViewList icons (4% width) */}
               <div className="w-[4%] p-2 bg-transparent flex flex-col items-center justify-center space-y-2">
                 <button 
                   onClick={() => !isInCaptionMode && handleRowToggle(2)}
@@ -2532,33 +2576,59 @@ export default function Watch() {
                   title={isInCaptionMode ? "Disabled while editing" : "Hide this row"}
                   disabled={isInCaptionMode}
                 >
-                  <BiHide className="w-5 h-5 text-white" />
+                  <FaRegEye className="w-5 h-5 text-white" />
                 </button>
-                <button
-                  data-testid="chord-caption-edit"
+                <button 
                   onClick={() => !isInCaptionMode && handleChordModalOpen()}
                   className={`transition-opacity cursor-pointer ${
-                    isInCaptionMode
-                      ? 'opacity-30 cursor-not-allowed'
+                    isInCaptionMode 
+                      ? 'opacity-30 cursor-not-allowed' 
                       : 'hover:opacity-70'
                   }`}
                   title={isInCaptionMode ? "Disabled while editing" : "Open chord modal"}
                   disabled={isInCaptionMode}
                 >
-                  <LuTextSelect className="w-5 h-5 text-white" />
+                  <CgViewList className="w-5 h-5 text-white" />
                 </button>
               </div>
             </div>
             )}
 
             {/* Row 3: Auto-Gen - 38% height, always at bottom */}
-            {showRow3 && getLayoutRowVisibility(currentLayout).showRow3 && (
+            {showRow3 && (
               <div className="absolute bottom-0 left-0 right-0 flex border-2 border-white rounded-b-lg overflow-hidden h-[38%] transition-all duration-300">
-              {/* Left Column - Main Content (96% width) */}
-              <div className="w-[96%] p-2 bg-transparent border-r-2 border-white flex items-center">
+              {/* Left Column - Main Content (92% width) */}
+              <div className="w-[92%] p-2 bg-transparent border-r-2 border-white flex items-center">
                 <span className="text-white text-sm font-medium">Auto-Gen</span>
               </div>
-              {/* Right Column - Hide + TextSelect icons (4% width) */}
+              {/* Middle Column - ADD + EDIT icons (4% width) */}
+              <div className="w-[4%] p-2 bg-transparent border-r-2 border-white flex flex-col items-center justify-center space-y-3">
+                <button 
+                  onClick={() => handleAddCaptionFromControlStrip(3)}
+                  className={`transition-opacity cursor-pointer ${
+                    isInCaptionMode 
+                      ? 'opacity-30 cursor-not-allowed' 
+                      : 'hover:opacity-70'
+                  }`}
+                  title={isInCaptionMode ? "Disabled while editing" : "Add new caption at current time"}
+                  disabled={isInCaptionMode}
+                >
+                  <FaPlus className="w-4 h-4 text-white" />
+                </button>
+                <button 
+                  onClick={() => handleInlineEditCaption(3)}
+                  className={`transition-colors cursor-pointer ${
+                    isInCaptionMode 
+                      ? 'text-gray-400' 
+                      : 'text-white hover:opacity-70'
+                  }`}
+                  title={isInCaptionMode ? "Currently editing captions" : "Edit caption inline"}
+                  disabled={isInCaptionMode}
+                >
+                  <FaRegEdit className="w-4 h-4" />
+                </button>
+              </div>
+              {/* Right Column - EYE + CgViewList icons (4% width) */}
               <div className="w-[4%] p-2 bg-transparent flex flex-col items-center justify-center space-y-2">
                 <button 
                   onClick={() => !isInCaptionMode && handleRowToggle(3)}
@@ -2570,7 +2640,7 @@ export default function Watch() {
                   title={isInCaptionMode ? "Disabled while editing" : "Hide this row"}
                   disabled={isInCaptionMode}
                 >
-                  <BiHide className="w-5 h-5 text-white" />
+                  <FaRegEye className="w-5 h-5 text-white" />
                 </button>
                 <button 
                   onClick={() => !isInCaptionMode && handleCaptionEditClick(3)}
@@ -2582,7 +2652,7 @@ export default function Watch() {
                   title={isInCaptionMode ? "Disabled while editing" : "Open caption editor modal"}
                   disabled={isInCaptionMode}
                 >
-                  <LuTextSelect className="w-5 h-5 text-white" />
+                  <CgViewList className="w-5 h-5 text-white" />
                 </button>
               </div>
             </div>
@@ -2593,42 +2663,149 @@ export default function Watch() {
       )}
 
       {/* PERMANENT FOOTER CONTROL AREA - NEVER DISAPPEARS */}
-      <WatchFooter
-        // Video controls
-        flipState={flipState}
-        handleFlipVideo={handleFlipVideo}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-t border-white/20 p-1">
+        <div className="flex justify-between max-w-7xl mx-auto h-full">
+          
+          {/* Left Column - Left-justified content with Video Controls */}
+          <div className="flex items-center justify-start space-x-3" style={{ paddingLeft: '11px' }}>
+            {/* Flip Video Button - 3 States */}
+            <button
+              onClick={handleFlipVideo}
+              className={`p-2 rounded-lg transition-colors duration-300 ${
+                flipState === 'normal' 
+                  ? 'text-white hover:bg-white/10' 
+                  : flipState === 'horizontal'
+                  ? 'text-yellow-400 hover:bg-white/10'
+                  : 'text-green-400 hover:bg-white/10'
+              }`}
+              title={`Flip Video - Current: ${flipState === 'normal' ? 'Normal' : flipState === 'horizontal' ? 'Horizontal' : 'Both Directions'}`}
+            >
+              <MdFlipCameraAndroid className="w-5 h-5" />
+            </button>
 
-        // Loop/Caption controls
-        isInCaptionMode={isInCaptionMode}
-        handleLoopClick={handleLoopClick}
-        isLoopActive={isLoopActive}
+            {/* Loop Segment / Caption Mode Button */}
+            <button
+              onClick={isInCaptionMode ? undefined : handleLoopClick}
+              className={`p-2 rounded-lg transition-colors duration-300 ${
+                isInCaptionMode
+                  ? 'text-blue-400 cursor-default' 
+                  : isLoopActive 
+                  ? 'text-blue-400 hover:bg-white/10' 
+                  : 'text-white hover:bg-white/10'
+              }`}
+              title={isInCaptionMode ? "Caption Mode Active" : (isLoopActive ? "Stop loop" : "Configure loop segment")}
+            >
+              {isInCaptionMode ? (
+                <IoText className="w-5 h-5" />
+              ) : (
+                <ImLoop className="w-5 h-5" />
+              )}
+            </button>
 
-        // Caption timing
-        tempLoopStart={tempLoopStart}
-        tempLoopEnd={tempLoopEnd}
-        handleSaveNewCaption={handleSaveNewCaption}
-        handleCancelNewCaption={handleCancelNewCaption}
 
-        // Loop timing
-        loopStartTime={loopStartTime}
-        loopEndTime={loopEndTime}
-        handleLoopTimesClick={handleLoopTimesClick}
 
-        // Favorites
-        isVideoFavorited={isVideoFavorited}
-        handleFavoriteToggle={handleFavoriteToggle}
 
-        // Control strips
-        showControlStrips={showControlStrips}
-        handleControlStripsToggle={handleControlStripsToggle}
 
-        // Layout selection
-        setShowLayoutModal={setShowLayoutModal}
 
-        // Fullscreen
-        isFullscreen={isFullscreen}
-        handleFullscreenToggle={handleFullscreenToggle}
-      />
+
+            {/* Loop Time Display / Caption Timing Fields */}
+            <div className="flex flex-col items-start space-y-1">
+              {/* Mode indicator */}
+              {isInCaptionMode && (
+                <span className="text-xs text-blue-400 font-medium">
+                  Caption Timing
+                </span>
+              )}
+              
+              {isInCaptionMode ? (
+                /* Caption timing display with SAVE/CANCEL buttons */
+                <div className="flex items-center space-x-2">
+                  <span className="w-16 px-2 py-1 text-xs bg-white/20 text-white border border-white/30 rounded">
+                    {tempLoopStart}
+                  </span>
+                  <span className="text-white text-xs">-</span>
+                  <span className="w-16 px-2 py-1 text-xs bg-white/20 text-white border border-white/30 rounded">
+                    {tempLoopEnd}
+                  </span>
+                  
+                  {/* SAVE button for new caption */}
+                  <button
+                    onClick={handleSaveNewCaption}
+                    className="px-3 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded transition-colors cursor-pointer min-w-[50px] text-center"
+                    title="Save new caption and exit edit mode"
+                  >
+                    SAVE
+                  </button>
+                  
+                  {/* CANCEL button for new caption */}
+                  <button
+                    onClick={handleCancelNewCaption}
+                    className="px-3 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded transition-colors cursor-pointer min-w-[50px] text-center"
+                    title="Cancel new caption and exit edit mode"
+                  >
+                    CANCEL
+                  </button>
+                </div>
+              ) : (
+                /* Read-only loop timing display */
+                <button
+                  onClick={handleLoopTimesClick}
+                  className={`text-sm font-mono transition-colors cursor-pointer hover:opacity-80 ${
+                    isLoopActive ? 'text-blue-400' : 'text-gray-300'
+                  }`}
+                  title="Click to edit loop times"
+                >
+                  {loopStartTime} - {loopEndTime}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Right Column - Right-justified content */}
+          <div className="flex items-center justify-end space-x-3" style={{ paddingRight: '12px' }}>
+            {/* Guitar Pick Favorites */}
+            <button 
+              onClick={handleFavoriteToggle}
+              className={`p-2 rounded-lg transition-colors duration-300 ${
+                isVideoFavorited 
+                  ? 'text-[#8dc641] hover:bg-white/10' 
+                  : 'text-gray-400 hover:text-[#8dc641] hover:bg-white/10'
+              }`}
+              title={isVideoFavorited ? "Remove from favorites" : "Add to favorites"}
+            >
+              <TbGuitarPickFilled className="w-5 h-5" />
+            </button>
+            
+            {/* Control Strip Toggle (Game Controller) */}
+            <button
+              onClick={handleControlStripsToggle}
+              className={`rounded-lg transition-colors duration-300 ${
+                showControlStrips 
+                  ? 'text-red-400 hover:bg-white/10' 
+                  : 'text-white hover:bg-white/10'
+              }`}
+              style={{ padding: '5.5px' }}
+              title={showControlStrips ? "Hide Control Strips" : "Show Control Strips"}
+            >
+              <IoGameControllerOutline className="w-6 h-6" />
+            </button>
+            
+            {/* Layout Icon */}
+            <button className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors duration-300" title="Inline Search - under development">
+              <BsReverseLayoutSidebarInsetReverse className="w-5 h-5" />
+            </button>
+            
+            {/* Custom Fullscreen Button */}
+            <button
+              onClick={handleFullscreenToggle}
+              className="p-2 rounded-lg transition-colors duration-300 text-white hover:bg-white/10"
+              title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+            >
+              <BsArrowsFullscreen className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
 
 
 
@@ -2744,9 +2921,9 @@ export default function Watch() {
         setUserDefaultCaptionDuration={setUserDefaultCaptionDuration}
         handleCancelCaptions={handleCancelCaptions}
         handleAddCaptionFromTimeline={handleAddCaptionFromTimeline}
-        handleDeleteAllCaptions={() => handleDeleteAllCaptions(showCustomAlertModal, hideCustomAlertModal, deleteCaption, user, setIsLoadingCaptions, setDbError)}
+        handleDeleteAllCaptions={handleDeleteAllCaptions}
         handleSaveCaptions={handleSaveCaptions}
-        handleDuplicateCaption={handleDuplicateCaptionWrapper}
+        handleDuplicateCaption={handleDuplicateCaption}
         handleDeleteCaption={handleDeleteCaption}
         player={player}
         isPlayerReady={isPlayerReadyFromUtils}
@@ -2916,28 +3093,6 @@ export default function Watch() {
         isOpen={showMenuModal}
         onClose={() => setShowMenuModal(false)}
         onSupportClick={() => setShowSupportModal(true)}
-      />
-
-      {/* Layout Selection Modal */}
-      <LayoutSelectionModal
-        isOpen={showLayoutModal}
-        onClose={() => setShowLayoutModal(false)}
-        currentLayout={currentLayout}
-        onLayoutSelect={(layoutId) => {
-          setCurrentLayout(layoutId)
-          console.log(`🎨 Layout selected: ${layoutId}`)
-
-          // Navigate to appropriate layout page
-          const currentQuery = router.query
-          const baseUrl = `/watch-${layoutId}`
-          const queryString = new URLSearchParams({
-            v: currentQuery.v,
-            ...(currentQuery.title && { title: currentQuery.title }),
-            ...(currentQuery.channel && { channel: currentQuery.channel })
-          }).toString()
-
-          router.push(`${baseUrl}?${queryString}`)
-        }}
       />
     </div>
   )
