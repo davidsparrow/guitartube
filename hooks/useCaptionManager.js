@@ -408,6 +408,121 @@ export default function useCaptionManager({
     })
   }
 
+  // Handle adding new caption from timeline (works with empty captions)
+  const handleAddCaptionFromTimeline = async (accessControlParams) => {
+    const {
+      canAccessLoops,
+      planType,
+      isVideoFavorited,
+      handleFavoriteToggle,
+      showCustomAlertModal,
+      hideCustomAlertModal,
+      getAdminMessage,
+      isVideoPlayingFromUtils,
+      player,
+      showVideoPlayingRestrictionFromUtils,
+      isPlayerReadyFromUtils,
+      videoId,
+      user,
+      setIsLoadingCaptions,
+      setDbError,
+      userDefaultCaptionDuration
+    } = accessControlParams
+
+    console.log('➕ Adding new caption from timeline')
+
+    // Check access permissions
+    if (!canAccessLoops()) {
+      if (planType === 'freebird') {
+        showCustomAlertModal(getAdminMessage('plan_upgrade_message', '🔒 Captions require a paid plan. Please upgrade to access this feature.'), [
+          { text: 'UPGRADE PLAN', action: () => window.open('/pricing', '_blank') },
+          { text: 'OK', action: hideCustomAlertModal }
+        ])
+        return
+      }
+      if (!isVideoFavorited) {
+        showCustomAlertModal(getAdminMessage('save_to_favorites_message', '⭐ Please save this video to favorites before editing captions.'), [
+          { text: 'SAVE TO FAVORITES', action: () => { hideCustomAlertModal(); handleFavoriteToggle(); } },
+          { text: 'OK', action: hideCustomAlertModal }
+        ])
+        return
+      }
+      return
+    }
+
+    // Check if video is playing
+    if (isVideoPlayingFromUtils(player)) {
+      showVideoPlayingRestrictionFromUtils({
+        getAdminMessage,
+        showCustomAlertModal,
+        hideCustomAlertModal
+      })
+      return
+    }
+
+    if (!player || !isPlayerReadyFromUtils(player)) {
+      console.error('❌ Player not ready for caption creation')
+      return
+    }
+
+    const currentTime = player.getCurrentTime()
+    console.log('🎯 Current video time:', currentTime)
+
+    // Check if caption already exists at current time for text captions (rowType 1)
+    const currentCaption = captions.find(caption => {
+      const captionStart = timeToSeconds(caption.startTime)
+      const captionEnd = timeToSeconds(caption.endTime)
+      return currentTime >= captionStart && currentTime <= captionEnd && caption.rowType === 1
+    })
+
+    if (currentCaption) {
+      console.log('⚠️ Caption already exists at current time')
+      showCustomAlertModal('Caption already exists at this time', [
+        { text: 'OK', action: hideCustomAlertModal }
+      ])
+      return
+    }
+
+    // Use utility function for smart duration calculation
+    const { startTime, endTime } = calculateSmartCaptionDuration(
+      currentTime,
+      captions,
+      userDefaultCaptionDuration,
+      player.getDuration ? player.getDuration() : 0
+    )
+
+    // Convert to MM:SS format
+    const startTimeString = formatSecondsToTime(startTime)
+    const endTimeString = formatSecondsToTime(endTime)
+
+    const newCaption = {
+      startTime: startTimeString,
+      endTime: endTimeString,
+      line1: '',
+      line2: '',
+      rowType: 1, // Text captions type
+      text: '' // For compatibility
+    }
+
+    console.log('💾 Saving new caption to database:', newCaption)
+
+    // Save caption to database
+    const savedCaption = await saveCaption(newCaption, videoId, user?.id, setIsLoadingCaptions, setDbError)
+    if (savedCaption) {
+      // Add to local state with database ID
+      setCaptionsWithLogging(prev => {
+        const newCaptions = [...prev, savedCaption]
+        console.log('✅ New caption added to local state:', savedCaption)
+        return newCaptions
+      })
+
+      console.log('✅ New caption created successfully - ready for editing in modal')
+    } else {
+      console.error('❌ Failed to save new caption to database')
+      setDbError('Failed to save new caption')
+    }
+  }
+
   return {
     // State
     captions,
@@ -441,6 +556,7 @@ export default function useCaptionManager({
     handleDuplicateCaption,
     handleDeleteCaption,
     handleDeleteAllCaptions,
-    handleOpenCaptionModal
+    handleOpenCaptionModal,
+    handleAddCaptionFromTimeline
   }
 }

@@ -215,7 +215,8 @@ export default function Watch() {
     handleDuplicateCaption,
     handleDeleteCaption,
     handleDeleteAllCaptions,
-    handleOpenCaptionModal
+    handleOpenCaptionModal,
+    handleAddCaptionFromTimeline: handleAddCaptionFromTimelineHook
   } = useCaptionManager({
     videoId,
     user,
@@ -1229,39 +1230,26 @@ export default function Watch() {
 
 
 
-  // Handle adding new caption from timeline
+  // Handle adding new caption from timeline - NOW PROVIDED BY useCaptionManager HOOK
   const handleAddCaptionFromTimeline = () => {
-    if (!canAccessLoops()) {
-      if (planType === 'freebird') {
-        showCustomAlertModal(getAdminMessage('plan_upgrade_message', '🔒 Captions require a paid plan. Please upgrade to access this feature.'), [
-          { text: 'UPGRADE PLAN', action: () => window.open('/pricing', '_blank') },
-          { text: 'OK', action: hideCustomAlertModal }
-        ])
-        return
-      }
-      if (!isVideoFavorited) {
-        showCustomAlertModal(getAdminMessage('save_to_favorites_message', '⭐ Please save this video to favorites before editing captions.'), [
-          { text: 'SAVE TO FAVORITES', action: () => { hideCustomAlertModal(); handleFavoriteToggle(); } },
-          { text: 'OK', action: hideCustomAlertModal }
-        ])
-        return
-      }
-      return
-    }
-
-    // Capture snapshot of current captions state before opening modal
-    if (!originalCaptionsSnapshot) {
-      setOriginalCaptionsSnapshot(JSON.parse(JSON.stringify(captions)))
-
-    }
-
-    // Open the caption placement dialog instead of directly adding
-    // Set default selection to last caption if available
-    if (captions.length > 0) {
-      const lastSerialNumber = Math.max(...captions.map(c => c.serial_number))
-      setSelectedSerialNumber(lastSerialNumber)
-    }
-    setShowAddCaptionDialog(true)
+    handleAddCaptionFromTimelineHook({
+      canAccessLoops,
+      planType,
+      isVideoFavorited,
+      handleFavoriteToggle,
+      showCustomAlertModal,
+      hideCustomAlertModal,
+      getAdminMessage,
+      isVideoPlayingFromUtils,
+      player,
+      showVideoPlayingRestrictionFromUtils,
+      isPlayerReadyFromUtils,
+      videoId,
+      user,
+      setIsLoadingCaptions,
+      setDbError,
+      userDefaultCaptionDuration
+    })
   }
 
 
