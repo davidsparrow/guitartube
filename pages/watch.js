@@ -864,23 +864,24 @@ export default function Watch() {
 
   // Check for saved session data and resume video if available
   const checkForSavedSession = async (currentVideoId) => {
-    // Use utility function for checking saved session
-    await checkForSavedSessionFromUtils(currentVideoId, {
-      userId: user?.id,
-      showResumePrompt,
-      supabase
-    })
+    // Resume dialog removed - better system already implemented
+    // await checkForSavedSessionFromUtils(currentVideoId, {
+    //   userId: user?.id,
+    //   showResumePrompt,
+    //   supabase
+    // })
+    console.log('📱 Resume dialog disabled - better system in place')
   }
 
-  // Show resume prompt to user
-  const showResumePrompt = (timestamp, title) => {
-    // Use utility function for showing resume prompt
-    showResumePromptFromUtils(timestamp, title, {
-      showCustomAlertModal,
-      resumeVideo,
-      startFromBeginning
-    })
-  }
+  // Show resume prompt to user - DISABLED (better system in place)
+  // const showResumePrompt = (timestamp, title) => {
+  //   // Use utility function for showing resume prompt
+  //   showResumePromptFromUtils(timestamp, title, {
+  //     showCustomAlertModal,
+  //     resumeVideo,
+  //     startFromBeginning
+  //   })
+  // }
 
   // Resume video at saved timestamp
   const resumeVideo = (timestamp) => {
