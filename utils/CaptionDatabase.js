@@ -287,7 +287,13 @@ export const updateCaption = async (captionId, updates, userId, setIsLoadingCapt
       .select()
     
     if (error) throw error
-    
+
+    // Check if record was found and updated
+    if (!data || data.length === 0) {
+      console.warn('⚠️ Caption not found for update, record may have been deleted. ID:', captionId)
+      return null // Return null to indicate record doesn't exist
+    }
+
     // Transform the updated caption to frontend format
     const updatedCaption = data[0]
     const transformedCaption = {

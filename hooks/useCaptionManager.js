@@ -134,14 +134,30 @@ export default function useCaptionManager({
       
       for (const caption of sortedCaptions) {
         if (caption.id && typeof caption.id === 'string' && caption.id.length > 20) {
-          // Existing caption with valid UUID - update if modified
+          // Try to update existing caption, but handle case where record was deleted
           console.log('🔍 Updating existing caption:', caption.id)
-          savePromises.push(updateCaption(caption.id, {
+
+          const updatePromise = updateCaption(caption.id, {
             startTime: caption.startTime,
             endTime: caption.endTime,
             line1: caption.line1,
             line2: caption.line2
-          }, user?.id, setIsLoadingCaptions, setDbError))
+          }, user?.id, setIsLoadingCaptions, setDbError).then(result => {
+            if (result === null) {
+              // Record doesn't exist (was deleted), create new one instead
+              console.log('🔄 Caption not found in DB, creating new record:', caption.id)
+              return saveCaption({
+                startTime: caption.startTime,
+                endTime: caption.endTime,
+                line1: caption.line1,
+                line2: caption.line2,
+                rowType: caption.rowType
+              }, videoId, user?.id, setIsLoadingCaptions, setDbError)
+            }
+            return result
+          })
+
+          savePromises.push(updatePromise)
         } else {
           // New caption (id is null, undefined, or invalid) - save it
           console.log('🔍 Saving new caption:', caption)
@@ -224,7 +240,9 @@ export default function useCaptionManager({
 
   // Handle duplicate caption
   const handleDuplicateCaption = async (serialNumber, accessControlParams = {}) => {
-    console.log('📋 Duplicating caption with serial number:', serialNumber)
+    console.log('📋 DUPLICATE BUTTON CLICKED - Serial number:', serialNumber)
+    console.log('📋 Access control params:', accessControlParams)
+    console.log('📋 Current captions array:', captions)
 
     try {
       // Find the target caption by serial number
@@ -236,6 +254,7 @@ export default function useCaptionManager({
       }
 
       console.log('🎯 Found caption to duplicate:', targetCaption)
+      console.log('🎯 Caption rowType:', targetCaption.rowType)
 
       // DIFFERENT RULES FOR TEXT CAPTIONS vs CHORD CAPTIONS
       if (targetCaption.rowType === 1) {
@@ -275,8 +294,9 @@ export default function useCaptionManager({
     console.log(`🎯 Trying to place duplicate at ${startTime}s - ${endTime}s`)
 
     // Check if initial placement would exceed video duration
+    console.log(`🎯 Video duration: ${videoDuration}s, proposed end time: ${endTime}s`)
     if (videoDuration > 0 && endTime > videoDuration) {
-      console.error(`❌ Cannot duplicate - would exceed video duration`)
+      console.error(`❌ Cannot duplicate - would exceed video duration (${endTime}s > ${videoDuration}s)`)
       if (showCustomAlertModal && hideCustomAlertModal) {
         showCustomAlertModal(`Cannot duplicate caption - would extend beyond video end`, [
           { text: 'OK', action: hideCustomAlertModal }
@@ -286,6 +306,8 @@ export default function useCaptionManager({
       }
       return
     }
+
+
 
     // Find all text captions for collision detection
     const textCaptions = captions
@@ -300,11 +322,31 @@ export default function useCaptionManager({
     let searchAttempts = 0
     const maxSearchAttempts = 50
 
+    console.log(`🔍 Starting collision detection with ${textCaptions.length} existing text captions`)
+    console.log(`🔍 Existing text captions:`, textCaptions)
+
     while (searchAttempts < maxSearchAttempts) {
+      searchAttempts++
+
+      // Check if we would exceed video duration FIRST
+      if (videoDuration > 0 && endTime > videoDuration) {
+        console.error(`❌ Cannot place duplicate - would exceed video duration (${endTime}s > ${videoDuration}s)`)
+        if (showCustomAlertModal && hideCustomAlertModal) {
+          showCustomAlertModal(`Cannot duplicate caption - would extend beyond video end`, [
+            { text: 'OK', action: hideCustomAlertModal }
+          ])
+        } else {
+          setDbError('Cannot duplicate caption - would extend beyond video end')
+        }
+        return
+      }
+
       // Check if current position conflicts with any existing text caption
       const hasConflict = textCaptions.some(cap =>
         startTime < cap.end && endTime > cap.start
       )
+
+      console.log(`🔍 Attempt ${searchAttempts}: Checking ${startTime}s - ${endTime}s, conflict: ${hasConflict}`)
 
       if (!hasConflict) {
         // Found a good spot!
@@ -312,32 +354,24 @@ export default function useCaptionManager({
         break
       }
 
+      console.log(`⚠️ Collision detected, searching for next position...`)
+
       // Move to next potential position (end of next conflicting caption)
-      const nextConflict = textCaptions.find(cap => cap.start >= startTime)
-      if (nextConflict) {
-        startTime = nextConflict.end
+      const conflictingCaptions = textCaptions.filter(cap =>
+        startTime < cap.end && endTime > cap.start
+      )
+
+      if (conflictingCaptions.length > 0) {
+        // Move to the end of the latest conflicting caption
+        const latestEndTime = Math.max(...conflictingCaptions.map(c => c.end))
+        startTime = latestEndTime
         endTime = startTime + (userDefaultCaptionDuration || originalDuration)
-        console.log(`🔄 Moving to next position: ${startTime}s`)
+        console.log(`🔄 Moving to end of conflicting caption: ${startTime}s - ${endTime}s`)
       } else {
-        // No more captions ahead, try moving forward by duration
-        startTime = endTime
-        endTime = startTime + (userDefaultCaptionDuration || originalDuration)
+        // This shouldn't happen, but break to prevent infinite loop
+        console.error('❌ Unexpected collision detection state')
+        break
       }
-
-      // Check if we're near end of video
-      if (videoDuration > 0 && endTime > videoDuration) {
-        console.error(`❌ Cannot find space for duplicate caption`)
-        if (showCustomAlertModal && hideCustomAlertModal) {
-          showCustomAlertModal(`Cannot find space to duplicate caption`, [
-            { text: 'OK', action: hideCustomAlertModal }
-          ])
-        } else {
-          setDbError('Cannot find space to duplicate caption')
-        }
-        return
-      }
-
-      searchAttempts++
     }
 
     if (searchAttempts >= maxSearchAttempts) {
