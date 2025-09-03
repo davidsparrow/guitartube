@@ -716,9 +716,38 @@ export default function Watch() {
     // User data useEffect triggered
   }, [user, profile, loading, isAuthenticated])
 
-  // YouTube API and player initialization now handled by YouTubePlayerManager component
+  // Load YouTube API script
+  useEffect(() => {
+    if (mounted && !window.YT) {
+      console.log('🎬 Loading YouTube iframe API')
+      setYoutubeAPILoading(true)
+      setYoutubeAPIError(false)
 
-  // Player initialization now handled by YouTubePlayerManager component
+      const tag = document.createElement('script')
+      tag.src = 'https://www.youtube.com/iframe_api'
+
+      tag.onerror = (error) => {
+        console.error('❌ Failed to load YouTube iframe API:', error)
+        setYoutubeAPILoading(false)
+        setYoutubeAPIError(true)
+      }
+
+      tag.onload = () => {
+        console.log('✅ YouTube API script loaded')
+        setYoutubeAPILoading(false)
+      }
+
+      const firstScriptTag = document.getElementsByTagName('script')[0]
+      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
+
+      // Cleanup timeout if component unmounts
+      return () => {
+        if (tag.parentNode) {
+          tag.parentNode.removeChild(tag)
+        }
+      }
+    }
+  }, [mounted])
 
   // Load video from URL parameters when page loads
   useEffect(() => {
