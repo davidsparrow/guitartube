@@ -1,6 +1,19 @@
 // components/watch/YouTubePlayerManager.js - YouTube Player Management Component
 import { useState, useEffect, useRef } from 'react'
 
+// Helper function to decode YouTube player states
+const getPlayerStateText = (state) => {
+  switch (state) {
+    case -1: return 'UNSTARTED'
+    case 0: return 'ENDED'
+    case 1: return 'PLAYING'
+    case 2: return 'PAUSED'
+    case 3: return 'BUFFERING'
+    case 5: return 'CUED'
+    default: return `UNKNOWN(${state})`
+  }
+}
+
 export default function YouTubePlayerManager({
   videoId,
   onPlayerReady,
@@ -59,6 +72,10 @@ export default function YouTubePlayerManager({
     const initPlayer = () => {
       if (window.YT && window.YT.Player) {
         console.log('🎬 Initializing YouTube player for video:', videoId)
+
+        // Detect mobile device
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+        console.log('📱 Device detection:', { isMobile, userAgent: navigator.userAgent })
         
         const newPlayer = new window.YT.Player('youtube-player', {
           height: '100%',
@@ -82,9 +99,50 @@ export default function YouTubePlayerManager({
               console.log('✅ YouTube player ready')
               setPlayer(newPlayer)
               playerRef.current = newPlayer
+
+              // Add click event listeners for debugging
+              const iframe = document.getElementById('youtube-player')
+              if (iframe) {
+                console.log('🎯 Adding click event listeners to YouTube player')
+
+                iframe.addEventListener('click', (e) => {
+                  console.log('🖱️ CLICK EVENT on YouTube player:', {
+                    type: e.type,
+                    target: e.target,
+                    currentTarget: e.currentTarget,
+                    timeStamp: e.timeStamp,
+                    isTrusted: e.isTrusted,
+                    playerState: newPlayer.getPlayerState ? newPlayer.getPlayerState() : 'unknown'
+                  })
+                })
+
+                iframe.addEventListener('touchstart', (e) => {
+                  console.log('👆 TOUCHSTART EVENT on YouTube player:', {
+                    type: e.type,
+                    touches: e.touches.length,
+                    timeStamp: e.timeStamp,
+                    playerState: newPlayer.getPlayerState ? newPlayer.getPlayerState() : 'unknown'
+                  })
+                })
+
+                iframe.addEventListener('touchend', (e) => {
+                  console.log('👆 TOUCHEND EVENT on YouTube player:', {
+                    type: e.type,
+                    changedTouches: e.changedTouches.length,
+                    timeStamp: e.timeStamp,
+                    playerState: newPlayer.getPlayerState ? newPlayer.getPlayerState() : 'unknown'
+                  })
+                })
+              }
+
               if (onPlayerReady) onPlayerReady(event, newPlayer)
             },
             onStateChange: (event) => {
+              console.log('🎬 YouTube player state changed:', {
+                state: event.data,
+                stateText: getPlayerStateText(event.data),
+                timeStamp: Date.now()
+              })
               if (onPlayerStateChange) onPlayerStateChange(event)
             },
             onError: (error) => {
@@ -166,6 +224,26 @@ export default function YouTubePlayerManager({
           WebkitTouchCallout: 'none',
           WebkitUserSelect: 'none',
           userSelect: 'none'
+        }}
+        onClick={(e) => {
+          console.log('🎯 CONTAINER CLICK:', {
+            target: e.target.tagName,
+            currentTarget: e.currentTarget.tagName,
+            timeStamp: e.timeStamp,
+            type: e.type
+          })
+        }}
+        onTouchStart={(e) => {
+          console.log('👆 CONTAINER TOUCHSTART:', {
+            touches: e.touches.length,
+            timeStamp: e.timeStamp
+          })
+        }}
+        onTouchEnd={(e) => {
+          console.log('👆 CONTAINER TOUCHEND:', {
+            changedTouches: e.changedTouches.length,
+            timeStamp: e.timeStamp
+          })
         }}
       >
         {youtubeAPILoading && (
