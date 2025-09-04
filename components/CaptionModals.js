@@ -1,7 +1,7 @@
 import React from 'react'
 import { FaPlus } from "react-icons/fa"
-import { CiSaveDown1 } from "react-icons/ci"
-import { MdOutlineCancel, MdDeleteSweep } from "react-icons/md"
+import { PiCloudArrowDownFill, PiXCircleFill } from "react-icons/pi"
+import { MdDeleteSweep } from "react-icons/md"
 import { IoDuplicate } from "react-icons/io5"
 
 /**
@@ -84,36 +84,48 @@ export const CaptionEditorModal = ({
     <div
       className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
     >
-      <div className="bg-black rounded-2xl shadow-2xl max-w-4xl w-full relative text-white p-6 max-h-[90vh] overflow-y-auto border-2 border-white/80">
-        {/* Modal Title - Centered at top */}
-        <div className="text-center mb-6">
-          <h2 className="text-3xl font-bold">
-            {editingCaption?.rowName} Editor
-          </h2>
-        </div>
-        
-        {/* Header with action buttons */}
-        <div className="flex items-center justify-between mb-6">
+      <div className="bg-black rounded-2xl shadow-2xl max-w-4xl w-full relative text-white border-2 border-white/80 max-h-[90vh] flex flex-col">
+        {/* STICKY HEADER SECTION */}
+        <div
+          className="sticky top-0 z-1 p-3 sm:p-6 pb-3 sm:pb-4 rounded-t-2xl border-b border-white/20 relative bg-[url('/images/bass_strings2_BG.png')] bg-cover bg-center bg-no-repeat"
+        >
+          {/* Content wrapper with relative positioning */}
+          <div className="relative z-10">
+          {/* Modal Title - Left aligned with logo in upper right */}
+          <div className="flex justify-between items-center mb-4 sm:mb-6">
+            <h2 className="text-xl sm:text-3xl font-bold">
+              {editingCaption?.rowName} Editor
+            </h2>
+            <img
+              src="/images/gt_logoM_PlayButton.png"
+              alt="GuitarTube Logo"
+              className="h-6 sm:h-8 w-auto"
+            />
+          </div>
+
+          {/* Header with action buttons */}
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
           {/* Left side - Add Caption and Delete All buttons */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1 sm:space-x-2">
             {/* Add Button */}
             <button
               onClick={handleAddCaptionFromTimeline}
-              className="bg-green-600 hover:bg-green-700 text-white rounded-lg px-3 py-2 flex items-center space-x-2 transition-all duration-200 hover:scale-105 shadow-lg"
+              className="bg-transparent border-2 border-green-600 text-white hover:bg-gray-900 rounded-[33px] px-2 py-1 sm:px-3 sm:py-2 flex items-center space-x-1 sm:space-x-2 transition-all duration-200 text-xs sm:text-sm"
               title="Add new caption"
             >
-              <FaPlus className="w-4 h-4" />
+              <FaPlus className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span>Add</span>
             </button>
             
             {/* All Button */}
             {captions.length > 0 && (
               <button
                 onClick={handleDeleteAllCaptions}
-                className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors flex items-center space-x-2"
+                className="bg-transparent border-2 border-red-600 text-white hover:bg-gray-900 rounded-[33px] px-2 py-1 sm:px-3 sm:py-2 flex items-center space-x-1 sm:space-x-2 transition-all duration-200 text-xs sm:text-sm"
                 title="Delete all captions"
               >
-                <MdDeleteSweep className="w-5 h-5" />
-                <span className="text-sm">All</span>
+                <MdDeleteSweep className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span>All</span>
               </button>
             )}
           </div>
@@ -121,26 +133,26 @@ export const CaptionEditorModal = ({
           {/* Center - Empty for spacing */}
           <div className="flex-1"></div>
           
-          {/* Right side - Save and Cancel buttons */}
-          <div className="flex items-center space-x-2">
-            {/* Save Button */}
-            <button
-              onClick={handleSaveCaptions}
-              className="w-20 px-3 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors text-sm flex items-center justify-center space-x-1"
-              title="Save all caption changes"
-            >
-              <CiSaveDown1 className="w-6 h-6" />
-              <span>Save</span>
-            </button>
-            
+          {/* Right side - Cancel and Save buttons */}
+          <div className="flex items-center space-x-1 sm:space-x-2 mr-1 sm:mr-0">
             {/* Cancel Button - Now uses smart cancel logic */}
             <button
               onClick={handleCancelCaptions}
-              className="w-[95px] px-3 py-2 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors text-sm flex items-center justify-center space-x-1"
+              className="bg-transparent border-2 border-gray-600 text-white hover:bg-gray-900 rounded-[33px] px-2 py-1 sm:px-3 sm:py-2 flex items-center space-x-1 sm:space-x-2 transition-all duration-200 text-xs sm:text-sm"
               title="Cancel changes (smart detection)"
             >
-              <MdOutlineCancel className="w-5 h-5" />
+              <PiXCircleFill className="w-4 h-4 sm:w-5 sm:h-5" />
               <span>Cancel</span>
+            </button>
+
+            {/* Save Button */}
+            <button
+              onClick={handleSaveCaptions}
+              className="bg-transparent border-2 border-blue-600 text-white hover:bg-gray-900 rounded-[33px] px-2 py-1 sm:px-3 sm:py-2 flex items-center space-x-1 sm:space-x-2 transition-all duration-200 text-xs sm:text-sm"
+              title="Save all caption changes"
+            >
+              <PiCloudArrowDownFill className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span>Save</span>
             </button>
           </div>
         </div>
@@ -189,9 +201,13 @@ export const CaptionEditorModal = ({
             </span>
           </div>
         </div>
-        
-        {/* Captions List */}
-        <div className="space-y-0 mb-6">
+          </div>
+        </div>
+
+        {/* SCROLLABLE CONTENT SECTION */}
+        <div className="flex-1 overflow-y-auto p-6 pt-4">
+          {/* Captions List */}
+          <div className="space-y-0 mb-6">
           {captions.length === 0 ? (
             <div className="text-center text-gray-400 py-8">
               <p>No captions yet. Use the + button on the video to add your first caption!</p>
@@ -445,8 +461,9 @@ export const CaptionEditorModal = ({
               </div>
             ))
           )}
+          </div>
         </div>
-        
+
         {/* Footer removed - all buttons moved to header */}
       </div>
     </div>
