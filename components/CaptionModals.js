@@ -151,7 +151,7 @@ export const CaptionEditorModal = ({
           <div className="ml-2">
             <span className="text-blue-400 text-sm font-medium">
               Video Time: {(() => {
-                if (player && isPlayerReady()) {
+                if (player && isPlayerReady(player)) {
                   try {
                     const currentTime = Math.floor(player.getCurrentTime())
                     const minutes = Math.floor(currentTime / 60)
