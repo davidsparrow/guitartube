@@ -5,12 +5,12 @@ import { useUser } from '../contexts/UserContext'
 import AuthModal from '../components/AuthModal'
 import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabase'
-import { FaHamburger, FaSearch, FaTimes } from "react-icons/fa"
-import { MdCancel } from "react-icons/md"
-import { TiDeleteOutline } from "react-icons/ti"
 
-import { IoMdPower } from "react-icons/io"
-import { RiLogoutCircleRLine } from "react-icons/ri"
+
+
+
+
+
 import { BiHide } from "react-icons/bi"
 import { LuTextSelect } from "react-icons/lu"
 import TopBanner from '../components/TopBanner'
@@ -22,12 +22,8 @@ import {
   parseTimeToSeconds,
   formatSecondsToTime,
   timeToSeconds,
-  assignSerialNumbersToCaptions,
   autoResolveCaptionConflicts,
-  validateAllCaptions,
-  captureVideoParameters,
   getVideoDuration,
-  getCurrentVideoTime,
   calculateSmartCaptionDuration
 } from '../utils/captionUtils'
 import {
@@ -1241,12 +1237,25 @@ export default function Watch() {
     } else {
       // Add to favorites
       try {
+        // Get actual video duration from player, or use 1 as minimum to satisfy database constraint
+        let videoDuration = 1 // Default minimum value
+        if (player && player.getDuration && typeof player.getDuration === 'function') {
+          try {
+            const duration = player.getDuration()
+            if (duration && duration > 0) {
+              videoDuration = Math.floor(duration)
+            }
+          } catch (error) {
+            console.warn('⚠️ Could not get video duration from player:', error)
+          }
+        }
+
         const videoData = {
           videoId,
           videoTitle,
           videoChannel,
           videoThumbnail: '', // TODO: Get from YouTube API
-          videoDuration: 0 // TODO: Get from YouTube API
+          videoDuration: videoDuration // Use actual duration or minimum value
         }
         
         const savedFavorite = await saveFavorite(videoData)
@@ -1775,136 +1784,7 @@ export default function Watch() {
   }
 
   // Handle saving captions - NOW PROVIDED BY useCaptionManager HOOK
-  /*
-  const handleSaveCaptions = async () => {
-    // Sort captions by start time
-    const sortedCaptions = [...captions].sort((a, b) => {
-      const aStart = timeToSeconds(a.startTime)
-      const bStart = timeToSeconds(b.startTime)
-      return aStart - bStart
-    })
 
-    // Comprehensive validation of all caption times using the new 6-rule system
-    console.log('🔍 Validating all captions with comprehensive 6-rule system...')
-    
-        // Get video duration for validation (Rule 6)
-    let videoDurationSeconds = 0
-    if (player && isPlayerReadyFromUtils(player)) {
-      try {
-        videoDurationSeconds = Math.floor(player.getDuration())
-        console.log('🔍 Video duration from player:', videoDurationSeconds, 'seconds')
-        console.log('🔍 Video duration formatted:', formatSecondsToTime(videoDurationSeconds))
-      } catch (error) {
-        console.warn('⚠️ Could not get video duration from player, trying alternative method')
-        // Try alternative method - get from video element if available
-        try {
-          const videoElement = document.querySelector('video')
-          if (videoElement && !isNaN(videoElement.duration)) {
-            videoDurationSeconds = Math.floor(videoElement.duration)
-            console.log('🔍 Video duration from player:', videoDurationSeconds, 'seconds')
-            console.log('🔍 Video duration formatted:', formatSecondsToTime(videoDurationSeconds))
-          }
-        } catch (altError) {
-        console.warn('⚠️ Could not get video duration from video element either')
-        }
-      }
-    }
-    
-    if (videoDurationSeconds === 0) {
-      console.warn('⚠️ Video duration is 0, skipping Rule 6 validation')
-    }
-    
-    // Validate all captions
-    const validationResults = validateAllCaptions(sortedCaptions, videoDurationSeconds)
-    
-    if (!validationResults.isValid) {
-      console.log('❌ Validation failed:', validationResults)
-      
-      // Find the first caption with validation failures for highlighting
-      const firstFailedCaption = validationResults.captionResults.find(result => !result.isValid)
-      if (firstFailedCaption) {
-        setConflictRowIndex(firstFailedCaption.captionIndex)
-      }
-      
-      // Get the first failure reason for the alert
-      const firstFailure = validationResults.allFailures[0]
-      
-      // Show validation failure alert
-      showCustomAlertModal(
-        `Caption validation failed!\n\n` +
-        `Rule ${firstFailure.rule} failed: ${firstFailure.reason}\n\n` +
-        `Suggestion: ${firstFailure.suggestion}\n\n` +
-        `Please fix the validation errors before saving.`,
-        [
-          {
-            text: 'OK - I\'ll Fix It',
-            action: hideCustomAlertModal
-          }
-        ]
-      )
-      return
-    }
-    
-    console.log('✅ All captions passed validation')
-
-    // Clear any previous conflict highlighting
-    setConflictRowIndex(-1)
-
-    // TODO: Save to Supabase
-    console.log('🔍 handleSaveCaptions: About to save captions to database')
-    console.log('🔍 Captions to save:', sortedCaptions)
-    
-    try {
-      // Save all captions to database
-      const savePromises = []
-      
-      for (const caption of sortedCaptions) {
-        if (caption.id && typeof caption.id === 'string' && caption.id.length > 20) {
-          // Existing caption with valid UUID - update if modified
-          console.log('🔍 Updating existing caption:', caption.id)
-          savePromises.push(updateCaption(caption.id, {
-            startTime: caption.startTime,
-            endTime: caption.endTime,
-            line1: caption.line1,
-            line2: caption.line2
-          }, user?.id, setIsLoadingCaptions, setDbError))
-        } else {
-          // New caption (id is null, undefined, or invalid) - save it
-          console.log('🔍 Saving new caption:', caption)
-          savePromises.push(saveCaption({
-            startTime: caption.startTime,
-            endTime: caption.endTime,
-            line1: caption.line1,
-            line2: caption.line2,
-            rowType: caption.rowType
-          }, videoId, user?.id, setIsLoadingCaptions, setDbError))
-        }
-      }
-      
-      // Wait for all database operations to complete
-      // console.log('🔍 Waiting for', savePromises.length, 'database operations to complete')
-      // const savedResults = await Promise.all(savePromises)
-      console.log('🔍 Database save results:', savedResults)
-      
-      // Update local state with saved captions (now with database IDs)
-      setCaptions(sortedCaptions)
-      
-      // Update the snapshot to reflect the new "saved" state
-      setOriginalCaptionsSnapshot(JSON.parse(JSON.stringify(sortedCaptions)))
-      console.log('✅ All captions saved to database successfully')
-      
-    } catch (error) {
-      console.error('❌ Error saving captions to database:', error)
-      setDbError('Failed to save captions to database')
-      return // Keep modal open if save fails
-    }
-    
-    // Close modal
-    // setShowCaptionModal(false)
-    // setEditingCaption(null)
-    // setIsAddingNewCaption(false)
-  } // END OF OLD handleSaveCaptions - NOW PROVIDED BY HOOK
-  */
 
   // Handle canceling caption editing - NOW PROVIDED BY useCaptionManager HOOK
   /*
@@ -1979,160 +1859,13 @@ export default function Watch() {
   }
 
   // Handle duplicate caption - NOW PROVIDED BY useCaptionManager HOOK
-  /*
-  const handleDuplicateCaption = (captionIndex) => {
-    try {
-      const originalCaption = captions[captionIndex]
-      if (!originalCaption) return
-      
-      // Check if there's enough space before duplicating ANY caption
-      const sortedCaptionsForCheck = [...captions].sort((a, b) => {
-        const timeA = parseTimeToSeconds(a.startTime)
-        const timeB = parseTimeToSeconds(b.startTime)
-        return timeA - timeB
-      })
-      
-      const currentCaptionIndex = sortedCaptionsForCheck.findIndex(c => c.id === originalCaption.id)
-      const nextCaption = sortedCaptionsForCheck[currentCaptionIndex + 1]
-      
-      if (nextCaption) {
-        // Calculate available space between current caption end and next caption start
-        const currentCaptionEndTime = parseTimeToSeconds(originalCaption.endTime)
-        const nextCaptionStartTime = parseTimeToSeconds(nextCaption.startTime)
-        const availableSpace = nextCaptionStartTime - currentCaptionEndTime
-        const requiredSpace = userDefaultCaptionDuration || 10
-        
-        if (availableSpace < requiredSpace) {
-          // NOT ENOUGH SPACE - Show alert and don't duplicate
-          showCustomAlertModal(
-            `New caption cannot be created because there is less than ${requiredSpace} seconds of space before next caption.`,
-            [
-              { text: 'OK', action: hideCustomAlertModal }
-            ]
-          )
-          return // Exit function, don't duplicate
-        }
-      }
-      
-      // ENOUGH SPACE - Use consistent duplication logic for ALL captions
-      const originalEndTime = parseTimeToSeconds(originalCaption.endTime)
-      const newStartTime = originalEndTime
-      let newEndTime = originalEndTime + (userDefaultCaptionDuration || 10)
-      
-      // Use utility function for smart duration calculation and video length validation
-      const { startTime: calculatedStartTime, endTime: calculatedEndTime, wasTrimmed, reason } = calculateSmartCaptionDuration(
-        newStartTime,
-        captions,
-        userDefaultCaptionDuration,
-        getVideoDuration()
-      )
-      
-      // Update the calculated end time
-      newEndTime = calculatedEndTime
-      
-      const duplicateCaption = {
-        ...originalCaption,
-        id: null, // Will get new ID when saved
-        startTime: formatSecondsToTime(newStartTime), // Start where original ends
-        endTime: formatSecondsToTime(newEndTime), // Add user-preferred duration
-        serial_number: null // Will be assigned by database
-      }
-      
-      // Add duplicate caption WITHOUT modifying original caption
-      const newCaptions = [...captions, duplicateCaption]
-      
-      // Sort by start time and reassign serial numbers
-      const sortedCaptions = newCaptions.sort((a, b) => {
-        const timeA = parseTimeToSeconds(a.startTime)
-        const timeB = parseTimeToSeconds(b.startTime)
-        return timeA - timeB
-      }).map((caption, index) => ({
-        ...caption,
-        serial_number: index + 1
-      }))
-      
-      // Update state with sorted captions and new serial numbers
-      setCaptions(sortedCaptions)
-      
-      // Caption duplicated successfully with consistent logic
-      
-    } catch (error) {
-      console.error('❌ Error duplicating caption:', error)
-      setDbError('Failed to duplicate caption')
-    }
-  }
-  */
+  
 
   // Handle delete caption confirmation - NOW PROVIDED BY useCaptionManager HOOK
-  /*
-  const handleDeleteCaption = (captionIndex) => {
-    console.log('🔍 handleDeleteCaption called with index:', captionIndex)
-    setCaptionToDelete(captionIndex)
-    setShowDeleteConfirm(true)
-    console.log('🔍 Set captionToDelete to:', captionIndex, 'and showDeleteConfirm to true')
-  }
-  */
+  
 
   // Handle delete all captions - NOW PROVIDED BY useCaptionManager HOOK
-  /*
-  const handleDeleteAllCaptions_OLD = () => {
-    console.log('🗑️ DELETE ALL CAPTIONS clicked')
-    console.log('🗑️ Current captions count:', captions.length)
-    console.log('🗑️ Current captions:', captions)
-
-    if (captions.length === 0) {
-      console.log('🗑️ No captions to delete, returning early')
-      return
-    }
-
-    // Show confirmation dialog
-    console.log('🗑️ Showing delete all confirmation dialog')
-    showCustomAlertModal(
-      'Are you sure you want to delete ALL captions? This action cannot be undone.',
-      [
-        {
-          text: 'DELETE ALL',
-          action: async () => {
-            console.log('🗑️ DELETE ALL CONFIRMED - Starting deletion process')
-            console.log('🗑️ Captions to delete:', captions)
-            console.log('🗑️ Captions count before deletion:', captions.length)
-
-            try {
-              // Delete all captions from database
-              for (const caption of captions) {
-                if (caption.id) {
-                  console.log('🗑️ Deleting caption from DB:', caption.id, caption.text)
-                  await deleteCaption(caption.id, user?.id, setIsLoadingCaptions, setDbError)
-                }
-              }
-
-              console.log('🗑️ All captions deleted from database')
-
-              // Clear local state
-              console.log('🗑️ Clearing local caption state')
-              setCaptions([])
-              console.log('🗑️ Local captions cleared - count should be 0')
-              hideCustomAlertModal()
-              
-      
-            } catch (error) {
-              console.error('❌ Error deleting all captions:', error)
-              setDbError('Failed to delete all captions')
-            }
-          }
-        },
-        {
-          text: 'CANCEL',
-          action: () => {
-            console.log('🗑️ DELETE ALL CANCELLED - No changes made')
-            console.log('🗑️ Captions remain unchanged, count:', captions.length)
-            hideCustomAlertModal()
-          }
-        }
-      ]
-    )
-  }
-  */
+  
 
   // Confirm caption deletion
   const handleConfirmDelete = async () => {
@@ -2204,112 +1937,13 @@ export default function Watch() {
 
   // Loop modal handlers - NOW PROVIDED BY LoopManager COMPONENT
   const handleLoopClick = loopManager.handleLoopClick
-  /*
-  const handleLoopClick_OLD = () => {
-    // Check daily watch time limits before allowing loop feature
-    if (!checkDailyWatchTimeLimits(currentDailyTotal, { returnBoolean: true })) {
-      // Loop access blocked - daily limit exceeded
-      return
-    }
-    
-    // Check if user can access loops
-    if (!canAccessLoops()) {
-      if (planType === 'freebird') {
-        showCustomAlertModal(getAdminMessage('plan_upgrade_message', '🔒 Loops require a paid plan. Please upgrade to access this feature.'), [
-          { text: 'UPGRADE PLAN', action: () => window.open('/pricing', '_blank') },
-          { text: 'OK', action: hideCustomAlertModal }
-        ])
-        return
-      }
-      if (!isVideoFavorited) {
-        showCustomAlertModal(getAdminMessage('save_to_favorites_message', '⭐ Please save this video to favorites before creating loops.'), [
-          { text: 'SAVE TO FAVORITES', action: () => { hideCustomAlertModal(); handleFavoriteToggle(); } },
-          { text: 'OK', action: hideCustomAlertModal }
-        ])
-        return
-      }
-      return
-    }
-
-    if (isLoopActive) {
-      // Stop the loop
-      setIsLoopActive(false)
-      // Loop stopped
-    } else {
-      // Open modal for configuration
-      setTempLoopStart(loopStartTime)
-      setTempLoopEnd(loopEndTime)
-      setShowLoopModal(true)
-    }
-  }
-  */
+  
 
   const handleLoopTimesClick = loopManager.handleLoopTimesClick
-  /*
-  const handleLoopTimesClick_OLD = () => {
-    // Check daily watch time limits before allowing loop feature
-    if (!checkDailyWatchTimeLimits(currentDailyTotal, { returnBoolean: true })) {
-      // Loop access blocked - daily limit exceeded
-      return
-    }
-    
-    // Check if user can access loops
-    if (!canAccessLoops()) {
-      if (planType === 'freebird') {
-        showCustomAlertModal(getAdminMessage('plan_upgrade_message', '🔒 Loops require a paid plan. Please upgrade to access this feature.'), [
-          { text: 'UPGRADE PLAN', action: () => window.open('/pricing', '_blank') },
-          { text: 'OK', action: hideCustomAlertModal }
-        ])
-        return
-      }
-      if (!isVideoFavorited) {
-        showCustomAlertModal(getAdminMessage('save_to_favorites_message', '⭐ Please save this video to favorites before creating loops.'), [
-          { text: 'SAVE TO FAVORITES', action: () => { hideCustomAlertModal(); handleFavoriteToggle(); } },
-          { text: 'OK', action: hideCustomAlertModal }
-        ])
-        return
-      }
-      return
-    }
 
-    // Open modal directly when clicking on time display
-    setTempLoopStart(loopStartTime)
-    setTempLoopEnd(loopEndTime)
-    setShowLoopModal(true)
-  }
-  */
 
   const handleSaveLoop = loopManager.handleSaveLoop
-  /*
-  const handleSaveLoop_OLD = () => {
-    // Update the actual loop times
-    setLoopStartTime(tempLoopStart)
-    setLoopEndTime(tempLoopEnd)
-    
-    // Start the loop
-    setIsLoopActive(true)
-    
-    // Close modal
-    setShowLoopModal(false)
-    
-    // Loop started
-    
-    // Debug: Log the converted seconds
-    const startSeconds = timeToSeconds(tempLoopStart)
-    const endSeconds = timeToSeconds(tempLoopEnd)
-    // Loop seconds
-    
-    // CRITICAL: Jump to start time immediately when loop starts
-    if (player && player.seekTo && typeof player.seekTo === 'function') {
-      try {
-        player.seekTo(startSeconds, true)
-
-      } catch (error) {
-        console.error('Initial seek error:', error)
-      }
-    }
-  }
-  */
+  
 
   const handleCancelLoop = loopManager.handleCancelLoop
   /*
@@ -2323,39 +1957,7 @@ export default function Watch() {
   // Loop timing effect - NOW HANDLED BY LoopManager COMPONENT
   // The LoopManager component includes the useEffect for loop timing
 
-  /*
-  // OLD: Check if video should loop (runs every second when loop is active)
-  useEffect(() => {
-    if (!isLoopActive || !player || !isPlayerReadyFromUtils(player)) return
 
-    const loopInterval = setInterval(() => {
-      try {
-        if (player.getCurrentTime && typeof player.getCurrentTime === 'function') {
-          const currentTime = player.getCurrentTime()
-          const startSeconds = timeToSeconds(loopStartTime)
-          const endSeconds = timeToSeconds(loopEndTime)
-          
-          // Debug: Log current loop status every 5 seconds
-          if (Math.floor(currentTime) % 5 === 0) {
-            // Loop check
-          }
-          
-          // If we've reached or passed the end time, loop back to start
-          if (currentTime >= endSeconds) {
-            if (player.seekTo && typeof player.seekTo === 'function') {
-              player.seekTo(startSeconds, true)
-              // Looping back to start
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Loop check error:', error)
-      }
-    }, 1000) // Check every second
-
-    return () => clearInterval(loopInterval)
-  }, [isLoopActive, player, loopStartTime, loopEndTime])
-  */
 
   // Effect to auto-sort captions by start time
   useEffect(() => {

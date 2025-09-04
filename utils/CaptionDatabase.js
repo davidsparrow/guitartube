@@ -41,20 +41,26 @@ export const saveUserDefaultCaptionDuration = async (duration, userId) => {
 export const checkIfVideoFavorited = async (videoId, userId) => {
   try {
     if (!userId || !videoId) return false
-    
+
+    console.log('🔍 CHECKING FAVORITE STATUS for:', { videoId, userId })
+
     const { data, error } = await supabase
       .from('favorites')
       .select('id')
       .eq('user_id', userId)
       .eq('video_id', videoId)
-      .single()
-    
-    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+      // Removed .single() to avoid 406 errors when no rows exist
+
+    if (error) {
       console.error('❌ Error checking favorite status:', error)
+      console.error('❌ Error details:', error.message, error.code)
       return false
     }
-    
-    return !!data // Convert to boolean
+
+    const isFavorited = data && data.length > 0
+    console.log('🔍 FAVORITE STATUS RESULT:', { isFavorited, rowCount: data?.length })
+
+    return isFavorited
   } catch (error) {
     console.error('❌ Error checking favorite status:', error)
     return false
