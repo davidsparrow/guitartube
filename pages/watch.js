@@ -62,8 +62,6 @@ import {
 import ChordCaptionModal from '../components/ChordCaptionModal'
 import { deleteAllChordCaptions, saveChordCaptions } from '../song_data_processing/chord_processing/ChordCaptionDatabase'
 import LayoutSelectionModal from '../components/LayoutSelectionModal'
-import YouTubePlayerManager from '../components/watch/YouTubePlayerManager'
-import useYouTubePlayer from '../hooks/useYouTubePlayer'
 import CaptionManager from '../components/watch/CaptionManager'
 import useCaptionManager from '../hooks/useCaptionManager'
 import useLoopManagerComponent from '../components/watch/LoopManager'
@@ -89,18 +87,63 @@ export default function Watch() {
   const [videoChannel, setVideoChannel] = useState('')
   const [showMobileSearch, setShowMobileSearch] = useState(false)
 
-  // Direct YouTube player states
+  // Embedded YouTube player states (matching watch_ORIG4.js)
   const [player, setPlayer] = useState(null)
   const [isVideoReady, setIsVideoReady] = useState(false)
   const playerRef = useRef(null)
 
-  // Direct YouTube player utility functions
+  // Embedded YouTube player utility functions
   const getCurrentTime = () => playerRef.current?.getCurrentTime() || 0
   const getDuration = () => playerRef.current?.getDuration() || 0
   const seekTo = (time) => playerRef.current?.seekTo(time, true)
   const play = () => playerRef.current?.playVideo()
   const pause = () => playerRef.current?.pauseVideo()
   const isPlaying = () => playerRef.current?.getPlayerState() === 1
+
+  // Handle YouTube player state changes (matching watch_ORIG4.js)
+  const handlePlayerStateChange = (event) => {
+    // YouTube player state changed
+
+    // YouTube player states:
+    // -1: UNSTARTED, 0: ENDED, 1: PLAYING, 2: PAUSED, 3: BUFFERING, 5: CUED
+
+    // Log state changes for debugging (watch time tracking still works)
+    if (event.data === 1) { // PLAYING
+      // Video started playing
+    } else if (event.data === 2) { // PAUSED
+      // Video paused
+
+      // Save session data for Login-Resume functionality when user pauses
+      if (user?.id) {
+        // Use the player instance for immediate access
+        if (player && player.getPlayerState && typeof player.getPlayerState === 'function') {
+          console.log('🔄 Triggering session save on pause...')
+          saveSessionOnPause()
+        } else {
+          console.log('⚠️ Player not ready for session save')
+        }
+      } else {
+        // Save conditions NOT met - session save blocked
+      }
+    } else if (event.data === 3) { // BUFFERING
+      // Video buffering
+    } else if (event.data === 5) { // CUED
+      // Video cued
+    }
+  }
+
+  // Handle video ready (matching watch_ORIG4.js)
+  const handleVideoReady = (event, newPlayer) => {
+    console.log('🎬 Video ready, checking for saved session')
+
+    // Use utility function for video ready handling
+    handleVideoReadyFromUtils(event, newPlayer, {
+      user,
+      videoId,
+      checkForSavedSession,
+      supabase
+    })
+  }
 
   // Page type for specialized watch experiences
   const [pageType, setPageType] = useState('default') // 'default', 'lyrics', 'chords', 'tabs', 'lyrics-chords', 'lyrics-tabs'
@@ -296,9 +339,7 @@ export default function Watch() {
   const lastSavedSessionRef = useRef(null)
   const saveTimeoutRef = useRef(null) // Add timeout ref for debouncing
   
-  // YouTube API loading states
-  const [youtubeAPILoading, setYoutubeAPILoading] = useState(false)
-  const [youtubeAPIError, setYoutubeAPIError] = useState(false)
+  // Using iframe approach - no API loading states needed
 
   // Feature Gates states
   const [featureGates, setFeatureGates] = useState(null)
@@ -710,42 +751,32 @@ export default function Watch() {
     // User data useEffect triggered
   }, [user, profile, loading, isAuthenticated])
 
-  // Load YouTube API script
+  // Load YouTube API script (restored for full controls)
   useEffect(() => {
     if (mounted && !window.YT) {
       console.log('🎬 Loading YouTube iframe API')
-      setYoutubeAPILoading(true)
-      setYoutubeAPIError(false)
 
       const tag = document.createElement('script')
       tag.src = 'https://www.youtube.com/iframe_api'
 
       tag.onerror = (error) => {
         console.error('❌ Failed to load YouTube iframe API:', error)
-        setYoutubeAPILoading(false)
-        setYoutubeAPIError(true)
       }
 
       tag.onload = () => {
         console.log('✅ YouTube API script loaded')
-        setYoutubeAPILoading(false)
       }
 
       const firstScriptTag = document.getElementsByTagName('script')[0]
       firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
-
-      // Cleanup timeout if component unmounts
-      return () => {
-        if (tag.parentNode) {
-          tag.parentNode.removeChild(tag)
-        }
-      }
+    } else if (mounted && window.YT) {
+      console.log('🎬 YouTube API already loaded')
     }
   }, [mounted])
 
-  // Initialize YouTube player when API is ready
+  // Initialize YouTube player when API is ready (restored for full controls)
   useEffect(() => {
-    if (mounted && videoId && !youtubeAPILoading && !youtubeAPIError) {
+    if (mounted && videoId) {
       console.log('🎬 Initializing YouTube player for video:', videoId)
 
       const initPlayer = () => {
@@ -755,13 +786,12 @@ export default function Watch() {
             width: '100%',
             videoId: videoId,
             playerVars: {
-              controls: 1,
+              controls: 1,              // ✅ Show YouTube controls & timeline
               modestbranding: 1,
               rel: 0,
               showinfo: 0,
-              fs: 0,
-              origin: window.location.origin,
-              playsinline: 1 // Mobile improvement
+              fs: 0,                   // Disable YouTube's fullscreen button
+              origin: window.location.origin
             },
             events: {
               onReady: (event) => {
@@ -769,6 +799,9 @@ export default function Watch() {
                 setPlayer(newPlayer)
                 playerRef.current = newPlayer
                 setIsVideoReady(true)
+
+                // Handle video ready with utilities
+                handleVideoReady(event, newPlayer)
               },
               onStateChange: handlePlayerStateChange,
               onError: handleVideoError
@@ -777,14 +810,18 @@ export default function Watch() {
         }
       }
 
-      // Check if API is ready
+      // Check if API is already loaded
       if (window.YT && window.YT.Player) {
         initPlayer()
       } else {
-        window.onYouTubeIframeAPIReady = initPlayer
+        // Wait for API to be ready
+        window.onYouTubeIframeAPIReady = () => {
+          console.log('🎬 YouTube API ready callback triggered')
+          initPlayer()
+        }
       }
     }
-  }, [mounted, videoId, youtubeAPILoading, youtubeAPIError])
+  }, [mounted, videoId])
 
   // Load video from URL parameters when page loads
   useEffect(() => {
@@ -837,6 +874,7 @@ export default function Watch() {
           getDailyWatchTimeTotal()
 
           // Check for saved session data to resume video
+          console.log('🔍 TRIGGERING SESSION CHECK from video ready handler')
           checkForSavedSession(v)
         }
 
@@ -869,6 +907,7 @@ export default function Watch() {
         
         // Check for saved session data in fallback case too
         if (user?.id) {
+          console.log('🔍 TRIGGERING SESSION CHECK from fallback handler')
           checkForSavedSession(v)
         }
       }
@@ -1010,31 +1049,63 @@ export default function Watch() {
 
   // Check for saved session data and resume video if available
   const checkForSavedSession = async (currentVideoId) => {
-    console.log('📱 Checking for saved session with auto-resume enabled')
+    console.log('📱 STARTING SAVED SESSION CHECK')
+    console.log(`   - Current video ID: ${currentVideoId}`)
+    console.log(`   - User ID: ${user?.id}`)
+    console.log(`   - Auto-resume enabled: YES (dialog will be skipped)`)
 
     // Use utility function for checking saved session with resume prompt enabled
     await checkForSavedSessionFromUtils(currentVideoId, {
       userId: user?.id,
-      showResumePrompt, // Enable auto-resume prompt
+      showResumePrompt, // This will trigger auto-resume without dialog
       supabase
     })
+
+    console.log('📱 SAVED SESSION CHECK COMPLETED')
   }
 
-  // Auto-resume video without dialog
+  // Auto-resume video without dialog - WAIT FOR PLAYER TO BE READY
   const showResumePrompt = (timestamp, title) => {
-    console.log(`🎯 Auto-resuming video at ${timestamp} seconds`)
-    // Skip dialog and directly resume video
-    resumeVideo(timestamp)
+    console.log(`🎯 SCHEDULING AUTO-RESUME at ${timestamp} seconds for "${title}" - waiting for player to be ready`)
+
+    // Wait for player to be ready before resuming
+    const waitForPlayer = () => {
+      console.log(`⏳ Checking if player is ready... playerRef.current:`, !!playerRef.current)
+
+      if (playerRef.current && playerRef.current.seekTo && typeof playerRef.current.seekTo === 'function') {
+        console.log(`✅ PLAYER READY - Starting auto-resume at ${timestamp} seconds`)
+
+        // Player is ready, now resume the video
+        resumeVideo(timestamp)
+
+        console.log(`🎯 Auto-resume command sent to player`)
+      } else {
+        console.log(`⏳ Player not ready yet, will retry in 500ms...`)
+        console.log(`   - playerRef.current exists: ${!!playerRef.current}`)
+        console.log(`   - seekTo method exists: ${!!(playerRef.current && playerRef.current.seekTo)}`)
+
+        // Check again in 500ms
+        setTimeout(waitForPlayer, 500)
+      }
+    }
+
+    // Start waiting for player
+    waitForPlayer()
   }
 
   // Resume video at saved timestamp
   const resumeVideo = (timestamp) => {
-    console.log(`🎯 Resuming video at ${timestamp} seconds using playerRef:`, playerRef.current)
+    console.log(`🎯 RESUMING VIDEO at ${timestamp} seconds`)
+    console.log(`   - playerRef.current exists: ${!!playerRef.current}`)
+    console.log(`   - seekTo method exists: ${!!(playerRef.current && playerRef.current.seekTo)}`)
+
     // Use utility function for resuming video
     resumeVideoFromUtils(timestamp, {
       playerRef,
       hideCustomAlertModal
     })
+
+    console.log(`✅ Resume command completed - video should now be playing from ${timestamp} seconds`)
   }
 
   // Start video from beginning
@@ -1048,41 +1119,7 @@ export default function Watch() {
 
 
 
-  // Handle YouTube player state changes - Global event handler for all play/pause actions
-  const handlePlayerStateChange = (event) => {
-            // YouTube player state changed
-    
-    // YouTube player states:
-    // -1: UNSTARTED, 0: ENDED, 1: PLAYING, 2: PAUSED, 3: BUFFERING, 5: CUED
-    
-    // Log state changes for debugging (watch time tracking still works)
-    if (event.data === 1) { // PLAYING
-                // Video started playing
-    } else if (event.data === 2) { // PAUSED
-                // Video paused
-      
-      // Save session data for Login-Resume functionality when user pauses
-      
-      if (user?.id) {
-
-        
-        // Use the player instance for immediate access
-        if (player && player.getPlayerState && typeof player.getPlayerState === 'function') {
-
-          console.log('🔄 Triggering session save on pause...')
-          saveSessionOnPause()
-        } else {
-          console.log('⚠️ Player not ready for session save')
-        }
-      } else {
-        // Save conditions NOT met - session save blocked
-      }
-    } else if (event.data === 3) { // BUFFERING
-              // Video buffering
-    } else if (event.data === 5) { // CUED
-              // Video cued
-    }
-  }
+  // handlePlayerStateChange is now defined earlier in the file before useYouTubePlayer hook
 
   // Handle YouTube API loading errors
   const handleYouTubeAPIError = () => {
@@ -2472,32 +2509,29 @@ export default function Watch() {
       }}>
         {/* Video Player Container - Edge-to-Edge Width with Dynamic Height */}
         <div id="video-container" data-testid="video-container" className="w-full max-w-none h-full flex items-center justify-center">
-          {/* YouTube Video Player - Theatre Mode with Dynamic Sizing */}
+          {/* YouTube Video Player - Embedded API (matching watch_ORIG4.js) */}
           {videoId && (
             <div className="relative w-full h-full bg-black rounded-lg overflow-hidden shadow-2xl">
-              {/* Video Container - Dynamic height based on available space */}
-              <div className="relative w-full h-full">
-                {/* YouTube API Player */}
+              {/* Video Container - Dynamic height based on available space with flip transformations */}
+              <div
+                className="relative w-full h-full transition-transform duration-300"
+                style={{
+                  // Critical styles from deployed version
+                  height: '100%',
+                  maxHeight: '100%',
+                  objectFit: 'contain',
+                  // Handle video flip transformations
+                  transform: flipState === 'horizontal'
+                    ? 'scaleX(-1)'
+                    : flipState === 'vertical'
+                    ? 'scaleY(-1)'
+                    : flipState === 'both'
+                    ? 'scaleX(-1) scaleY(-1)'
+                    : 'none'
+                }}
+              >
+                {/* YouTube API Player - Restored for full controls */}
                 <div id="youtube-player" className="w-full h-full" />
-
-                {/* Loading state */}
-                {youtubeAPILoading && (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-900 absolute inset-0">
-                    <div className="text-center text-white">
-                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-                      <p>Loading YouTube Player...</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Error state */}
-                {youtubeAPIError && (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-900 absolute inset-0">
-                    <div className="text-center text-white">
-                      <p>Failed to load YouTube player</p>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           )}
