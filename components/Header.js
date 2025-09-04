@@ -26,16 +26,21 @@ export default function Header({
   sortOrder = 'relevance',
   showFavoritesOnly = false,
   savedSession = null,
-  // Resume icon props
-  showResumeIcon = false,
-  onResumeIconClick = () => {},
-  userProfile = null,
   // Standard props
   onAuthClick,
   onMenuClick,
   isAuthenticated = false
 }) {
   const router = useRouter()
+
+  // 🔍 DEBUG: Log Header props to see what's being passed
+  console.log('🔍 HEADER DEBUG - Current page:', router.pathname)
+  console.log('🔍 HEADER DEBUG - Props:', {
+    showSearchBar,
+    showResumeButton,
+    savedSession: savedSession ? 'EXISTS' : 'NULL',
+    isAuthenticated
+  })
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 px-4 md:px-6 py-3 md:py-4 bg-black/80 md:bg-transparent">
@@ -84,24 +89,7 @@ export default function Header({
                   <LuBrain className="w-5 h-5 group-hover:text-yellow-400 transition-colors" />
                 </button>
               )}
-
-              {/* Resume Icon Button - Conditional */}
-              {showResumeIcon && (
-                <button
-                  onClick={() => {
-                    if (userProfile?.subscription_tier === 'roadie' || userProfile?.subscription_tier === 'hero') {
-                      onResumeIconClick()
-                    } else {
-                      onResumeIconClick('show_plan_alert')
-                    }
-                  }}
-                  className="p-2 rounded-lg transition-colors duration-300 relative group text-white hover:bg-white/10"
-                  title="Resume Last Video"
-                >
-                  <VscDebugRestart className="w-6 h-6 group-hover:text-yellow-400 transition-colors" />
-                </button>
-              )}
-
+              
               {/* Search Icon Button - Conditional */}
               {showSearchIcon && (
                 <button
@@ -341,24 +329,7 @@ export default function Header({
                   <LuBrain className="w-5 h-5 group-hover:text-yellow-400 transition-colors" />
                 </button>
               )}
-
-              {/* Resume Icon Button - Conditional */}
-              {showResumeIcon && (
-                <button
-                  onClick={() => {
-                    if (userProfile?.subscription_tier === 'roadie' || userProfile?.subscription_tier === 'hero') {
-                      onResumeIconClick()
-                    } else {
-                      onResumeIconClick('show_plan_alert')
-                    }
-                  }}
-                  className="p-2 rounded-lg transition-colors duration-300 relative group text-white hover:bg-white/10"
-                  title="Resume Last Video"
-                >
-                  <VscDebugRestart className="w-6 h-6 group-hover:text-yellow-400 transition-colors" />
-                </button>
-              )}
-
+              
               {/* Search Icon Button - Conditional */}
               {showSearchIcon && (
                 <button
@@ -373,15 +344,24 @@ export default function Header({
               )}
               
               {/* Resume Video Button - Conditional based on savedSession */}
-              {showResumeButton && savedSession && savedSession.last_video_id && (
-                <button
-                  onClick={onResumeClick}
-                  className="p-2 rounded-lg transition-colors duration-300 relative group text-white hover:bg-white/10"
-                  title="Resume Last Video"
-                >
-                  <VscDebugRestart className="w-6 h-6 group-hover:text-yellow-400 transition-colors" />
-                </button>
-              )}
+              {(() => {
+                const shouldShow = showResumeButton && savedSession && savedSession.last_video_id
+                console.log('🔍 STANDARD LAYOUT RESUME BUTTON:', {
+                  showResumeButton,
+                  savedSession: savedSession ? 'EXISTS' : 'NULL',
+                  videoId: savedSession?.last_video_id || 'NONE',
+                  shouldShow
+                })
+                return shouldShow ? (
+                  <button
+                    onClick={onResumeClick}
+                    className="p-2 rounded-lg transition-colors duration-300 relative group text-white hover:bg-white/10"
+                    title="Resume Last Video"
+                  >
+                    <VscDebugRestart className="w-6 h-6 group-hover:text-yellow-400 transition-colors" />
+                  </button>
+                ) : null
+              })()}
               
               {/* Login/Logout Icon */}
               <button 
@@ -421,24 +401,7 @@ export default function Header({
                 <LuBrain className="w-5 h-5 group-hover:text-yellow-400 transition-colors" />
               </button>
             )}
-
-            {/* Resume Icon Button - Conditional */}
-            {showResumeIcon && (
-              <button
-                onClick={() => {
-                  if (userProfile?.subscription_tier === 'roadie' || userProfile?.subscription_tier === 'hero') {
-                    onResumeIconClick()
-                  } else {
-                    onResumeIconClick('show_plan_alert')
-                  }
-                }}
-                className="p-2 rounded-lg transition-colors duration-300 relative group text-white hover:bg-white/10"
-                title="Resume Last Video"
-              >
-                <VscDebugRestart className="w-6 h-6 group-hover:text-yellow-400 transition-colors" />
-              </button>
-            )}
-
+            
             {/* Search Icon Button - Conditional */}
             {showSearchIcon && (
               <button
@@ -453,15 +416,24 @@ export default function Header({
             )}
             
             {/* Resume Video Button - Conditional based on savedSession */}
-            {showResumeButton && savedSession && savedSession.last_video_id && (
-              <button
-                onClick={onResumeClick}
-                className="p-2 rounded-lg transition-colors duration-300 relative group text-white hover:bg-white/10"
-                title="Resume Last Video"
-              >
-                <VscDebugRestart className="w-6 h-6 group-hover:text-yellow-400 transition-colors" />
-              </button>
-            )}
+            {(() => {
+              const shouldShow = showResumeButton && savedSession && savedSession.last_video_id
+              console.log('🔍 DESKTOP SEARCH LAYOUT RESUME BUTTON:', {
+                showResumeButton,
+                savedSession: savedSession ? 'EXISTS' : 'NULL',
+                videoId: savedSession?.last_video_id || 'NONE',
+                shouldShow
+              })
+              return shouldShow ? (
+                <button
+                  onClick={onResumeClick}
+                  className="p-2 rounded-lg transition-colors duration-300 relative group text-white hover:bg-white/10"
+                  title="Resume Last Video"
+                >
+                  <VscDebugRestart className="w-6 h-6 group-hover:text-yellow-400 transition-colors" />
+                </button>
+              ) : null
+            })()}
             
             {/* Login/Logout Icon */}
             <button 
