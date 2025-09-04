@@ -1807,54 +1807,72 @@ export default function Watch() {
   }
   */
 
-  // 🎸 Handle canceling chord caption editing
+  // Deep comparison utility function for chord captions
+  const deepEqualChords = (obj1, obj2) => {
+    return JSON.stringify(obj1) === JSON.stringify(obj2)
+  }
+
+  // 🎸 Handle canceling chord caption editing with smart change detection
   const handleCancelChordCaptions = async () => {
-    try {
-      console.log('🎸 CANCELLING CHORD CAPTIONS - Starting delete + restore process...')
-      
-      // Check if we have a blob to restore from
-      if (!originalChordCaptionsBlob) {
-        console.log('⚠️ No original chord captions blob found - just closing modal')
+    console.log('🎸 SMART CHORD CANCEL - Starting change detection...')
+    console.log('🎸 Current chord captions:', chordCaptions)
+    console.log('🎸 Original chord blob exists:', !!originalChordCaptionsBlob)
+
+    if (!originalChordCaptionsBlob) {
+      console.log('⚠️ No original chord blob found - closing modal without changes')
+      setShowChordModal(false)
+      return
+    }
+
+    // Compare current chord captions with original blob
+    const hasChanges = !deepEqualChords(originalChordCaptionsBlob, chordCaptions)
+    console.log('🔍 Chord changes detected:', hasChanges)
+
+    if (hasChanges) {
+      console.log('⚠️ Chord changes detected - starting delete + restore process...')
+
+      try {
+        // Step 1: Delete ALL chord captions for this video from database
+        console.log('🗑️ Step 1: Deleting all chord captions from database...')
+        const deleteSuccess = await deleteAllChordCaptions(videoId, user?.id, setIsLoadingChords, setDbError)
+
+        if (!deleteSuccess) {
+          console.error('❌ Failed to delete chord captions - cannot proceed with cancel')
+          setDbError('Failed to cancel changes - please try again')
+          return
+        }
+
+        // Step 2: Restore chord captions from the original blob
+        console.log('🔄 Step 2: Restoring chord captions from original blob...')
+        const restoreSuccess = await saveChordCaptions(originalChordCaptionsBlob, videoId, user?.id, setIsLoadingChords, setDbError)
+
+        if (!restoreSuccess) {
+          console.error('❌ CRITICAL ERROR: Failed to restore chord captions from blob!')
+          setDbError('CRITICAL ERROR: Failed to restore chord captions. Please contact support.')
+          return
+        }
+
+        // Step 3: Update local state to match restored database state
+        console.log('✅ Step 3: Updating local state to match restored database...')
+        setChordCaptions(JSON.parse(JSON.stringify(originalChordCaptionsBlob)))
+
+        // Step 4: Clear the blob and close modal
+        console.log('🧹 Step 4: Clearing blob and closing modal...')
+        setOriginalChordCaptionsBlob(null)
         setShowChordModal(false)
-        return
+
+        console.log('🎸 CHORD CAPTIONS CANCELLED WITH REVERT - All changes reverted!')
+
+      } catch (error) {
+        console.error('❌ CRITICAL ERROR in handleCancelChordCaptions:', error)
+        setDbError('Critical error during cancel operation. Please contact support.')
       }
-      
-      // Step 1: Delete ALL chord captions for this video from database
-      console.log('🗑️ Step 1: Deleting all chord captions from database...')
-      const deleteSuccess = await deleteAllChordCaptions(videoId, user?.id, setIsLoadingChords, setDbError)
-      
-      if (!deleteSuccess) {
-        console.error('❌ Failed to delete chord captions - cannot proceed with cancel')
-        setDbError('Failed to cancel changes - please try again')
-        return
-      }
-      
-      // Step 2: Restore chord captions from the original blob
-      console.log('🔄 Step 2: Restoring chord captions from original blob...')
-      const restoreSuccess = await saveChordCaptions(originalChordCaptionsBlob, videoId, user?.id, setIsLoadingChords, setDbError)
-      
-      if (!restoreSuccess) {
-        console.error('❌ CRITICAL ERROR: Failed to restore chord captions from blob!')
-        // TODO: Log to ERROR-LOG table with CRITICAL-NOTIFY-ADMIN flag when we have that table
-        setDbError('CRITICAL ERROR: Failed to restore chord captions. Please contact support.')
-        return
-      }
-      
-      // Step 3: Update local state to match restored database state
-      console.log('✅ Step 3: Updating local state to match restored database...')
-      setChordCaptions(JSON.parse(JSON.stringify(originalChordCaptionsBlob)))
-      
-      // Step 4: Clear the blob and close modal
-      console.log('🧹 Step 4: Clearing blob and closing modal...')
+    } else {
+      console.log('✅ No chord changes detected - closing modal silently')
+      // No changes made - just close modal without database operations
       setOriginalChordCaptionsBlob(null)
       setShowChordModal(false)
-      
-      console.log('🎸 CHORD CAPTIONS CANCELLED SUCCESSFULLY - All changes reverted!')
-      
-    } catch (error) {
-      console.error('❌ CRITICAL ERROR in handleCancelChordCaptions:', error)
-      // TODO: Log to ERROR-LOG table with CRITICAL-NOTIFY-ADMIN flag when we have that table
-      setDbError('Critical error during cancel operation. Please contact support.')
+      console.log('🚪 Chord modal closed without revert (no changes made)')
     }
   }
 

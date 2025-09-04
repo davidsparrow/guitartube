@@ -207,35 +207,85 @@ export default function useCaptionManager({
     setIsAddingNewCaption(false)
   }
 
-  // Handle canceling caption editing
+  // Deep comparison utility function
+  const deepEqual = (obj1, obj2) => {
+    return JSON.stringify(obj1) === JSON.stringify(obj2)
+  }
+
+  // Handle canceling caption editing with smart change detection
   const handleCancelCaptions = () => {
-    console.log('❌ Canceling caption editing...')
+    console.log('❌ Smart cancel initiated...')
     console.log('❌ Current captions before cancel:', captions)
     console.log('❌ Current captions count:', captions.length)
     console.log('❌ Original snapshot exists:', !!originalCaptionsSnapshot)
-    console.log('❌ Original snapshot:', originalCaptionsSnapshot)
 
-    // Revert all changes back to original state when modal was opened
-    if (originalCaptionsSnapshot) {
-      const revertedCaptions = JSON.parse(JSON.stringify(originalCaptionsSnapshot))
-      console.log('❌ Reverting to snapshot:', revertedCaptions)
-      console.log('❌ Snapshot count:', revertedCaptions.length)
-      setCaptionsWithLogging(revertedCaptions)
-      console.log('🔄 Reverted captions to original state')
-    } else {
-      console.log('⚠️ No original snapshot found - keeping current captions')
+    if (!originalCaptionsSnapshot) {
+      console.log('⚠️ No original snapshot found - closing modal without changes')
+      // Close modal and reset states
+      setShowCaptionModal(false)
+      setIsAddingNewCaption(false)
+      setEditingCaption(null)
+      return
     }
 
-    // Clear the snapshot
-    setOriginalCaptionsSnapshot(null)
-    console.log('🧹 Cleared original snapshot')
-    
-    // Close modal and reset states
-    setShowCaptionModal(false)
-    setIsAddingNewCaption(false)
-    setEditingCaption(null)
-    
-    console.log('✅ Caption editing cancelled - all changes reverted')
+    // Create current state snapshot for comparison
+    const currentCaptionsSnapshot = JSON.parse(JSON.stringify(captions))
+    console.log('🔍 Comparing current state with original snapshot...')
+    console.log('🔍 Original snapshot:', originalCaptionsSnapshot)
+    console.log('🔍 Original snapshot count:', originalCaptionsSnapshot?.length)
+    console.log('🔍 Current snapshot:', currentCaptionsSnapshot)
+    console.log('🔍 Current snapshot count:', currentCaptionsSnapshot?.length)
+
+    // Compare current state with original snapshot
+    const hasChanges = !deepEqual(originalCaptionsSnapshot, currentCaptionsSnapshot)
+    console.log('🔍 Changes detected:', hasChanges)
+    console.log('🔍 deepEqual result:', deepEqual(originalCaptionsSnapshot, currentCaptionsSnapshot))
+    console.log('🔍 JSON comparison - Original:', JSON.stringify(originalCaptionsSnapshot))
+    console.log('🔍 JSON comparison - Current:', JSON.stringify(currentCaptionsSnapshot))
+
+    if (hasChanges) {
+      console.log('⚠️ Changes detected - showing confirmation dialog')
+      // Show confirmation dialog and revert if confirmed
+      showCustomAlertModal(
+        'Cancelling reverts all changes. Proceed?',
+        [
+          {
+            text: 'PROCEED',
+            action: () => {
+              console.log('✅ User confirmed cancel - reverting changes')
+              // Revert all changes back to original state
+              const revertedCaptions = JSON.parse(JSON.stringify(originalCaptionsSnapshot))
+              console.log('❌ Reverting to snapshot:', revertedCaptions)
+              setCaptionsWithLogging(revertedCaptions)
+
+              // Clear the snapshot and close modal
+              setOriginalCaptionsSnapshot(null)
+              setShowCaptionModal(false)
+              setIsAddingNewCaption(false)
+              setEditingCaption(null)
+
+              console.log('🔄 Changes reverted and modal closed')
+              hideCustomAlertModal()
+            }
+          },
+          {
+            text: 'KEEP EDITING',
+            action: () => {
+              console.log('📝 User chose to keep editing - staying in modal')
+              hideCustomAlertModal()
+            }
+          }
+        ]
+      )
+    } else {
+      console.log('✅ No changes detected - closing modal silently')
+      // No changes made - just close modal without confirmation
+      setOriginalCaptionsSnapshot(null)
+      setShowCaptionModal(false)
+      setIsAddingNewCaption(false)
+      setEditingCaption(null)
+      console.log('🚪 Modal closed without revert (no changes made)')
+    }
   }
 
   // Handle duplicate caption
