@@ -2,13 +2,53 @@
 import { useState } from 'react'
 import { useUser } from '../contexts/UserContext'
 import { useAuth } from '../contexts/AuthContext'
+import { updateUserProfile } from '../lib/supabase'
 
 export default function MenuModal({ isOpen, onClose, onSupportClick }) {
-  const { profile, userEmail } = useUser()
+  const { profile, userEmail, refreshProfile } = useUser()
   const { isAuthenticated } = useAuth()
   const [showProfileModal, setShowProfileModal] = useState(false)
   const [showPlanModal, setShowPlanModal] = useState(false)
   const [showBackstageAlert, setShowBackstageAlert] = useState(false)
+  const [isUpdatingResume, setIsUpdatingResume] = useState(false)
+
+  // Handle resume toggle
+  const handleResumeToggle = async () => {
+    if (!profile?.id || isUpdatingResume) return
+
+    setIsUpdatingResume(true)
+
+    try {
+      const newResumeEnabled = !profile.resume_enabled
+
+      console.log('🔄 Updating resume_enabled:', {
+        userId: profile.id,
+        currentValue: profile.resume_enabled,
+        newValue: newResumeEnabled
+      })
+
+      const { data, error } = await updateUserProfile(profile.id, {
+        resume_enabled: newResumeEnabled
+      })
+
+      if (error) {
+        console.error('❌ Error updating resume setting:', error)
+        alert('Failed to update resume setting. Please try again.')
+        return
+      }
+
+      console.log('✅ Resume setting updated successfully:', data)
+
+      // Refresh profile to get updated data
+      refreshProfile()
+
+    } catch (error) {
+      console.error('❌ Error in handleResumeToggle:', error)
+      alert('Failed to update resume setting. Please try again.')
+    } finally {
+      setIsUpdatingResume(false)
+    }
+  }
 
   if (!isOpen) return null
 
@@ -190,7 +230,32 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
                 <p className="text-sm text-gray-400 mb-1">Subscription</p>
                 <p className="font-medium capitalize">{profile?.subscription_tier || 'Freebird'}</p>
               </div>
-              
+
+              {/* Resume Toggle Switch */}
+              <div className="bg-gray-800/50 p-4 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-400 mb-1">Login: Resume Last Video</p>
+                    <p className="text-xs text-gray-500">Auto-resume your last video when you log in</p>
+                  </div>
+                  <button
+                    onClick={handleResumeToggle}
+                    disabled={isUpdatingResume}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 focus:ring-offset-gray-800 ${
+                      profile?.resume_enabled
+                        ? 'bg-yellow-400'
+                        : 'bg-gray-600'
+                    } ${isUpdatingResume ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        profile?.resume_enabled ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+
               <div className="pt-4">
                 <button className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors">
                   Settings
