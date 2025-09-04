@@ -350,6 +350,10 @@ export default function Watch() {
   const [dailyLimitInfo, setDailyLimitInfo] = useState(null)
   const [currentDailyTotal, setCurrentDailyTotal] = useState(0) // Track current daily watch time total
 
+
+
+
+
   // Save session data when user pauses video for Login-Resume functionality
   const saveSessionOnPause = async () => {
     console.log('💾 SAVING LAST WATCHED SESSION - Starting save process...')
@@ -2483,7 +2487,7 @@ export default function Watch() {
         // Search functionality
         showSearchBar={true}
         showFavoritesToggle={false}
-        showResumeButton={true}
+        showResumeButton={false}
         showSortDropdown={false}
         // Search state
         searchQuery={searchQuery}
