@@ -1,5 +1,6 @@
 // contexts/AuthContext.js - Authentication Only (Profile moved to UserContext)
 import { createContext, useContext, useEffect, useState } from 'react'
+import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabase/client'
 
 const AuthContext = createContext({})
@@ -15,6 +16,65 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const router = useRouter()
+
+  // Auto-resume function
+  const handleAutoResume = async (userId) => {
+    try {
+      console.log('🔍 CHECKING AUTO-RESUME for user:', userId)
+
+      // Get user profile with resume settings
+      const { data: profile, error } = await supabase
+        .from('user_profiles')
+        .select('resume_enabled, last_video_id, last_video_timestamp, last_video_title, last_video_channel_name')
+        .eq('id', userId)
+        .single()
+
+      if (error) {
+        console.error('❌ Error fetching profile for auto-resume:', error)
+        return
+      }
+
+      if (!profile) {
+        console.log('❌ No profile found for auto-resume')
+        return
+      }
+
+      console.log('🔍 AUTO-RESUME CHECK:', {
+        resumeEnabled: profile.resume_enabled,
+        hasVideoId: !!profile.last_video_id,
+        hasTimestamp: !!profile.last_video_timestamp,
+        videoTitle: profile.last_video_title
+      })
+
+      // Check if auto-resume is enabled and user has a saved session
+      if (profile.resume_enabled && profile.last_video_id && profile.last_video_timestamp) {
+        console.log('✅ AUTO-RESUME CONDITIONS MET - Navigating to video:', {
+          videoId: profile.last_video_id,
+          timestamp: profile.last_video_timestamp,
+          title: profile.last_video_title
+        })
+
+        // Build resume URL with timestamp
+        const resumeUrl = `/watch?v=${profile.last_video_id}&title=${encodeURIComponent(profile.last_video_title || '')}&channel=${encodeURIComponent(profile.last_video_channel_name || '')}&t=${profile.last_video_timestamp}`
+
+        console.log('🎯 AUTO-RESUME NAVIGATING TO:', resumeUrl)
+
+        // Navigate to the video with a small delay to ensure auth state is settled
+        setTimeout(() => {
+          router.push(resumeUrl)
+        }, 1000)
+      } else {
+        console.log('❌ AUTO-RESUME CONDITIONS NOT MET:', {
+          resumeEnabled: profile.resume_enabled,
+          hasVideoId: !!profile.last_video_id,
+          hasTimestamp: !!profile.last_video_timestamp
+        })
+      }
+    } catch (error) {
+      console.error('❌ Error in handleAutoResume:', error)
+    }
+  }
 
   // SEPARATE useEffect for timeout (not nested!)
   useEffect(() => {
@@ -54,13 +114,19 @@ export const AuthProvider = ({ children }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state change:', event, session?.user?.email)
-        
+
         if (session?.user) {
           setUser(session.user)
+
+          // Handle auto-resume on sign in (not on initial session load)
+          if (event === 'SIGNED_IN') {
+            console.log('🎯 USER SIGNED IN - Checking auto-resume')
+            handleAutoResume(session.user.id)
+          }
         } else {
           setUser(null)
         }
-        
+
         setLoading(false)
       }
     )
@@ -70,8 +136,8 @@ export const AuthProvider = ({ children }) => {
     }
   }, [])
 
-  // RESUME FUNCTIONALITY REMOVED - Was causing infinite loop bug
-  // TODO: Re-implement login resume with proper state management
+  // AUTO-RESUME FUNCTIONALITY - Implemented with proper state management
+  // Triggers only on SIGNED_IN event, not on initial session load
 
   const signUp = async (email, password, fullName) => {
     try {
