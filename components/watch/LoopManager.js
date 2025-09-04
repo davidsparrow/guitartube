@@ -56,6 +56,14 @@ export default function useLoopManager({
             if (player.seekTo && typeof player.seekTo === 'function') {
               player.seekTo(startSeconds, true)
               console.log('🔄 Looping back to start:', startSeconds)
+
+              // Ensure video continues playing after seek (YouTube sometimes pauses after multiple seeks)
+              setTimeout(() => {
+                if (player.playVideo) {
+                  player.playVideo()
+                  console.log('▶️ Resumed playback after loop-back seek')
+                }
+              }, 100) // Small delay to let seek complete
             }
           }
         }
@@ -145,6 +153,15 @@ export default function useLoopManager({
       try {
         player.seekTo(startSeconds, true)
         console.log('⏭️ Jumped to loop start time:', startSeconds)
+
+        // Ensure video continues playing after seek (YouTube sometimes pauses after multiple seeks)
+        setTimeout(() => {
+          if (player.playVideo) {
+            player.playVideo()
+            console.log('▶️ Resumed playback after seek to ensure continuous loop')
+          }
+        }, 100) // Small delay to let seek complete
+
       } catch (error) {
         console.error('❌ Initial seek error:', error)
       }
