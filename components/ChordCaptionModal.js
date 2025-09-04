@@ -17,8 +17,8 @@
 import React, { useState, useEffect } from 'react'
 import { FaPlus, FaTimes } from "react-icons/fa"
 import { RiEdit2Fill } from "react-icons/ri"
-import { CiSaveDown1 } from "react-icons/ci"
-import { MdOutlineCancel, MdDeleteSweep } from "react-icons/md"
+import { PiCloudArrowDownFill, PiXCircleFill } from "react-icons/pi"
+import { MdDeleteSweep } from "react-icons/md"
 import { IoDuplicate } from "react-icons/io5"
 import { 
   validateChordTimes, 
@@ -61,6 +61,79 @@ export const ChordCaptionModal = ({
   const [chords, setChords] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
+
+  // State for user default chord caption duration
+  const [userDefaultChordCaptionDuration, setUserDefaultChordCaptionDuration] = useState(10)
+
+  // Function to save user default chord caption duration
+  const saveUserDefaultChordCaptionDuration = async (value) => {
+    if (!userId) return
+
+    try {
+      const { error } = await supabase
+        .from('user_profiles')
+        .update({ default_chord_caption_duration_seconds: value })
+        .eq('user_id', userId)
+
+      if (error) {
+        console.error('Error saving chord caption duration:', error)
+      } else {
+        console.log('Saved default chord caption duration:', value)
+      }
+    } catch (error) {
+      console.error('Error saving chord caption duration:', error)
+    }
+  }
+
+  // Load user's chord caption duration preference
+  useEffect(() => {
+    const loadUserChordCaptionDuration = async () => {
+      if (!userId) return
+
+      try {
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('default_chord_caption_duration_seconds')
+          .eq('user_id', userId)
+          .single()
+
+        if (error) {
+          console.error('Error loading chord caption duration:', error)
+        } else if (data?.default_chord_caption_duration_seconds) {
+          setUserDefaultChordCaptionDuration(data.default_chord_caption_duration_seconds)
+        }
+      } catch (error) {
+        console.error('Error loading chord caption duration:', error)
+      }
+    }
+
+    loadUserChordCaptionDuration()
+  }, [userId])
+
+  // Load user's chord caption duration preference
+  useEffect(() => {
+    const loadUserChordCaptionDuration = async () => {
+      if (!userId) return
+
+      try {
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('default_chord_caption_duration_seconds')
+          .eq('user_id', userId)
+          .single()
+
+        if (error) {
+          console.error('Error loading chord caption duration:', error)
+        } else if (data?.default_chord_caption_duration_seconds) {
+          setUserDefaultChordCaptionDuration(data.default_chord_caption_duration_seconds)
+        }
+      } catch (error) {
+        console.error('Error loading chord caption duration:', error)
+      }
+    }
+
+    loadUserChordCaptionDuration()
+  }, [userId])
   
   // State for adding new chords
   const [isAddingChord, setIsAddingChord] = useState(false)
@@ -781,148 +854,249 @@ export const ChordCaptionModal = ({
     <div
       className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
     >
-      <div className="bg-black rounded-2xl shadow-2xl max-w-4xl w-full relative text-white p-6 max-h-[90vh] overflow-y-auto border-2 border-white/80">
-        {/* Modal Title - Centered at top */}
-        <div className="text-center mb-6">
-          <h2 className="text-3xl font-bold">
-            🎸 Chord Caption Manager
-          </h2>
-        </div>
-        
-        {/* Header with action buttons */}
-        <div className="flex items-center justify-between mb-6">
-          {/* Left side - Add Chord and Delete All buttons */}
-          <div className="flex items-center space-x-2">
-            {/* Add Button */}
-            <button
-              onClick={() => setIsAddingChord(true)}
-              className="bg-green-600 hover:bg-green-700 text-white rounded-lg px-3 py-2 flex items-center space-x-2 transition-all duration-200 hover:scale-105 shadow-lg"
-              title="Add new chord caption"
-            >
-              <FaPlus className="w-4 h-4" />
-            </button>
-            
-            {/* Delete All Button */}
-            {chords.length > 0 && (
-              <button
-                onClick={handleDeleteAllChords}
-                className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors flex items-center space-x-2"
-                title="Delete all chord captions"
-              >
-                <MdDeleteSweep className="w-5 h-5" />
-                <span className="text-sm">All</span>
-              </button>
-            )}
-          </div>
-          
-          {/* Center - Current Video Time */}
-          <div className="flex items-center space-x-2">
-            <span className="text-blue-400 text-sm font-medium">
-              Video Time: {formatTimeToTimeString(currentTimeSeconds)}
-            </span>
-            <span className="text-gray-400 text-sm">
-              | Duration: {formatTimeToTimeString(videoDurationSeconds)}
-            </span>
-          </div>
-          
-          {/* Right side - Cancel, Test, and Save buttons */}
-          <div className="flex items-center space-x-2">
+      <div className="bg-black rounded-2xl shadow-2xl max-w-4xl w-full relative text-white border-2 border-white/80 max-h-[90vh] flex flex-col">
+        {/* STICKY HEADER SECTION */}
+        <div
+          className="sticky top-0 z-1 p-3 sm:p-6 pb-3 sm:pb-4 rounded-t-2xl border-b border-white/20 relative bg-[url('/images/bass_strings2_BG.png')] bg-cover bg-center bg-no-repeat"
+        >
+          {/* Content wrapper with relative positioning */}
+          <div className="relative z-10">
+            {/* Modal Title - Left aligned with logo in upper right */}
+            <div className="flex justify-between items-center mb-4 sm:mb-6">
+              <h2 className="text-xl sm:text-3xl font-bold">
+                Chord Captions Editor
+              </h2>
+              <img
+                src="/images/gt_logoM_PlayButton.png"
+                alt="GuitarTube Logo"
+                className="h-6 sm:h-8 w-auto"
+              />
+            </div>
 
-            
-            {/* Test Button with Confirmation */}
-            <button
-              onClick={() => {
-                if (confirm('This is a TEST confirmation dialog. Click OK to proceed.')) {
-                  // Call the same CANCEL ALL functionality as the grey Cancel button
-                  if (onCancel) {
-                    onCancel()
-                  }
-                }
-              }}
-              className="w-[95px] px-3 py-2 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors text-sm flex items-center justify-center space-x-1"
-              title="Test confirmation dialog"
-            >
-              <MdOutlineCancel className="w-5 h-5" />
-              <span>CANCEL</span>
-            </button>
-            
-            {/* Save Button */}
-            <button
-              onClick={() => setShowChordModal(false)}
-              className="w-20 px-3 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors text-sm flex items-center justify-center space-x-1"
-              title="Save and close modal"
-            >
-              <CiSaveDown1 className="w-6 h-6" />
-              <span>Save</span>
-            </button>
-          </div>
-        </div>
-        
-        {/* Add New Chord Form */}
-        {isAddingChord && (
-          <div className="bg-gray-800 rounded-lg p-4 mb-6 border border-gray-600">
-            <h3 className="text-lg font-semibold mb-4">Add New Chord Caption</h3>
-            
-            {/* Chord Selection */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-300 mb-2">Chord:</label>
-              <div className="flex space-x-2">
-                <select 
-                  value={newChord.rootNote}
-                  onChange={(e) => handleChordSelection(e.target.value, newChord.modifier)}
-                  className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:border-blue-400 focus:outline-none"
+            {/* Header with action buttons */}
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              {/* Left side - Add Chord and Delete All buttons */}
+              <div className="flex items-center space-x-1 sm:space-x-2">
+                {/* Add Button */}
+                <button
+                  onClick={() => {
+                    // Calculate start time from current video time
+                    const startTimeSeconds = Math.floor(currentTimeSeconds || 0)
+                    const startTimeString = formatTimeToTimeString(startTimeSeconds)
+
+                    // Calculate end time using user's preferred chord caption duration
+                    const endTimeSeconds = startTimeSeconds + (userDefaultChordCaptionDuration || 10)
+                    const endTimeString = formatTimeToTimeString(endTimeSeconds)
+
+                    // Pre-populate the form with calculated times
+                    setNewChord({
+                      rootNote: '',
+                      modifier: '',
+                      start_time: startTimeString,
+                      end_time: endTimeString
+                    })
+
+                    // Open the form
+                    setIsAddingChord(true)
+                  }}
+                  className="bg-transparent border-2 border-green-600 text-white hover:bg-gray-900 rounded-[33px] px-2 py-1 sm:px-3 sm:py-2 flex items-center space-x-1 sm:space-x-2 transition-all duration-200 text-xs sm:text-sm"
+                  title="Add new chord caption"
                 >
-                  <option value="">Select Root Note</option>
-                  {ROOT_NOTES.map(note => (
-                    <option key={note.value} value={note.value}>
-                      {note.label}
-                    </option>
-                  ))}
-                </select>
-                
-                <select 
-                  value={newChord.modifier}
-                  onChange={(e) => handleChordSelection(newChord.rootNote, e.target.value)}
-                  className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:border-blue-400 focus:outline-none"
+                  <FaPlus className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span>Add</span>
+                </button>
+
+                {/* Delete All Button */}
+                <button
+                  onClick={() => {/* TODO: Connect to delete all functionality */}}
+                  className="bg-transparent border-2 border-red-600 text-white hover:bg-gray-900 rounded-[33px] px-2 py-1 sm:px-3 sm:py-2 flex items-center space-x-1 sm:space-x-2 transition-all duration-200 text-xs sm:text-sm"
+                  title="Delete all chord captions"
                 >
-                  <option value="">Major</option>
-                  {CHORD_MODIFIERS.filter(m => m.value !== '').map(mod => (
-                    <option key={mod.value} value={mod.value}>
-                      {mod.label}
-                    </option>
-                  ))}
-                </select>
+                  <MdDeleteSweep className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span>All</span>
+                </button>
+              </div>
+
+              {/* Right side - Cancel and Save buttons */}
+              <div className="flex items-center space-x-1 sm:space-x-2 mr-1 sm:mr-0">
+                {/* Cancel Button */}
+                <button
+                  onClick={() => {
+                    if (onCancel) {
+                      onCancel()
+                    }
+                  }}
+                  className="bg-transparent border-2 border-gray-600 text-white hover:bg-gray-900 rounded-[33px] px-2 py-1 sm:px-3 sm:py-2 flex items-center space-x-1 sm:space-x-2 transition-all duration-200 text-xs sm:text-sm"
+                  title="Cancel changes"
+                >
+                  <PiXCircleFill className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span>Cancel</span>
+                </button>
+
+                {/* Save Button */}
+                <button
+                  onClick={() => setShowChordModal(false)}
+                  className="bg-transparent border-2 border-blue-600 text-white hover:bg-gray-900 rounded-[33px] px-2 py-1 sm:px-3 sm:py-2 flex items-center space-x-1 sm:space-x-2 transition-all duration-200 text-xs sm:text-sm"
+                  title="Save and close modal"
+                >
+                  <PiCloudArrowDownFill className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span>Save</span>
+                </button>
               </div>
             </div>
-            
+
+          {/* Current Video Time Display - Below buttons, above captions */}
+          <div className="mb-4 flex justify-between items-center">
+            {/* Left side - Moment Display */}
+            <div className="ml-2">
+              <span className="text-gray-400 text-xs sm:text-sm font-medium">
+                Moment: <span className="text-blue-400">{(() => {
+                  const currentTime = Math.floor(currentTimeSeconds || 0)
+                  const duration = Math.floor(videoDurationSeconds || 0)
+                  const currentMinutes = Math.floor(currentTime / 60)
+                  const currentSeconds = currentTime % 60
+                  const durationMinutes = Math.floor(duration / 60)
+                  const durationSeconds = duration % 60
+                  return `${currentMinutes}:${currentSeconds.toString().padStart(2, '0')} | ${durationMinutes}:${durationSeconds.toString().padStart(2, '0')}`
+                })()}</span>
+              </span>
+            </div>
+
+            {/* Right side - New Caption Length */}
+            <div className="flex items-center space-x-1">
+              <span className="text-gray-400 text-xs sm:text-sm font-medium">
+                + Caption:
+              </span>
+              <input
+                type="number"
+                min="1"
+                max="3600"
+                value={userDefaultChordCaptionDuration || 10}
+                onChange={(e) => {
+                  const value = parseInt(e.target.value) || 10
+                  setUserDefaultChordCaptionDuration(value)
+                  // Save to user profile in Supabase
+                  saveUserDefaultChordCaptionDuration(value)
+                }}
+                className="w-16 px-2 py-1 text-xs bg-transparent text-blue-400 border border-white/20 rounded focus:border-blue-400 focus:outline-none text-center"
+              />
+              <span className="text-gray-400 text-xs sm:text-sm font-medium">
+                sec
+              </span>
+            </div>
+          </div>
+          </div>
+        </div>
+
+        {/* Blur overlay when adding chord */}
+        {isAddingChord && (
+          <div className="absolute inset-0 z-10 bg-black/30 backdrop-blur-sm pointer-events-none">
+            <div className="absolute top-0 left-0 right-0 h-32 bg-transparent pointer-events-auto"></div>
+          </div>
+        )}
+
+        {/* SCROLLABLE CONTENT SECTION */}
+        <div className="flex-1 overflow-y-auto p-6 pt-4">
+          {/* Add New Chord Form */}
+        {isAddingChord && (
+          <div
+            className="rounded-2xl p-3 sm:p-6 mb-6 border-2 border-white/80 relative z-20 bg-[url('/images/fretted_finger2_BG.png')] bg-cover bg-center bg-no-repeat"
+          >
+            {/* 40% dark overlay */}
+            <div className="absolute inset-0 bg-black/40 rounded-2xl"></div>
+
+            {/* Content wrapper with relative positioning */}
+            <div className="relative z-10">
+              {/* Modal Title - Left aligned with logo in upper right */}
+              <div className="flex justify-between items-center mb-4 sm:mb-6">
+                <h3 className="text-xl sm:text-3xl font-bold">Add New Chord Caption</h3>
+                <img
+                  src="/images/gt_logoM_PlayButton.png"
+                  alt="GuitarTube Logo"
+                  className="h-6 sm:h-8 w-auto"
+                />
+              </div>
+
+              {/* Chord Selection */}
+              <div className="mb-4 sm:mb-6">
+                <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-2">Chord:</label>
+                <div className="flex space-x-2">
+                  <select
+                    value={newChord.rootNote}
+                    onChange={(e) => handleChordSelection(e.target.value, newChord.modifier)}
+                    className="w-24 sm:w-32 px-2 py-1 sm:px-3 sm:py-2 bg-transparent border border-white/20 rounded text-white text-xs sm:text-sm focus:border-blue-400 focus:outline-none"
+                  >
+                    <option value="" className="bg-gray-800">Select Root Note</option>
+                    {ROOT_NOTES.map(note => (
+                      <option key={note.value} value={note.value} className="bg-gray-800">
+                        {note.label}
+                      </option>
+                    ))}
+                  </select>
+
+                  <select
+                    value={newChord.modifier}
+                    onChange={(e) => handleChordSelection(newChord.rootNote, e.target.value)}
+                    className="w-24 sm:w-32 px-2 py-1 sm:px-3 sm:py-2 bg-transparent border border-white/20 rounded text-white text-xs sm:text-sm focus:border-blue-400 focus:outline-none"
+                  >
+                    <option value="" className="bg-gray-800">Major</option>
+                    {CHORD_MODIFIERS.filter(m => m.value !== '').map(mod => (
+                      <option key={mod.value} value={mod.value} className="bg-gray-800">
+                        {mod.label}
+                      </option>
+                    ))}
+                  </select>
+
+                  <select
+                    defaultValue="Open"
+                    className="w-24 sm:w-32 px-2 py-1 sm:px-3 sm:py-2 bg-transparent border border-white/20 rounded text-white text-xs sm:text-sm focus:border-blue-400 focus:outline-none"
+                  >
+                    <option value="Open" className="bg-gray-800">Open</option>
+                    <option value="Pos1" className="bg-gray-800">Pos1</option>
+                    <option value="Pos2" className="bg-gray-800">Pos2</option>
+                    <option value="Pos3" className="bg-gray-800">Pos3</option>
+                    <option value="Pos4" className="bg-gray-800">Pos4</option>
+                    <option value="Pos5" className="bg-gray-800">Pos5</option>
+                    <option value="Pos6" className="bg-gray-800">Pos6</option>
+                    <option value="Pos7" className="bg-gray-800">Pos7</option>
+                    <option value="Pos8" className="bg-gray-800">Pos8</option>
+                    <option value="Pos1v1" className="bg-gray-800">Pos1v1</option>
+                    <option value="Pos2v1" className="bg-gray-800">Pos2v1</option>
+                    <option value="Pos2v2" className="bg-gray-800">Pos2v2</option>
+                    <option value="Pos3v1" className="bg-gray-800">Pos3v1</option>
+                    <option value="Pos3v2" className="bg-gray-800">Pos3v2</option>
+                  </select>
+                </div>
+              </div>
+
             {/* Timing Inputs */}
-            <div className="flex space-x-4 mb-4">
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-300 mb-2">Start Time:</label>
+            <div className="flex space-x-2 sm:space-x-4 mb-4 sm:mb-6">
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-2">Start Time:</label>
                 <input
                   type="text"
                   placeholder="1:30"
                   value={newChord.start_time}
                   onChange={(e) => handleTimeChange('start_time', e.target.value)}
-                  className={`w-full px-3 py-2 bg-gray-700 border rounded text-white focus:outline-none ${
-                    validationErrors.some(err => err.field === 'start_time') 
-                      ? 'border-red-500' 
-                      : 'border-gray-600 focus:border-blue-400'
+                  className={`w-16 sm:w-20 px-2 py-1 sm:px-3 sm:py-2 bg-transparent border rounded text-blue-400 text-xs sm:text-sm focus:outline-none ${
+                    validationErrors.some(err => err.field === 'start_time')
+                      ? 'border-red-500'
+                      : 'border-white/20 focus:border-blue-400'
                   }`}
                 />
               </div>
-              
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-300 mb-2">End Time:</label>
+
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-2">End Time:</label>
                 <input
                   type="text"
                   placeholder="2:00"
                   value={newChord.end_time}
                   onChange={(e) => handleTimeChange('end_time', e.target.value)}
-                  className={`w-full px-3 py-2 bg-gray-700 border rounded text-white focus:outline-none ${
-                    validationErrors.some(err => err.field === 'end_time') 
-                      ? 'border-red-500' 
-                      : 'border-gray-600 focus:border-blue-400'
+                  className={`w-16 sm:w-20 px-2 py-1 sm:px-3 sm:py-2 bg-transparent border rounded text-blue-400 text-xs sm:text-sm focus:outline-none ${
+                    validationErrors.some(err => err.field === 'end_time')
+                      ? 'border-red-500'
+                      : 'border-white/20 focus:border-blue-400'
                   }`}
                 />
               </div>
@@ -940,22 +1114,24 @@ export const ChordCaptionModal = ({
             )}
             
             {/* Form Actions */}
-            <div className="flex space-x-2">
+            <div className="flex justify-end space-x-1 sm:space-x-2">
+              <button
+                onClick={handleCancelChord}
+                className="bg-transparent border-2 border-gray-600 text-white hover:bg-gray-900 rounded-[33px] px-2 py-1 sm:px-3 sm:py-2 flex items-center space-x-1 sm:space-x-2 transition-all duration-200 text-xs sm:text-sm"
+              >
+                <PiXCircleFill className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span>Cancel</span>
+              </button>
+
               <button
                 onClick={handleSaveChord}
                 disabled={isLoading}
-                className="px-4 py-2 bg-blue-600 text-white rounded font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                className="bg-transparent border-2 border-blue-600 text-white hover:bg-gray-900 rounded-[33px] px-2 py-1 sm:px-3 sm:py-2 flex items-center space-x-1 sm:space-x-2 transition-all duration-200 text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <CiSaveDown1 className="w-4 h-4" />
-                <span>{isLoading ? 'Saving...' : 'Save Chord'}</span>
+                <PiCloudArrowDownFill className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span>{isLoading ? 'Saving...' : 'Save'}</span>
               </button>
-              
-              <button
-                onClick={handleCancelChord}
-                className="px-4 py-2 bg-gray-600 text-white rounded font-medium hover:bg-gray-700 transition-colors"
-              >
-                Cancel
-              </button>
+            </div>
             </div>
           </div>
         )}
@@ -1025,12 +1201,19 @@ export const ChordCaptionModal = ({
             ))
           )}
         </div>
+        </div>
       </div>
-      
+
       {/* Edit Chord Sub-Modal */}
       {showEditModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-60 flex items-center justify-center p-4">
-          <div className="bg-gray-800 rounded-lg shadow-2xl max-w-md w-full relative text-white p-6 border-2 border-blue-400/50">
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-60 flex items-center justify-center p-4"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div
+            className="bg-gray-800 rounded-lg shadow-2xl max-w-md w-full relative text-white p-6 border-2 border-blue-400/50"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Sub-Modal Title */}
             <div className="text-center mb-6">
               <h3 className="text-xl font-bold text-blue-400">
