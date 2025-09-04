@@ -1,0 +1,63 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - banner [ref=e6]:
+      - generic [ref=e7]:
+        - generic [ref=e9]:
+          - link "GuitarTube Logo" [ref=e10] [cursor=pointer]:
+            - /url: /?home=true
+            - img "GuitarTube Logo" [ref=e11] [cursor=pointer]
+          - generic [ref=e12]:
+            - textbox "how to play guitar" [ref=e13]
+            - button [disabled] [ref=e14]:
+              - img [ref=e15]
+        - generic [ref=e17]:
+          - button "Start Me Up" [ref=e18] [cursor=pointer]:
+            - img [ref=e19] [cursor=pointer]
+          - button "Yummy!" [ref=e21] [cursor=pointer]:
+            - img [ref=e22] [cursor=pointer]
+    - iframe [ref=e28]:
+      - generic "YouTube Video Player" [ref=f1e3]:
+        - generic [ref=f1e5]:
+          - link "Photo image of Music Brokers" [ref=f1e7] [cursor=pointer]:
+            - /url: https://www.youtube.com/channel/UCyKs4L4EULCfySbTybA9bAg?embeds_referring_euri=https%3A%2F%2Fguitartube.vercel.app%2F&embeds_referring_origin=https%3A%2F%2Fguitartube.vercel.app
+          - link "Covers Of Popular Songs - 100 Hits" [ref=f1e10] [cursor=pointer]:
+            - /url: https://www.youtube.com/watch?v=ytwpFJ1uZYY
+          - generic [ref=f1e11]:
+            - button "Watch later" [ref=f1e12] [cursor=pointer]:
+              - generic [ref=f1e13] [cursor=pointer]:
+                - img
+              - generic [ref=f1e14] [cursor=pointer]: Watch later
+            - button "Share" [ref=f1e15] [cursor=pointer]:
+              - generic [ref=f1e16] [cursor=pointer]:
+                - img
+              - generic [ref=f1e17] [cursor=pointer]: Share
+        - button "Play" [ref=f1e20] [cursor=pointer]:
+          - img
+        - link "Watch on YouTube" [ref=f1e21] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=ytwpFJ1uZYY&embeds_referring_euri=https%3A%2F%2Fguitartube.vercel.app%2F&embeds_referring_origin=https%3A%2F%2Fguitartube.vercel.app
+          - generic [ref=f1e22] [cursor=pointer]: Watch on
+          - generic [ref=f1e23] [cursor=pointer]:
+            - img
+    - generic [ref=e30]:
+      - generic [ref=e31]:
+        - 'button "Flip Video - Current: Normal" [ref=e32] [cursor=pointer]':
+          - img [ref=e33] [cursor=pointer]
+        - button "Configure loop segment" [ref=e37] [cursor=pointer]:
+          - img [ref=e38] [cursor=pointer]
+        - button "0:00 - 0:00" [ref=e41] [cursor=pointer]
+      - generic [ref=e42]:
+        - button "Add to favorites" [ref=e43] [cursor=pointer]:
+          - img [ref=e44] [cursor=pointer]
+        - button "Show Control Strips" [active] [ref=e46] [cursor=pointer]:
+          - img [ref=e47] [cursor=pointer]
+        - button "Select Caption Layout" [ref=e50] [cursor=pointer]:
+          - img [ref=e51] [cursor=pointer]
+        - button "Inline Search - under development" [ref=e58] [cursor=pointer]:
+          - img [ref=e59] [cursor=pointer]
+        - button "Enter Fullscreen" [ref=e62] [cursor=pointer]:
+          - img [ref=e63] [cursor=pointer]
+  - alert [ref=e65]
+```

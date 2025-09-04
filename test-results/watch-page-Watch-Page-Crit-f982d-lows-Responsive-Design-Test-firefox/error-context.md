@@ -1,0 +1,52 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - banner [ref=e6]:
+      - generic [ref=e7]:
+        - generic [ref=e8]:
+          - link "GuitarTube Logo" [ref=e10] [cursor=pointer]:
+            - /url: /?home=true
+            - img "GuitarTube Logo" [ref=e11] [cursor=pointer]
+          - generic [ref=e12]:
+            - button "Start Me Up" [ref=e13] [cursor=pointer]:
+              - img [ref=e14] [cursor=pointer]
+            - button "Yummy!" [ref=e16] [cursor=pointer]:
+              - img [ref=e17] [cursor=pointer]
+        - generic [ref=e20]:
+          - textbox "how to play guitar" [ref=e21]
+          - button [disabled] [ref=e22]:
+            - img [ref=e23]
+    - iframe [ref=e29]:
+      - generic "YouTube Video Player" [ref=f1e3]:
+        - generic [ref=f1e5]:
+          - link "Photo image of Music Brokers" [ref=f1e7] [cursor=pointer]:
+            - /url: https://www.youtube.com/channel/UCyKs4L4EULCfySbTybA9bAg?embeds_referring_euri=https%3A%2F%2Fguitartube.vercel.app%2F&embeds_referring_origin=https%3A%2F%2Fguitartube.vercel.app
+          - link "Covers Of Popular Songs - 100 Hits" [ref=f1e10] [cursor=pointer]:
+            - /url: https://www.youtube.com/watch?v=ytwpFJ1uZYY
+          - button "More" [ref=f1e12] [cursor=pointer]:
+            - generic [ref=f1e13] [cursor=pointer]:
+              - img
+        - button "Play" [ref=f1e16] [cursor=pointer]:
+          - img
+    - generic [ref=e31]:
+      - generic [ref=e32]:
+        - 'button "Flip Video - Current: Normal" [ref=e33] [cursor=pointer]':
+          - img [ref=e34] [cursor=pointer]
+        - button "Configure loop segment" [ref=e38] [cursor=pointer]:
+          - img [ref=e39] [cursor=pointer]
+        - button "0:00 - 0:00" [ref=e42] [cursor=pointer]
+      - generic [ref=e43]:
+        - button "Add to favorites" [ref=e44] [cursor=pointer]:
+          - img [ref=e45] [cursor=pointer]
+        - button "Show Control Strips" [ref=e47] [cursor=pointer]:
+          - img [ref=e48] [cursor=pointer]
+        - button "Select Caption Layout" [ref=e51] [cursor=pointer]:
+          - img [ref=e52] [cursor=pointer]
+        - button "Inline Search - under development" [ref=e59] [cursor=pointer]:
+          - img [ref=e60] [cursor=pointer]
+        - button "Enter Fullscreen" [ref=e63] [cursor=pointer]:
+          - img [ref=e64] [cursor=pointer]
+  - alert [ref=e66]
+```

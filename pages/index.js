@@ -11,7 +11,6 @@ import { useRouter } from 'next/router'
 import { FaTimes, FaSearch } from "react-icons/fa"
 import TopBanner from '../components/TopBanner'
 import PlanSelectionAlert from '../components/PlanSelectionAlert'
-import { supabase } from '../lib/supabase'
 export default function Home() {
   const { isAuthenticated, user, loading, signOut } = useAuth()
   const { profile, canSearch } = useUser()
@@ -124,32 +123,10 @@ export default function Home() {
       <TopBanner />
       
       {/* Header Component */}
-      <Header
+      <Header 
         showBrainIcon={true}
         showSearchIcon={false}
         logoImage="/images/gt_logoM_PlayButton.png"
-        showResumeIcon={true}
-        userProfile={profile}
-        onResumeIconClick={async (action) => {
-          if (action === 'show_plan_alert') {
-            setShowPlanSelectionAlert(true)
-          } else {
-            // Get saved session from profile (same as search.js)
-            try {
-              const { data: profileData } = await supabase
-                .from('profiles')
-                .select('last_video_id, last_video_title, last_video_channel_name')
-                .eq('id', user.id)
-                .single()
-
-              if (profileData?.last_video_id) {
-                router.push(`/watch?v=${profileData.last_video_id}&title=${encodeURIComponent(profileData.last_video_title || '')}&channel=${encodeURIComponent(profileData.last_video_channel_name || '')}`)
-              }
-            } catch (error) {
-              console.error('Resume error:', error)
-            }
-          }
-        }}
         onAuthClick={handleAuthClick}
         onMenuClick={() => setShowMenuModal(true)}
         isAuthenticated={isAuthenticated}

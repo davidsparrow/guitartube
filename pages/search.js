@@ -358,16 +358,15 @@ export default function Search() {
       checkForSavedSession().then(sessionData => {
         setSavedSession(sessionData)
 
-
       })
-
+      
       // Load user favorites from database
       loadUserFavorites()
     } else {
       // Clear saved session and favorites when user logs out
       setSavedSession(null)
       setUserFavorites([])
-
+      
       // Clear user's search cache when they log out
       if (user?.id) {
         try {
@@ -375,7 +374,7 @@ export default function Search() {
           keys.forEach(key => {
             if (key.startsWith(`search_cache_${user.id}_`)) {
               localStorage.removeItem(key)
-
+  
             }
           })
         } catch (error) {
@@ -383,7 +382,7 @@ export default function Search() {
         }
       }
     }
-  }, [isAuthenticated, user?.id, loading, router.query.auto_resume])
+  }, [isAuthenticated, user?.id, loading])
 
   // Handle login/logout
   const handleAuthClick = async () => {
@@ -968,11 +967,17 @@ export default function Search() {
         onSearchSubmit={handleSearch}
         onFavoritesToggle={handleFavoritesToggle}
         onResumeClick={() => {
-  
-          
-          
-          // Navigate to video page with resume parameters
-          router.push(`/watch?v=${savedSession.last_video_id}&title=${encodeURIComponent(savedSession.last_video_title || '')}&channel=${encodeURIComponent(savedSession.last_video_channel_name || '')}`)
+          console.log('🎯 RESUME BUTTON CLICKED - Session data:', {
+            videoId: savedSession.last_video_id,
+            timestamp: savedSession.last_video_timestamp,
+            title: savedSession.last_video_title
+          })
+
+          // Navigate to video page with resume parameters INCLUDING timestamp
+          const resumeUrl = `/watch?v=${savedSession.last_video_id}&title=${encodeURIComponent(savedSession.last_video_title || '')}&channel=${encodeURIComponent(savedSession.last_video_channel_name || '')}&t=${savedSession.last_video_timestamp}`
+
+          console.log('🎯 NAVIGATING TO:', resumeUrl)
+          router.push(resumeUrl)
         }}
         onSortChange={handleSortChange}
         // Standard props

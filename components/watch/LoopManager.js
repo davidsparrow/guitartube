@@ -6,7 +6,7 @@ import { isPlayerReady as isPlayerReadyFromUtils } from '../../utils/videoPlayer
 export default function useLoopManager({
   // Player props
   player,
-  
+
   // Loop state props
   isLoopActive,
   setIsLoopActive,
@@ -20,14 +20,59 @@ export default function useLoopManager({
   setTempLoopStart,
   tempLoopEnd,
   setTempLoopEnd,
-  
+
   // Access control
   checkDailyWatchTimeLimits,
   currentDailyTotal,
-  
+
   // Unfavorite cleanup
-  onUnfavoriteCleanup
+  onUnfavoriteCleanup,
+
+  // Video and user context for persistence
+  videoId,
+  videoTitle,
+  user,
+
+  // Loop manager hook functions
+  saveLoopTimes,
+  loadLoopTimes,
+  deleteLoopTimes,
+  validateLoopTimes
 }) {
+  // Load saved loop times when video changes
+  useEffect(() => {
+    const loadSavedLoopTimes = async () => {
+      if (!videoId || !user?.id || !loadLoopTimes) return
+
+      console.log('📥 Loading saved loop times for video:', videoId)
+
+      try {
+        const savedLoop = await loadLoopTimes(videoId, user.id)
+
+        if (savedLoop) {
+          console.log('✅ Found saved loop times:', savedLoop)
+          setLoopStartTime(savedLoop.startTime)
+          setLoopEndTime(savedLoop.endTime)
+          setTempLoopStart(savedLoop.startTime)
+          setTempLoopEnd(savedLoop.endTime)
+          // Don't auto-activate loop, let user decide
+        } else {
+          console.log('📭 No saved loop times found, using defaults')
+          // Reset to defaults
+          setLoopStartTime('0:00')
+          setLoopEndTime('0:00')
+          setTempLoopStart('0:00')
+          setTempLoopEnd('0:00')
+          setIsLoopActive(false)
+        }
+      } catch (error) {
+        console.error('❌ Error loading saved loop times:', error)
+      }
+    }
+
+    loadSavedLoopTimes()
+  }, [videoId, user?.id, loadLoopTimes, setLoopStartTime, setLoopEndTime, setTempLoopStart, setTempLoopEnd, setIsLoopActive])
+
   // Loop timing effect - runs when loop is active
   useEffect(() => {
     if (!isLoopActive || !player || !isPlayerReadyFromUtils(player)) return
@@ -93,16 +138,29 @@ export default function useLoopManager({
     // This would typically check plan access, favorites, etc.
     // For now, we'll assume access is granted if daily limits pass
 
+    // SMART BEHAVIOR: Check if loop times are configured
+    const hasValidLoopTimes = loopStartTime && loopEndTime &&
+                             loopStartTime !== '0:00' && loopEndTime !== '0:00' &&
+                             loopStartTime !== loopEndTime
+
+    if (!hasValidLoopTimes) {
+      // NO VALID TIMES: Open modal editor
+      console.log('⚙️ No valid loop times found - opening modal editor')
+      setTempLoopStart(loopStartTime)
+      setTempLoopEnd(loopEndTime)
+      setShowLoopModal(true)
+      return
+    }
+
+    // VALID TIMES EXIST: Toggle loop start/stop
     if (isLoopActive) {
       // Stop the loop
       setIsLoopActive(false)
       console.log('⏹️ Loop stopped')
     } else {
-      // Open modal for configuration
-      setTempLoopStart(loopStartTime)
-      setTempLoopEnd(loopEndTime)
-      setShowLoopModal(true)
-      console.log('⚙️ Opening loop configuration modal')
+      // Start the loop
+      setIsLoopActive(true)
+      console.log('▶️ Loop started with existing times:', { loopStartTime, loopEndTime })
     }
   }
 
@@ -128,8 +186,43 @@ export default function useLoopManager({
   }
 
   // Handle save loop configuration
-  const handleSaveLoop = () => {
+  const handleSaveLoop = async () => {
     console.log('💾 Saving loop configuration:', { tempLoopStart, tempLoopEnd })
+
+    // Validate loop times using enhanced validation
+    if (validateLoopTimes) {
+      const videoDuration = player && player.getDuration ? player.getDuration() : null
+      const validation = validateLoopTimes(tempLoopStart, tempLoopEnd, videoDuration)
+
+      if (!validation.isValid) {
+        console.error('❌ Loop validation failed:', validation.failures)
+
+        // Show validation errors to user (you can enhance this with a proper modal)
+        const errorMessages = validation.failures.map(f => f.reason).join('\n')
+        alert(`Loop validation failed:\n\n${errorMessages}`)
+        return
+      }
+
+      console.log('✅ Loop validation passed')
+    }
+
+    // Save to database if persistence functions available
+    if (saveLoopTimes && videoId && user?.id) {
+      console.log('💾 Saving loop times to database...')
+
+      try {
+        const result = await saveLoopTimes(videoId, videoTitle, user.id, tempLoopStart, tempLoopEnd)
+
+        if (result) {
+          console.log('✅ Loop times saved to database successfully')
+        } else {
+          console.warn('⚠️ Failed to save loop times to database, continuing with local state')
+        }
+      } catch (error) {
+        console.error('❌ Error saving loop times to database:', error)
+        // Continue with local state even if database save fails
+      }
+    }
     
     // Update the actual loop times
     setLoopStartTime(tempLoopStart)

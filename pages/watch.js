@@ -206,7 +206,13 @@ export default function Watch() {
     openLoopModal,
     closeLoopModal,
     applyLoopSettings,
-    cancelLoopSettings
+    cancelLoopSettings,
+
+    // Persistence functions
+    saveLoopTimes,
+    loadLoopTimes,
+    deleteLoopTimes,
+    validateLoopTimes
   } = useLoopManager()
   
   // Fullscreen state
@@ -621,7 +627,18 @@ export default function Watch() {
     setTempLoopEnd,
     checkDailyWatchTimeLimits,
     currentDailyTotal,
-    onUnfavoriteCleanup: resetLoopState
+    onUnfavoriteCleanup: resetLoopState,
+
+    // Video and user context for persistence
+    videoId,
+    videoTitle,
+    user,
+
+    // Loop manager hook functions
+    saveLoopTimes,
+    loadLoopTimes,
+    deleteLoopTimes,
+    validateLoopTimes
   })
 
   // Feature Gates Helper Functions
