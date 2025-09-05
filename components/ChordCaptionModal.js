@@ -35,6 +35,32 @@ import {
   parseTimeToSeconds
 } from '../song_data_processing/chord_processing/chordCaptionUtils'
 import { supabase } from '../lib/supabase/client'
+
+/**
+ * Sort chord captions by start time, then by creation time
+ * @param {Array} chords - Array of chord captions
+ * @returns {Array} Sorted array of chord captions
+ */
+const sortChordsByTime = (chords) => {
+  return [...chords].sort((a, b) => {
+    // First sort by start time
+    const aStartSeconds = parseTimeToSeconds(a.start_time || '0:00')
+    const bStartSeconds = parseTimeToSeconds(b.start_time || '0:00')
+
+    if (aStartSeconds !== bStartSeconds) {
+      return aStartSeconds - bStartSeconds
+    }
+
+    // If start times are equal, sort by creation time
+    const aCreated = new Date(a.created_at || 0)
+    const bCreated = new Date(b.created_at || 0)
+    return aCreated - bCreated
+  })
+}
+import {
+  loadChordCaptions as loadChordCaptionsFromDB,
+  createChordCaption as createChordCaptionInDB
+} from '../song_data_processing/chord_processing/ChordCaptionDatabase'
 import { Space } from 'lucide-react'
 
 /**
@@ -192,46 +218,23 @@ export const ChordCaptionModal = ({
    */
   const loadChordCaptions = async () => {
     try {
-      setIsLoading(true)
-      setError(null)
-      
-      // First get the favorite record for this video (similar to loadCaptions)
-      const { data: favoriteData, error: favoriteError } = await supabase
-        .from('favorites')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('video_id', videoId)
-        .single()
-      
-      if (favoriteError) {
-        if (favoriteError.code === 'PGRST116') {
-          // No favorite found
-          setError('Video must be favorited to load chord captions')
-          return
+      // Use existing specialized utility function instead of direct supabase calls
+      const chordsData = await loadChordCaptionsFromDB(videoId, userId, setIsLoading, setError)
+
+      if (chordsData && chordsData.length >= 0) {
+        setChords(chordsData)
+
+        // 🎸 CAPTURE ORIGINAL CHORDS BLOB FOR SMART CANCEL (LIKE TEXT-CAPTIONS) 🎸
+        if (!originalChordsBlob) {
+          const blob = JSON.parse(JSON.stringify(chordsData))
+          setOriginalChordsBlob(blob)
+          console.log('🎸 CHORD BLOB CAPTURED:', blob.length, 'chords')
         }
-        throw favoriteError
-      }
-      
-      // Now get chord captions for this favorite using the UUID
-      const result = await loadChordsFromDB(favoriteData.id)
-      
-              if (result.success) {
-          const chordsData = result.data || []
-          setChords(chordsData)
 
-          // 🎸 CAPTURE ORIGINAL CHORDS BLOB FOR SMART CANCEL (LIKE TEXT-CAPTIONS) 🎸
-          if (!originalChordsBlob) {
-            const blob = JSON.parse(JSON.stringify(chordsData))
-            setOriginalChordsBlob(blob)
-            console.log('🎸 CHORD BLOB CAPTURED:', blob.length, 'chords')
-          }
-
-          // Notify parent component to update its chordCaptions state
-          if (onChordsUpdated) {
-            onChordsUpdated(chordsData)
-          }
-        } else {
-        setError(result.error || 'Failed to load chord captions')
+        // Notify parent component to update its chordCaptions state
+        if (onChordsUpdated) {
+          onChordsUpdated(chordsData)
+        }
       }
       
     } catch (err) {
@@ -381,11 +384,14 @@ export const ChordCaptionModal = ({
         
         const mockChord = {
           id: `mock-${Date.now()}`, // Generate unique mock ID
-          ...chordData
+          ...chordData,
+          created_at: new Date().toISOString() // Add creation time for sorting
         }
-        
-        setChords(prev => [...prev, mockChord])
-        
+
+        // Add mock chord and sort by start time + creation time
+        const updatedChords = sortChordsByTime([...chords, mockChord])
+        setChords(updatedChords)
+
         // Reset form
         setNewChord({
           rootNote: '',
@@ -395,42 +401,33 @@ export const ChordCaptionModal = ({
         })
         setIsAddingChord(false)
         setValidationErrors([])
-        
+
         // Show success message
         setError('✅ Chord added successfully! (Mock mode)')
         setTimeout(() => setError(null), 3000) // Clear after 3 seconds
-        
-        // Notify parent component
+
+        // Notify parent component with sorted chords
         if (onChordsUpdated) {
-          onChordsUpdated([...chords, mockChord])
+          onChordsUpdated(updatedChords)
         }
         
         console.log('✅ Mock chord added successfully:', mockChord)
         
       } else {
-        // Real database call (when not testing)
+        // Real database call using centralized utility function
         if (!userId) {
           setError('User ID is required to create chord captions')
           return
         }
-        
-        // Get the favorite ID (UUID) for this video
-        const { data: favoriteData, error: favoriteError } = await supabase
-          .from('favorites')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('video_id', videoId)
-          .single()
-        
-        if (favoriteError) {
-          setError('Video must be favorited to create chord captions')
-          return
-        }
-        
-        const result = await createChordInDB(chordData, favoriteData.id, userId)
-        
-        if (result.success) {
-          setChords(prev => [...prev, result.data])
+
+        // Use existing specialized utility function instead of direct supabase calls
+        const createdChord = await createChordCaptionInDB(chordData, videoId, userId, setIsLoading, setError)
+
+        if (createdChord) {
+          // Add new chord and sort by start time + creation time
+          const updatedChords = sortChordsByTime([...chords, createdChord])
+          setChords(updatedChords)
+
           setNewChord({
             rootNote: '',
             modifier: '',
@@ -439,16 +436,15 @@ export const ChordCaptionModal = ({
           })
           setIsAddingChord(false)
           setValidationErrors([])
-          
-          // Notify parent component
+
+          // Notify parent component with sorted chords
           if (onChordsUpdated) {
-            onChordsUpdated([...chords, result.data])
+            onChordsUpdated(updatedChords)
           }
-          
-          console.log('✅ Chord saved successfully:', result.data)
-        } else {
-          setError(result.error || 'Failed to create chord caption')
+
+          console.log('✅ Chord saved successfully and sorted:', createdChord)
         }
+        // Error handling is done by the utility function
       }
       
     } catch (err) {
