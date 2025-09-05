@@ -15,9 +15,9 @@
  */
 
 import React, { useState, useEffect } from 'react'
-import { FaPlus, FaTimes } from "react-icons/fa"
+import { FaPlus, FaTimes, FaEdit } from "react-icons/fa"
 import { RiEdit2Fill } from "react-icons/ri"
-import { PiCloudArrowDownFill, PiXCircleFill } from "react-icons/pi"
+import { PiCloudArrowDownFill, PiXCircleFill, PiTrashBold } from "react-icons/pi"
 import { MdDeleteSweep } from "react-icons/md"
 import { IoDuplicate } from "react-icons/io5"
 import { 
@@ -149,7 +149,8 @@ export const ChordCaptionModal = ({
   const [editingChord, setEditingChord] = useState({
     chord_name: '',
     start_time: '',
-    end_time: ''
+    end_time: '',
+    serial_number: null
   })
   
   // State for edit sub-modal
@@ -489,6 +490,7 @@ export const ChordCaptionModal = ({
       chord_name: chord.chord_name,
       start_time: chord.start_time,
       end_time: chord.end_time,
+      serial_number: chord.serial_number,
       rootNote: rootNote,
       modifier: modifier
     })
@@ -529,7 +531,7 @@ export const ChordCaptionModal = ({
         }
         
         setEditingChordId(null)
-        setEditingChord({ chord_name: '', start_time: '', end_time: '' })
+        setEditingChord({ chord_name: '', start_time: '', end_time: '', serial_number: null })
         setShowEditModal(false)
         
         setError('✅ Chord updated successfully! (Mock mode)')
@@ -875,8 +877,8 @@ export const ChordCaptionModal = ({
 
             {/* Header with action buttons */}
             <div className="flex items-center justify-between mb-4 sm:mb-6">
-              {/* Left side - Add Chord and Delete All buttons */}
-              <div className="flex items-center space-x-1 sm:space-x-2">
+              {/* Left side - Add Chord and Delete All buttons - aligned with title */}
+              <div className="flex items-center space-x-1 sm:space-x-2 ml-0">
                 {/* Add Button */}
                 <button
                   onClick={() => {
@@ -906,19 +908,29 @@ export const ChordCaptionModal = ({
                   <span>Add</span>
                 </button>
 
+                {/* Add Group Button */}
+                <button
+                  onClick={() => {/* TODO: No functionality needed yet */}}
+                  className="bg-transparent border-2 border-yellow-600 text-white hover:bg-gray-900 rounded-[33px] px-2 py-1 sm:px-3 sm:py-2 flex items-center space-x-1 sm:space-x-2 transition-all duration-200 text-xs sm:text-sm"
+                  title="Add new chord group"
+                >
+                  <FaPlus className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span>Group</span>
+                </button>
+
                 {/* Delete All Button */}
                 <button
                   onClick={() => {/* TODO: Connect to delete all functionality */}}
-                  className="bg-transparent border-2 border-red-600 text-white hover:bg-gray-900 rounded-[33px] px-2 py-1 sm:px-3 sm:py-2 flex items-center space-x-1 sm:space-x-2 transition-all duration-200 text-xs sm:text-sm"
+                  className="bg-transparent border-2 border-red-500 text-white hover:bg-gray-900 rounded-[33px] px-2 py-1 sm:px-3 sm:py-2 flex items-center space-x-1 sm:space-x-2 transition-all duration-200 text-xs sm:text-sm"
                   title="Delete all chord captions"
                 >
-                  <MdDeleteSweep className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <PiTrashBold className="w-4 h-4 sm:w-4 sm:h-4" />
                   <span>All</span>
                 </button>
               </div>
 
-              {/* Right side - Cancel and Save buttons */}
-              <div className="flex items-center space-x-1 sm:space-x-2 mr-1 sm:mr-0">
+              {/* Right side - Cancel and Save buttons - aligned with title */}
+              <div className="flex items-center space-x-1 sm:space-x-2 mr-0">
                 {/* Cancel Button */}
                 <button
                   onClick={() => {
@@ -947,8 +959,8 @@ export const ChordCaptionModal = ({
 
           {/* Current Video Time Display - Below buttons, above captions */}
           <div className="mb-4 flex justify-between items-center">
-            {/* Left side - Moment Display */}
-            <div className="ml-2">
+            {/* Left side - Moment Display - aligned with title */}
+            <div className="ml-0">
               <span className="text-gray-400 text-xs sm:text-sm font-medium">
                 Moment: <span className="text-blue-400">{(() => {
                   const currentTime = Math.floor(currentTimeSeconds || 0)
@@ -962,8 +974,8 @@ export const ChordCaptionModal = ({
               </span>
             </div>
 
-            {/* Right side - New Caption Length */}
-            <div className="flex items-center space-x-1">
+            {/* Right side - New Caption Length - aligned with title */}
+            <div className="flex items-center space-x-1 mr-0">
               <span className="text-gray-400 text-xs sm:text-sm font-medium">
                 + Caption:
               </span>
@@ -1000,7 +1012,7 @@ export const ChordCaptionModal = ({
           {/* Add New Chord Form */}
         {isAddingChord && (
           <div
-            className="rounded-2xl p-3 sm:p-6 mb-6 border-2 border-white/80 relative z-20 bg-[url('/images/fretted_finger2_BG.png')] bg-cover bg-center bg-no-repeat"
+            className="rounded-2xl p-3 sm:p-6 mb-6 border-2 border-white/80 relative z-20 bg-[url('/images/fretted_finger7_BG.png')] bg-cover bg-center bg-no-repeat"
           >
             {/* 40% dark overlay */}
             <div className="absolute inset-0 bg-black/40 rounded-2xl"></div>
@@ -1008,7 +1020,7 @@ export const ChordCaptionModal = ({
             {/* Content wrapper with relative positioning */}
             <div className="relative z-10">
               {/* Modal Title - Left aligned with logo in upper right */}
-              <div className="flex justify-between items-center mb-4 sm:mb-6">
+              <div className="flex justify-between items-center mb-6 sm:mb-8">
                 <h3 className="text-xl sm:text-3xl font-bold">Add New Chord Caption</h3>
                 <img
                   src="/images/gt_logoM_PlayButton.png"
@@ -1017,16 +1029,19 @@ export const ChordCaptionModal = ({
                 />
               </div>
 
+              {/* Form fields */}
+              <div>
+
               {/* Chord Selection */}
-              <div className="mb-4 sm:mb-6">
-                <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-2">Chord:</label>
-                <div className="flex space-x-2">
+              <div className="mb-3 sm:mb-4">
+                <div className="flex items-center space-x-2">
+                  <label className="text-xs sm:text-sm font-medium text-gray-400">Chord:</label>
                   <select
                     value={newChord.rootNote}
                     onChange={(e) => handleChordSelection(e.target.value, newChord.modifier)}
-                    className="w-24 sm:w-32 px-2 py-1 sm:px-3 sm:py-2 bg-transparent border border-white/20 rounded text-white text-xs sm:text-sm focus:border-blue-400 focus:outline-none"
+                    className="w-16 sm:w-20 px-2 py-1 sm:px-3 sm:py-2 bg-transparent border border-white/20 rounded text-white text-xs sm:text-sm focus:border-blue-400 focus:outline-none"
                   >
-                    <option value="" className="bg-gray-800">Select Root Note</option>
+                    <option value="" className="bg-gray-800">Root</option>
                     {ROOT_NOTES.map(note => (
                       <option key={note.value} value={note.value} className="bg-gray-800">
                         {note.label}
@@ -1069,42 +1084,65 @@ export const ChordCaptionModal = ({
                 </div>
               </div>
 
-            {/* Timing Inputs */}
-            <div className="flex space-x-2 sm:space-x-4 mb-4 sm:mb-6">
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-2">Start Time:</label>
-                <input
-                  type="text"
-                  placeholder="1:30"
-                  value={newChord.start_time}
-                  onChange={(e) => handleTimeChange('start_time', e.target.value)}
-                  className={`w-16 sm:w-20 px-2 py-1 sm:px-3 sm:py-2 bg-transparent border rounded text-blue-400 text-xs sm:text-sm focus:outline-none ${
-                    validationErrors.some(err => err.field === 'start_time')
-                      ? 'border-red-500'
-                      : 'border-white/20 focus:border-blue-400'
-                  }`}
-                />
+            {/* Timing Inputs and Buttons */}
+            <div className="flex justify-between items-center mb-3 sm:mb-4">
+              {/* Left side - Time inputs */}
+              <div className="flex space-x-4 sm:space-x-6">
+                <div className="flex items-center space-x-2">
+                  <label className="text-xs sm:text-sm font-medium text-gray-400">In:</label>
+                  <input
+                    type="text"
+                    placeholder="1:30"
+                    value={newChord.start_time}
+                    onChange={(e) => handleTimeChange('start_time', e.target.value)}
+                    className={`w-16 sm:w-20 px-2 py-1 sm:px-3 sm:py-2 bg-transparent border rounded text-blue-400 text-xs sm:text-sm focus:outline-none ${
+                      validationErrors.some(err => err.field === 'start_time')
+                        ? 'border-red-500'
+                        : 'border-white/20 focus:border-blue-400'
+                    }`}
+                  />
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <label className="text-xs sm:text-sm font-medium text-gray-400">Out:</label>
+                  <input
+                    type="text"
+                    placeholder="2:00"
+                    value={newChord.end_time}
+                    onChange={(e) => handleTimeChange('end_time', e.target.value)}
+                    className={`w-16 sm:w-20 px-2 py-1 sm:px-3 sm:py-2 bg-transparent border rounded text-blue-400 text-xs sm:text-sm focus:outline-none ${
+                      validationErrors.some(err => err.field === 'end_time')
+                        ? 'border-red-500'
+                        : 'border-white/20 focus:border-blue-400'
+                    }`}
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-2">End Time:</label>
-                <input
-                  type="text"
-                  placeholder="2:00"
-                  value={newChord.end_time}
-                  onChange={(e) => handleTimeChange('end_time', e.target.value)}
-                  className={`w-16 sm:w-20 px-2 py-1 sm:px-3 sm:py-2 bg-transparent border rounded text-blue-400 text-xs sm:text-sm focus:outline-none ${
-                    validationErrors.some(err => err.field === 'end_time')
-                      ? 'border-red-500'
-                      : 'border-white/20 focus:border-blue-400'
-                  }`}
-                />
+              {/* Right side - Action buttons */}
+              <div className="flex space-x-1 sm:space-x-2">
+                <button
+                  onClick={handleCancelChord}
+                  className="bg-transparent border-2 border-gray-600 text-white hover:bg-gray-900 rounded-[33px] px-2 py-1 sm:px-3 sm:py-2 flex items-center space-x-1 sm:space-x-2 transition-all duration-200 text-xs sm:text-sm font-medium"
+                >
+                  <PiXCircleFill className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span>Cancel</span>
+                </button>
+
+                <button
+                  onClick={handleSaveChord}
+                  disabled={isLoading}
+                  className="bg-transparent border-2 border-blue-600 text-white hover:bg-gray-900 rounded-[33px] px-2 py-1 sm:px-3 sm:py-2 flex items-center space-x-1 sm:space-x-2 transition-all duration-200 text-xs sm:text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <PiCloudArrowDownFill className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span>{isLoading ? 'Saving...' : 'Save'}</span>
+                </button>
               </div>
             </div>
             
             {/* Validation Errors */}
             {validationErrors.length > 0 && (
-              <div className="mb-4">
+              <div className="mb-2">
                 {validationErrors.map((error, index) => (
                   <div key={index} className="text-red-400 text-sm mb-1">
                     {error.message}
@@ -1112,26 +1150,7 @@ export const ChordCaptionModal = ({
                 ))}
               </div>
             )}
-            
-            {/* Form Actions */}
-            <div className="flex justify-end space-x-1 sm:space-x-2">
-              <button
-                onClick={handleCancelChord}
-                className="bg-transparent border-2 border-gray-600 text-white hover:bg-gray-900 rounded-[33px] px-2 py-1 sm:px-3 sm:py-2 flex items-center space-x-1 sm:space-x-2 transition-all duration-200 text-xs sm:text-sm"
-              >
-                <PiXCircleFill className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span>Cancel</span>
-              </button>
-
-              <button
-                onClick={handleSaveChord}
-                disabled={isLoading}
-                className="bg-transparent border-2 border-blue-600 text-white hover:bg-gray-900 rounded-[33px] px-2 py-1 sm:px-3 sm:py-2 flex items-center space-x-1 sm:space-x-2 transition-all duration-200 text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <PiCloudArrowDownFill className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span>{isLoading ? 'Saving...' : 'Save'}</span>
-              </button>
-            </div>
+              </div>
             </div>
           </div>
         )}
@@ -1156,44 +1175,42 @@ export const ChordCaptionModal = ({
                 className="border-b border-gray-700 last:border-b-0"
               >
 
-                  <div className="flex items-center space-x-4 py-3">
+                  <div className="flex items-center justify-between py-2 sm:py-3">
                     <div className="flex-1">
-                      <span className="text-lg font-bold text-blue-400">
+                      <span className="text-sm sm:text-lg font-bold text-white">
                         {chord.chord_name}
                       </span>
                     </div>
-                    
-                    <div className="flex-1 text-sm text-gray-300">
-                      {chord.start_time} - {chord.end_time}
+
+                    <div className="flex-1 text-left">
+                      <span className="text-xs sm:text-sm text-blue-400">
+                        {chord.start_time} - {chord.end_time}
+                      </span>
                     </div>
-                    
-                    <div className="flex-1 text-xs text-gray-500">
-                      Order: {chord.display_order}
-                    </div>
-                    
-                    <div className="flex space-x-1">
+
+                    <div className="flex space-x-3 sm:space-x-3">
                       <button
                         onClick={() => handleEditChord(chord)}
-                        className="p-1 text-blue-400 hover:text-blue-300 hover:bg-white/10 rounded transition-colors"
+                        className="p-0.5 sm:p-1 text-blue-400 hover:text-blue-300 hover:bg-white/10 rounded transition-colors"
                         title="Edit chord"
                       >
-                        <RiEdit2Fill className="w-4 h-4" />
+                        <FaEdit className="w-4 h-4 sm:w-5 sm:h-5" />
                       </button>
-                      
+
                       <button
                         onClick={() => handleDuplicateChord(chord)}
-                        className="p-1 text-green-400 hover:text-green-300 hover:bg-white/10 rounded transition-colors"
+                        className="p-0.5 sm:p-1 text-green-600 hover:text-green-500 hover:bg-white/10 rounded transition-colors"
                         title="Duplicate chord"
                       >
-                        <IoDuplicate className="w-4 h-4" />
+                        <IoDuplicate className="w-4 h-4 sm:w-5 sm:h-5" />
                       </button>
-                      
+
                       <button
                         onClick={() => handleDeleteChord(chord.id)}
-                        className="p-1 text-red-400 hover:text-red-300 hover:bg-white/10 rounded transition-colors"
+                        className="p-0.5 sm:p-1 text-red-500 hover:text-red-400 hover:bg-white/10 rounded transition-colors"
                         title="Delete chord"
                       >
-                        <MdDeleteSweep className="w-5 h-5" />
+                        <PiTrashBold className="w-4 h-4 sm:w-5 sm:h-5" />
                       </button>
                     </div>
                   </div>
@@ -1211,104 +1228,132 @@ export const ChordCaptionModal = ({
           onClick={(e) => e.stopPropagation()}
         >
           <div
-            className="bg-gray-800 rounded-lg shadow-2xl max-w-md w-full relative text-white p-6 border-2 border-blue-400/50"
+            className="rounded-2xl shadow-2xl max-w-md w-full relative text-white p-3 sm:p-6 border-2 border-white/80 bg-[url('/images/fretted_finger7_BG.png')] bg-cover bg-center bg-no-repeat"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Sub-Modal Title */}
-            <div className="text-center mb-6">
-              <h3 className="text-xl font-bold text-blue-400">
-                ✏️ Edit Chord Caption
-              </h3>
-            </div>
+            {/* 15% dark overlay */}
+            <div className="absolute inset-0 bg-black/15 rounded-2xl"></div>
+
+            {/* Content wrapper with relative positioning */}
+            <div className="relative z-10">
+              {/* Sub-Modal Title */}
+              <div className="text-center mb-4 sm:mb-6">
+                <h3 className="text-lg sm:text-xl font-bold text-white">
+                  Chord Caption #{editingChord?.serial_number || ''}
+                </h3>
+              </div>
             
-            {/* Edit Form */}
-            <div className="space-y-4">
-              {/* Chord Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Chord:</label>
-                <div className="flex space-x-2">
-                  <select 
-                    value={editingChordUI.rootNote || ''}
-                    onChange={(e) => {
-                      const rootNote = e.target.value
-                      const modifier = editingChordUI.modifier || ''
-                      const chordName = buildChordName(rootNote, modifier)
-                      setEditingChordUI(prev => ({ ...prev, rootNote }))
-                      setEditingChord(prev => ({ ...prev, chord_name: chordName }))
-                    }}
-                    className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:border-blue-400 focus:outline-none"
+              {/* Edit Form */}
+              <div className="space-y-3 sm:space-y-4">
+                {/* Chord Selection */}
+                <div className="text-center">
+                  <div className="flex items-center justify-center space-x-2">
+                    <label className="text-xs sm:text-sm font-bold text-gray-400">Chord:</label>
+                    <select
+                      value={editingChordUI.rootNote || ''}
+                      onChange={(e) => {
+                        const rootNote = e.target.value
+                        const modifier = editingChordUI.modifier || ''
+                        const chordName = buildChordName(rootNote, modifier)
+                        setEditingChordUI(prev => ({ ...prev, rootNote }))
+                        setEditingChord(prev => ({ ...prev, chord_name: chordName }))
+                      }}
+                      className="w-12 sm:w-14 px-1 py-1 sm:px-2 sm:py-1 bg-transparent border border-white/20 rounded text-white text-xs sm:text-sm focus:border-blue-400 focus:outline-none"
+                    >
+                      <option value="" className="bg-gray-800">Root</option>
+                      {ROOT_NOTES.map(note => (
+                        <option key={note.value} value={note.value} className="bg-gray-800">
+                          {note.label}
+                        </option>
+                      ))}
+                    </select>
+
+                    <select
+                      value={editingChordUI.modifier || ''}
+                      onChange={(e) => {
+                        const modifier = e.target.value
+                        const rootNote = editingChordUI.rootNote || ''
+                        const chordName = buildChordName(rootNote, modifier)
+                        setEditingChordUI(prev => ({ ...prev, modifier }))
+                        setEditingChord(prev => ({ ...prev, chord_name: chordName }))
+                      }}
+                      className="w-24 sm:w-28 px-1 py-1 sm:px-2 sm:py-1 bg-transparent border border-white/20 rounded text-white text-xs sm:text-sm focus:border-blue-400 focus:outline-none"
+                    >
+                      <option value="" className="bg-gray-800">Major</option>
+                      {CHORD_MODIFIERS.filter(m => m.value !== '').map(mod => (
+                        <option key={mod.value} value={mod.value} className="bg-gray-800">
+                          {mod.label}
+                        </option>
+                      ))}
+                    </select>
+
+                    <select
+                      defaultValue="Open"
+                      className="w-20 sm:w-24 px-1 py-1 sm:px-2 sm:py-1 bg-transparent border border-white/20 rounded text-white text-xs sm:text-sm focus:border-blue-400 focus:outline-none"
+                    >
+                      <option value="Open" className="bg-gray-800">Open</option>
+                      <option value="Pos1" className="bg-gray-800">Pos1</option>
+                      <option value="Pos2" className="bg-gray-800">Pos2</option>
+                      <option value="Pos3" className="bg-gray-800">Pos3</option>
+                      <option value="Pos4" className="bg-gray-800">Pos4</option>
+                      <option value="Pos5" className="bg-gray-800">Pos5</option>
+                      <option value="Pos6" className="bg-gray-800">Pos6</option>
+                      <option value="Pos7" className="bg-gray-800">Pos7</option>
+                      <option value="Pos8" className="bg-gray-800">Pos8</option>
+                      <option value="Pos1v1" className="bg-gray-800">Pos1v1</option>
+                      <option value="Pos2v1" className="bg-gray-800">Pos2v1</option>
+                      <option value="Pos2v2" className="bg-gray-800">Pos2v2</option>
+                      <option value="Pos3v1" className="bg-gray-800">Pos3v1</option>
+                      <option value="Pos3v2" className="bg-gray-800">Pos3v2</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Time Inputs */}
+                <div className="flex justify-center space-x-4 sm:space-x-6">
+                  <div className="flex items-center space-x-2">
+                    <label className="text-xs sm:text-sm font-medium text-gray-400">In:</label>
+                    <input
+                      type="text"
+                      value={editingChord.start_time}
+                      onChange={(e) => setEditingChord(prev => ({ ...prev, start_time: e.target.value }))}
+                      placeholder="1:30"
+                      className="w-16 sm:w-20 px-2 py-1 sm:px-3 sm:py-2 bg-transparent border rounded text-blue-400 text-xs sm:text-sm focus:outline-none border-white/20 focus:border-blue-400"
+                    />
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <label className="text-xs sm:text-sm font-medium text-gray-400">Out:</label>
+                    <input
+                      type="text"
+                      value={editingChord.end_time}
+                      onChange={(e) => setEditingChord(prev => ({ ...prev, end_time: e.target.value }))}
+                      placeholder="2:00"
+                      className="w-16 sm:w-20 px-2 py-1 sm:px-3 sm:py-2 bg-transparent border rounded text-blue-400 text-xs sm:text-sm focus:outline-none border-white/20 focus:border-blue-400"
+                    />
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex justify-center space-x-1 sm:space-x-2 pt-2 sm:pt-4">
+                  <button
+                    onClick={handleCancelEditChord}
+                    disabled={isLoading}
+                    className="bg-transparent border-2 border-gray-600 text-white hover:bg-gray-900 rounded-[33px] px-2 py-1 sm:px-3 sm:py-2 flex items-center space-x-1 sm:space-x-2 transition-all duration-200 text-xs sm:text-sm disabled:opacity-50"
                   >
-                    <option value="">Select Root Note</option>
-                    {ROOT_NOTES.map(note => (
-                      <option key={note.value} value={note.value}>
-                        {note.label}
-                      </option>
-                    ))}
-                  </select>
-                  
-                  <select 
-                    value={editingChordUI.modifier || ''}
-                    onChange={(e) => {
-                      const modifier = e.target.value
-                      const rootNote = editingChordUI.rootNote || ''
-                      const chordName = buildChordName(rootNote, modifier)
-                      setEditingChordUI(prev => ({ ...prev, modifier }))
-                      setEditingChord(prev => ({ ...prev, chord_name: chordName }))
-                    }}
-                    className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:border-blue-400 focus:outline-none"
+                    <PiXCircleFill className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span>Cancel</span>
+                  </button>
+
+                  <button
+                    onClick={handleSaveEditedChord}
+                    disabled={isLoading}
+                    className="bg-transparent border-2 border-blue-600 text-white hover:bg-gray-900 rounded-[33px] px-2 py-1 sm:px-3 sm:py-2 flex items-center space-x-1 sm:space-x-2 transition-all duration-200 text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <option value="">Major</option>
-                    {CHORD_MODIFIERS.filter(m => m.value !== '').map(mod => (
-                      <option key={mod.value} value={mod.value}>
-                        {mod.label}
-                      </option>
-                    ))}
-                  </select>
+                    <PiCloudArrowDownFill className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span>{isLoading ? 'Saving...' : 'Save'}</span>
+                  </button>
                 </div>
-              </div>
-              
-              {/* Time Inputs */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Start Time:</label>
-                  <input
-                    type="text"
-                    value={editingChord.start_time}
-                    onChange={(e) => setEditingChord(prev => ({ ...prev, start_time: e.target.value }))}
-                    placeholder="0:00"
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:border-blue-400 focus:outline-none"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">End Time:</label>
-                  <input
-                    type="text"
-                    value={editingChord.end_time}
-                    onChange={(e) => setEditingChord(prev => ({ ...prev, end_time: e.target.value }))}
-                    placeholder="0:30"
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:border-blue-400 focus:outline-none"
-                  />
-                </div>
-              </div>
-              
-              {/* Action Buttons */}
-              <div className="flex justify-center space-x-3 pt-4">
-                <button
-                  onClick={handleSaveEditedChord}
-                  disabled={isLoading}
-                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
-                >
-                  {isLoading ? 'Saving...' : 'Save Changes'}
-                </button>
-                
-                <button
-                  onClick={handleCancelEditChord}
-                  disabled={isLoading}
-                  className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
-                >
-                  Cancel
-                </button>
               </div>
             </div>
           </div>
