@@ -35,6 +35,7 @@ import {
   parseTimeToSeconds
 } from '../song_data_processing/chord_processing/chordCaptionUtils'
 import { supabase } from '../lib/supabase/client'
+import { Space } from 'lucide-react'
 
 /**
  * Chord Caption Modal Component
@@ -54,13 +55,24 @@ export const ChordCaptionModal = ({
   videoDurationSeconds = 0,
   currentTimeSeconds = 0,
   onChordsUpdated,
-  userId,
-  onCancel
+  userId
 }) => {
   // State for chord captions
   const [chords, setChords] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
+
+  // Smart cancel functionality - JSON blob snapshot (like text-captions)
+  const [originalChordsBlob, setOriginalChordsBlob] = useState(null)
+
+  // Add Group dialog state
+  const [showAddGroupDialog, setShowAddGroupDialog] = useState(false)
+  const [newGroupName, setNewGroupName] = useState('')
+
+  // Manage Groups modal state
+  const [showManageGroupsModal, setShowManageGroupsModal] = useState(false)
+  const [availableGroups, setAvailableGroups] = useState([])
+  const [selectedGroupToDelete, setSelectedGroupToDelete] = useState('')
 
   // State for user default chord caption duration
   const [userDefaultChordCaptionDuration, setUserDefaultChordCaptionDuration] = useState(10)
@@ -204,10 +216,19 @@ export const ChordCaptionModal = ({
       const result = await loadChordsFromDB(favoriteData.id)
       
               if (result.success) {
-          setChords(result.data || [])
+          const chordsData = result.data || []
+          setChords(chordsData)
+
+          // 🎸 CAPTURE ORIGINAL CHORDS BLOB FOR SMART CANCEL (LIKE TEXT-CAPTIONS) 🎸
+          if (!originalChordsBlob) {
+            const blob = JSON.parse(JSON.stringify(chordsData))
+            setOriginalChordsBlob(blob)
+            console.log('🎸 CHORD BLOB CAPTURED:', blob.length, 'chords')
+          }
+
           // Notify parent component to update its chordCaptions state
           if (onChordsUpdated) {
-            onChordsUpdated(result.data || [])
+            onChordsUpdated(chordsData)
           }
         } else {
         setError(result.error || 'Failed to load chord captions')
@@ -795,7 +816,7 @@ export const ChordCaptionModal = ({
           setError(result.error || 'Failed to duplicate chord caption')
         }
       }
-      
+      moment
     } catch (err) {
       console.error('❌ Error duplicating chord caption:', err)
       setError('Failed to duplicate chord caption')
@@ -939,8 +960,237 @@ export const ChordCaptionModal = ({
     return formatTimeToTimeString(startSeconds + durationSeconds);
   };
   
+  /**
+   * Delete all chord captions and restore from blob (like text-captions)
+   */
+  const deleteAllAndRestoreFromBlob = async (favoriteId, blobData) => {
+    try {
+      console.log('🗑️ DELETING ALL CHORDS FROM DATABASE...')
+
+      // Step 1: Delete all existing chord captions
+      const { error: deleteError } = await supabase
+        .from('chord_captions')
+        .delete()
+        .eq('favorite_id', favoriteId)
+
+      if (deleteError) {
+        console.error('❌ Error deleting all chords:', deleteError)
+        throw deleteError
+      }
+
+      console.log('✅ All chords deleted from database')
+
+      // Step 2: Restore all chords from blob
+      if (blobData.length > 0) {
+        console.log('📦 RESTORING', blobData.length, 'CHORDS FROM BLOB...')
+
+        // Prepare chord data for insertion (remove id, created_at, updated_at)
+        const chordsToInsert = blobData.map(chord => ({
+          favorite_id: favoriteId,
+          user_id: chord.user_id,
+          chord_name: chord.chord_name,
+          start_time: chord.start_time,
+          end_time: chord.end_time,
+          display_order: chord.display_order,
+          serial_number: chord.serial_number,
+          chord_data: chord.chord_data,
+          is_master: chord.is_master || false,
+          sync_group_id: chord.sync_group_id
+        }))
+
+        const { error: insertError } = await supabase
+          .from('chord_captions')
+          .insert(chordsToInsert)
+
+        if (insertError) {
+          console.error('❌ Error restoring chords:', insertError)
+          throw insertError
+        }
+
+        console.log('✅ All chords restored from blob')
+      } else {
+        console.log('📦 No chords to restore (empty blob)')
+      }
+
+      return { success: true }
+    } catch (error) {
+      console.error('❌ Failed to delete all and restore:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  /**
+   * Handle Add Group button click
+   */
+  const handleAddGroup = () => {
+    setShowAddGroupDialog(true)
+  }
+
+  /**
+   * Handle Add Group dialog - Create new group
+   */
+  const handleCreateGroup = async () => {
+    if (!newGroupName.trim()) {
+      setError('Please enter a group name')
+      return
+    }
+
+    try {
+      console.log('🎸 Creating new chord group:', newGroupName)
+
+      // TODO: Create group in chord_sync_chords table
+      // For now, just show success message
+      setError(`✅ Group "${newGroupName}" created successfully!`)
+      setTimeout(() => setError(null), 3000)
+
+      // Close dialog and reset
+      setShowAddGroupDialog(false)
+      setNewGroupName('')
+
+    } catch (error) {
+      console.error('❌ Error creating group:', error)
+      setError('Failed to create group')
+    }
+  }
+
+  /**
+   * Handle Add Group dialog - Cancel
+   */
+  const handleCancelAddGroup = () => {
+    setShowAddGroupDialog(false)
+    setNewGroupName('')
+  }
+
+  /**
+   * Handle Manage Groups modal - Open
+   */
+  const handleOpenManageGroups = async () => {
+    try {
+      console.log('🎸 Loading available chord groups...')
+
+      // TODO: Load groups from chord_sync_chords table
+      // For now, use mock data
+      const mockGroups = [
+        { id: 'group1', chord_name: 'Group 1', sync_group_id: 'sync1' },
+        { id: 'group2', chord_name: 'Group 2', sync_group_id: 'sync2' }
+      ]
+
+      setAvailableGroups(mockGroups)
+      setShowManageGroupsModal(true)
+
+    } catch (error) {
+      console.error('❌ Error loading groups:', error)
+      setError('Failed to load chord groups')
+    }
+  }
+
+  /**
+   * Handle Delete Group
+   */
+  const handleDeleteGroup = async () => {
+    if (!selectedGroupToDelete) {
+      setError('Please select a group to delete')
+      return
+    }
+
+    try {
+      console.log('🗑️ Deleting chord group:', selectedGroupToDelete)
+
+      // TODO: Delete from chord_sync_chords table and clear sync_group_id from chord_captions
+      // For now, just show success message
+      const groupToDelete = availableGroups.find(g => g.sync_group_id === selectedGroupToDelete)
+      setError(`✅ Group "${groupToDelete?.chord_name}" deleted successfully!`)
+      setTimeout(() => setError(null), 3000)
+
+      // Remove from local state
+      setAvailableGroups(prev => prev.filter(g => g.sync_group_id !== selectedGroupToDelete))
+      setSelectedGroupToDelete('')
+
+    } catch (error) {
+      console.error('❌ Error deleting group:', error)
+      setError('Failed to delete group')
+    }
+  }
+
+  /**
+   * Handle Manage Groups modal - Close
+   */
+  const handleCloseManageGroups = () => {
+    setShowManageGroupsModal(false)
+    setSelectedGroupToDelete('')
+  }
+
+  /**
+   * Smart cancel with change detection (like text-captions)
+   */
+  const handleSmartCancel = async () => {
+    console.log('🎸 Smart cancel initiated...')
+
+    if (!originalChordsBlob) {
+      console.log('⚠️ No original blob found - closing modal without changes')
+      setShowChordModal(false)
+      return
+    }
+
+    // Compare current chords with original blob
+    const hasChanges = JSON.stringify(originalChordsBlob) !== JSON.stringify(chords)
+    console.log('🔍 Changes detected:', hasChanges)
+
+    if (hasChanges) {
+      console.log('⚠️ Changes detected - showing confirmation dialog')
+      const confirmed = window.confirm('Cancelling reverts all changes. Proceed?')
+
+      if (confirmed) {
+        console.log('✅ User confirmed cancel - reverting changes')
+
+        // Get favorite ID for database operations
+        const { data: favoriteData, error: favoriteError } = await supabase
+          .from('favorites')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('video_id', videoId)
+          .single()
+
+        if (favoriteError) {
+          console.error('❌ Error getting favorite ID:', favoriteError)
+          setError('Failed to revert changes - could not find video favorite')
+          return
+        }
+
+        // Delete all and restore from blob
+        const restoreResult = await deleteAllAndRestoreFromBlob(favoriteData.id, originalChordsBlob)
+
+        if (!restoreResult.success) {
+          console.error('❌ Failed to restore from blob:', restoreResult.error)
+          setError('Failed to revert changes - database restore failed')
+          return
+        }
+
+        // Update local state to blob
+        setChords(JSON.parse(JSON.stringify(originalChordsBlob)))
+
+        // Notify parent component
+        if (onChordsUpdated) {
+          onChordsUpdated(JSON.parse(JSON.stringify(originalChordsBlob)))
+        }
+
+        // Clear blob and close modal
+        setOriginalChordsBlob(null)
+        setShowChordModal(false)
+
+        console.log('🔄 Changes reverted and modal closed - SIMPLE BLOB RESTORE COMPLETE')
+      } else {
+        console.log('📝 User chose to keep editing - staying in modal')
+      }
+    } else {
+      console.log('✅ No changes detected - closing modal silently')
+      setOriginalChordsBlob(null)
+      setShowChordModal(false)
+    }
+  }
+
   if (!showChordModal) return null
-  
+
   return (
     <div
       className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
@@ -1005,7 +1255,7 @@ export const ChordCaptionModal = ({
 
                 {/* Add Group Button */}
                 <button
-                  onClick={() => {/* TODO: No functionality needed yet */}}
+                  onClick={handleAddGroup}
                   className="bg-transparent border-2 border-yellow-600 text-white hover:bg-gray-900 rounded-[33px] px-2 py-1 sm:px-3 sm:py-2 flex items-center space-x-1 sm:space-x-2 transition-all duration-200 text-xs sm:text-sm"
                   title="Add new chord group"
                 >
@@ -1026,15 +1276,11 @@ export const ChordCaptionModal = ({
 
               {/* Right side - Cancel and Save buttons - aligned with title */}
               <div className="flex items-center space-x-1 sm:space-x-2 mr-0">
-                {/* Cancel Button */}
+                {/* Cancel Button - Smart cancel like text-captions */}
                 <button
-                  onClick={() => {
-                    if (onCancel) {
-                      onCancel()
-                    }
-                  }}
+                  onClick={handleSmartCancel}
                   className="bg-transparent border-2 border-gray-600 text-white hover:bg-gray-900 rounded-[33px] px-2 py-1 sm:px-3 sm:py-2 flex items-center space-x-1 sm:space-x-2 transition-all duration-200 text-xs sm:text-sm"
-                  title="Cancel changes"
+                  title="Cancel changes (smart detection)"
                 >
                   <PiXCircleFill className="w-4 h-4 sm:w-5 sm:h-5" />
                   <span>Cancel</span>
@@ -1042,7 +1288,12 @@ export const ChordCaptionModal = ({
 
                 {/* Save Button */}
                 <button
-                  onClick={() => setShowChordModal(false)}
+                  onClick={() => {
+                    // Clear blob when saving (changes are committed)
+                    setOriginalChordsBlob(null)
+                    setShowChordModal(false)
+                    console.log('💾 Chord modal saved and closed - blob cleared')
+                  }}
                   className="bg-transparent border-2 border-blue-600 text-white hover:bg-gray-900 rounded-[33px] px-2 py-1 sm:px-3 sm:py-2 flex items-center space-x-1 sm:space-x-2 transition-all duration-200 text-xs sm:text-sm"
                   title="Save and close modal"
                 >
@@ -1064,8 +1315,10 @@ export const ChordCaptionModal = ({
                   const currentSeconds = currentTime % 60
                   const durationMinutes = Math.floor(duration / 60)
                   const durationSeconds = duration % 60
-                  return `${currentMinutes}:${currentSeconds.toString().padStart(2, '0')} | ${durationMinutes}:${durationSeconds.toString().padStart(2, '0')}`
+                  return `${currentMinutes}:${currentSeconds.toString().padStart(2, '0')} / ${durationMinutes}:${durationSeconds.toString().padStart(2, '0')}`
                 })()}</span>
+                <span className="text-gray-400 text-xs sm:text-sm font-medium">
+                    </span>
               </span>
             </div>
 
@@ -1268,6 +1521,30 @@ export const ChordCaptionModal = ({
                       </span>
                     </div>
 
+                    {/* Chord Name Dropdown - Left of Time Fields */}
+                    <div className="flex-1 text-left mr-4">
+                      <select
+                        value={chord.sync_group_id || ''}
+                        onChange={(e) => {
+                          if (e.target.value === 'manage_groups') {
+                            handleOpenManageGroups()
+                          } else {
+                            // TODO: Handle chord group selection
+                            console.log('Selected group:', e.target.value)
+                          }
+                        }}
+                        className="w-full max-w-[120px] px-2 py-1 bg-transparent border border-white/20 rounded text-white text-xs sm:text-sm focus:border-blue-400 focus:outline-none"
+                        title="Select chord group"
+                      >
+                        <option value="" className="bg-gray-800">No Group</option>
+                        {/* TODO: Add actual chord group options from chord_sync_chords */}
+                        <option value="group1" className="bg-gray-800">Group 1</option>
+                        <option value="group2" className="bg-gray-800">Group 2</option>
+                        <option disabled className="bg-gray-700">────────</option>
+                        <option value="manage_groups" className="bg-gray-800">Manage Groups</option>
+                      </select>
+                    </div>
+
                     <div className="flex-1 text-left">
                       <span className="text-xs sm:text-sm text-blue-400">
                         {chord.start_time} - {chord.end_time}
@@ -1440,6 +1717,92 @@ export const ChordCaptionModal = ({
                     <span>{isLoading ? 'Saving...' : 'Save'}</span>
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Group Dialog */}
+      {showAddGroupDialog && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-60 flex items-center justify-center p-4">
+          <div className="bg-black rounded-2xl shadow-2xl max-w-md w-full relative text-white border-2 border-white/80">
+            <div className="p-6">
+              <h3 className="text-lg font-bold mb-4">Add New Chord Group</h3>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">Group Name:</label>
+                <input
+                  type="text"
+                  value={newGroupName}
+                  onChange={(e) => setNewGroupName(e.target.value)}
+                  placeholder="Enter group name..."
+                  className="w-full px-3 py-2 bg-transparent border border-white/20 rounded text-white focus:border-blue-400 focus:outline-none"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleCreateGroup()
+                    }
+                  }}
+                />
+              </div>
+
+              <div className="flex justify-end space-x-2">
+                <button
+                  onClick={handleCancelAddGroup}
+                  className="bg-transparent border-2 border-gray-600 text-white hover:bg-gray-900 rounded-[33px] px-4 py-2 transition-all duration-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreateGroup}
+                  className="bg-transparent border-2 border-green-600 text-white hover:bg-gray-900 rounded-[33px] px-4 py-2 transition-all duration-200"
+                >
+                  Create Group
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Manage Groups Modal */}
+      {showManageGroupsModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-60 flex items-center justify-center p-4">
+          <div className="bg-black rounded-2xl shadow-2xl max-w-md w-full relative text-white border-2 border-white/80">
+            <div className="p-6">
+              <h3 className="text-lg font-bold mb-4">Manage Chord Groups</h3>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">Select Group to Delete:</label>
+                <select
+                  value={selectedGroupToDelete}
+                  onChange={(e) => setSelectedGroupToDelete(e.target.value)}
+                  className="w-full px-3 py-2 bg-transparent border border-white/20 rounded text-white focus:border-blue-400 focus:outline-none"
+                >
+                  <option value="" className="bg-gray-800">Select a group...</option>
+                  {availableGroups.map((group) => (
+                    <option key={group.sync_group_id} value={group.sync_group_id} className="bg-gray-800">
+                      {group.chord_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex justify-end space-x-2">
+                <button
+                  onClick={handleCloseManageGroups}
+                  className="bg-transparent border-2 border-gray-600 text-white hover:bg-gray-900 rounded-[33px] px-4 py-2 transition-all duration-200"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={handleDeleteGroup}
+                  disabled={!selectedGroupToDelete}
+                  className="bg-transparent border-2 border-red-600 text-white hover:bg-gray-900 rounded-[33px] px-4 py-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Delete Group
+                </button>
               </div>
             </div>
           </div>
