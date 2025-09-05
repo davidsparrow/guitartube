@@ -159,29 +159,32 @@ export const CaptionEditorModal = ({
         
         {/* Current Video Time Display - Below buttons, above captions */}
         <div className="mb-4 flex justify-between items-center">
-          {/* Left side - Video Time */}
+          {/* Left side - Moment Display */}
           <div className="ml-2">
-            <span className="text-blue-400 text-sm font-medium">
-              Video Time: {(() => {
+            <span className="text-gray-400 text-xs sm:text-sm font-medium">
+              Moment: <span className="text-blue-400">{(() => {
                 if (player && isPlayerReady(player)) {
                   try {
                     const currentTime = Math.floor(player.getCurrentTime())
-                    const minutes = Math.floor(currentTime / 60)
-                    const seconds = currentTime % 60
-                    return `${minutes}:${seconds.toString().padStart(2, '0')}`
+                    const duration = Math.floor(player.getDuration())
+                    const currentMinutes = Math.floor(currentTime / 60)
+                    const currentSeconds = currentTime % 60
+                    const durationMinutes = Math.floor(duration / 60)
+                    const durationSeconds = duration % 60
+                    return `${currentMinutes}:${currentSeconds.toString().padStart(2, '0')} | ${durationMinutes}:${durationSeconds.toString().padStart(2, '0')}`
                   } catch (error) {
-                    return '0:00'
+                    return '0:00 | 0:00'
                   }
                 }
-                return '0:00'
-              })()}
+                return '0:00 | 0:00'
+              })()}</span>
             </span>
           </div>
-          
+
           {/* Right side - New Caption Length */}
-          <div className="flex items-center space-x-2">
-            <span className="text-blue-400 text-sm font-medium">
-              New Caption Length:
+          <div className="flex items-center space-x-1">
+            <span className="text-gray-400 text-xs sm:text-sm font-medium">
+              + Caption:
             </span>
             <input
               type="number"
@@ -196,7 +199,7 @@ export const CaptionEditorModal = ({
               }}
               className="w-16 px-2 py-1 text-xs bg-transparent text-blue-400 border border-white/20 rounded focus:border-blue-400 focus:outline-none text-center"
             />
-            <span className="text-blue-400 text-sm font-medium">
+            <span className="text-gray-400 text-xs sm:text-sm font-medium">
               sec
             </span>
           </div>

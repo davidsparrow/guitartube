@@ -40,7 +40,8 @@ export const loadChordCaptions = async (videoId, userId, setIsLoadingChords, set
       .from('chord_captions')
       .select('*')
       .eq('favorite_id', favoriteData.id)
-      .order('display_order', { ascending: true })
+      .order('start_time', { ascending: true })
+      .order('created_at', { ascending: true })
     
     if (error) throw error
     
