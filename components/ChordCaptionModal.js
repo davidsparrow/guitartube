@@ -505,7 +505,85 @@ export const ChordCaptionModal = ({
   }
   
   /**
-   * Save edited chord
+   * Save new chord (ADD mode) - Uses unified modal
+   */
+  const handleSaveNewChord = async () => {
+    // Build the chord name from UI state
+    const chordName = buildChordName(editingChordUI.rootNote, editingChordUI.modifier)
+
+    if (!chordName) {
+      setError('Please select a chord')
+      return
+    }
+
+    // Validate the chord data
+    const errors = validateChordTimes(editingChord.start_time, editingChord.end_time)
+    if (errors.length > 0) {
+      setError(errors.join(', '))
+      return
+    }
+
+    try {
+      setIsLoading(true)
+      setError(null)
+
+      // First get the favorite ID for this video
+      const { data: favoriteData, error: favoriteError } = await supabase
+        .from('favorites')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('video_id', videoId)
+        .single()
+
+      if (favoriteError) {
+        setError('Video must be favorited to create chord captions')
+        return
+      }
+
+      // Prepare chord data for saving
+      const chordData = {
+        chord_name: chordName,
+        start_time: editingChord.start_time,
+        end_time: editingChord.end_time
+      }
+
+      // Save to database using existing function with all required parameters
+      const result = await createChordInDB(chordData, favoriteData.id, userId)
+
+      if (result.success) {
+        // Add to local state and sort by start time
+        const updatedChords = [...chords, result.data]
+        const sortedChords = updatedChords.sort((a, b) =>
+          parseTimeToSeconds(a.start_time) - parseTimeToSeconds(b.start_time)
+        )
+        setChords(sortedChords)
+
+        // Notify parent component with sorted chords
+        if (onChordsUpdated) {
+          onChordsUpdated(sortedChords)
+        }
+
+        // Close modal and reset state
+        setEditingChord({ chord_name: '', start_time: '', end_time: '', serial_number: null })
+        setEditingChordUI({ rootNote: '', modifier: '' })
+        setShowEditModal(false)
+
+        setError('✅ Chord caption added successfully!')
+        setTimeout(() => setError(null), 3000)
+      } else {
+        setError(result.error || 'Failed to save chord caption')
+      }
+
+    } catch (error) {
+      console.error('Error saving new chord:', error)
+      setError('Failed to save chord caption')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  /**
+   * Save edited chord (EDIT mode)
    */
   const handleSaveEditedChord = async () => {
     try {
@@ -592,7 +670,18 @@ export const ChordCaptionModal = ({
   }
   
   /**
-   * Cancel editing chord
+   * Cancel adding new chord (ADD mode)
+   */
+  const handleCancelAddChord = () => {
+    // Reset state and close modal
+    setEditingChord({ chord_name: '', start_time: '', end_time: '', serial_number: null })
+    setEditingChordUI({ rootNote: '', modifier: '' })
+    setShowEditModal(false)
+    setError(null)
+  }
+
+  /**
+   * Cancel editing chord (EDIT mode)
    */
   const handleCancelEditChord = () => {
     // Revert to original chord data from snapshot
@@ -890,16 +979,22 @@ export const ChordCaptionModal = ({
                     const endTimeSeconds = startTimeSeconds + (userDefaultChordCaptionDuration || 10)
                     const endTimeString = formatTimeToTimeString(endTimeSeconds)
 
-                    // Pre-populate the form with calculated times
-                    setNewChord({
-                      rootNote: '',
-                      modifier: '',
+                    // Pre-populate the unified modal for ADD mode
+                    setEditingChord({
+                      chord_name: '',
                       start_time: startTimeString,
-                      end_time: endTimeString
+                      end_time: endTimeString,
+                      serial_number: null // null indicates ADD mode
                     })
 
-                    // Open the form
-                    setIsAddingChord(true)
+                    // Set UI state for chord selection
+                    setEditingChordUI({
+                      rootNote: '',
+                      modifier: ''
+                    })
+
+                    // Open the unified modal
+                    setShowEditModal(true)
                   }}
                   className="bg-transparent border-2 border-green-600 text-white hover:bg-gray-900 rounded-[33px] px-2 py-1 sm:px-3 sm:py-2 flex items-center space-x-1 sm:space-x-2 transition-all duration-200 text-xs sm:text-sm"
                   title="Add new chord caption"
@@ -920,7 +1015,7 @@ export const ChordCaptionModal = ({
 
                 {/* Delete All Button */}
                 <button
-                  onClick={() => {/* TODO: Connect to delete all functionality */}}
+                  onClick={handleDeleteAllChords}
                   className="bg-transparent border-2 border-red-500 text-white hover:bg-gray-900 rounded-[33px] px-2 py-1 sm:px-3 sm:py-2 flex items-center space-x-1 sm:space-x-2 transition-all duration-200 text-xs sm:text-sm"
                   title="Delete all chord captions"
                 >
@@ -1000,26 +1095,23 @@ export const ChordCaptionModal = ({
           </div>
         </div>
 
-        {/* Blur overlay when adding chord */}
-        {isAddingChord && (
+        {/* COMMENTED OUT: Blur overlay when adding chord */}
+        {/* {isAddingChord && (
           <div className="absolute inset-0 z-10 bg-black/30 backdrop-blur-sm pointer-events-none">
             <div className="absolute top-0 left-0 right-0 h-32 bg-transparent pointer-events-auto"></div>
           </div>
-        )}
+        )} */}
 
         {/* SCROLLABLE CONTENT SECTION */}
         <div className="flex-1 overflow-y-auto p-6 pt-4">
-          {/* Add New Chord Form */}
-        {isAddingChord && (
+          {/* COMMENTED OUT: Original Add New Chord Form - Replaced with unified modal */}
+        {/* {isAddingChord && (
           <div
             className="rounded-2xl p-3 sm:p-6 mb-6 border-2 border-white/80 relative z-20 bg-[url('/images/fretted_finger7_BG.png')] bg-cover bg-center bg-no-repeat"
           >
-            {/* 40% dark overlay */}
             <div className="absolute inset-0 bg-black/40 rounded-2xl"></div>
 
-            {/* Content wrapper with relative positioning */}
             <div className="relative z-10">
-              {/* Modal Title - Left aligned with logo in upper right */}
               <div className="flex justify-between items-center mb-6 sm:mb-8">
                 <h3 className="text-xl sm:text-3xl font-bold">Add New Chord Caption</h3>
                 <img
@@ -1029,10 +1121,8 @@ export const ChordCaptionModal = ({
                 />
               </div>
 
-              {/* Form fields */}
               <div>
 
-              {/* Chord Selection */}
               <div className="mb-3 sm:mb-4">
                 <div className="flex items-center space-x-2">
                   <label className="text-xs sm:text-sm font-medium text-gray-400">Chord:</label>
@@ -1084,9 +1174,7 @@ export const ChordCaptionModal = ({
                 </div>
               </div>
 
-            {/* Timing Inputs and Buttons */}
             <div className="flex justify-between items-center mb-3 sm:mb-4">
-              {/* Left side - Time inputs */}
               <div className="flex space-x-4 sm:space-x-6">
                 <div className="flex items-center space-x-2">
                   <label className="text-xs sm:text-sm font-medium text-gray-400">In:</label>
@@ -1119,7 +1207,6 @@ export const ChordCaptionModal = ({
                 </div>
               </div>
 
-              {/* Right side - Action buttons */}
               <div className="flex space-x-1 sm:space-x-2">
                 <button
                   onClick={handleCancelChord}
@@ -1139,8 +1226,7 @@ export const ChordCaptionModal = ({
                 </button>
               </div>
             </div>
-            
-            {/* Validation Errors */}
+
             {validationErrors.length > 0 && (
               <div className="mb-2">
                 {validationErrors.map((error, index) => (
@@ -1153,7 +1239,7 @@ export const ChordCaptionModal = ({
               </div>
             </div>
           </div>
-        )}
+        )} */}
         
         {/* Error Display */}
         {error && (
@@ -1239,7 +1325,7 @@ export const ChordCaptionModal = ({
               {/* Sub-Modal Title */}
               <div className="text-center mb-4 sm:mb-6">
                 <h3 className="text-lg sm:text-xl font-bold text-white">
-                  Chord Caption #{editingChord?.serial_number || ''}
+                  {editingChord?.serial_number ? `Chord Caption #${editingChord.serial_number}` : 'Add Chord Caption'}
                 </h3>
               </div>
             
@@ -1337,7 +1423,7 @@ export const ChordCaptionModal = ({
                 {/* Action Buttons */}
                 <div className="flex justify-center space-x-1 sm:space-x-2 pt-2 sm:pt-4">
                   <button
-                    onClick={handleCancelEditChord}
+                    onClick={editingChord?.serial_number ? handleCancelEditChord : handleCancelAddChord}
                     disabled={isLoading}
                     className="bg-transparent border-2 border-gray-600 text-white hover:bg-gray-900 rounded-[33px] px-2 py-1 sm:px-3 sm:py-2 flex items-center space-x-1 sm:space-x-2 transition-all duration-200 text-xs sm:text-sm disabled:opacity-50"
                   >
@@ -1346,7 +1432,7 @@ export const ChordCaptionModal = ({
                   </button>
 
                   <button
-                    onClick={handleSaveEditedChord}
+                    onClick={editingChord?.serial_number ? handleSaveEditedChord : handleSaveNewChord}
                     disabled={isLoading}
                     className="bg-transparent border-2 border-blue-600 text-white hover:bg-gray-900 rounded-[33px] px-2 py-1 sm:px-3 sm:py-2 flex items-center space-x-1 sm:space-x-2 transition-all duration-200 text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
