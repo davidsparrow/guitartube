@@ -59,7 +59,9 @@ const sortChordsByTime = (chords) => {
 }
 import {
   loadChordCaptions as loadChordCaptionsFromDB,
-  createChordCaption as createChordCaptionInDB
+  createChordCaption as createChordCaptionInDB,
+  updateChordCaption as updateChordCaptionInDB,
+  deleteAllChordCaptions as deleteAllChordCaptionsFromDB
 } from '../song_data_processing/chord_processing/ChordCaptionDatabase'
 import { Space } from 'lucide-react'
 
@@ -633,49 +635,36 @@ export const ChordCaptionModal = ({
         setTimeout(() => setError(null), 3000)
         
       } else {
-        // Real database update - filter out non-database fields
+        // Real database update using centralized utility function
         const { rootNote, modifier, ...dbFields } = editingChord
-        
-        // Get the favorite ID for this video
-        const { data: favoriteData, error: favoriteError } = await supabase
-          .from('favorites')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('video_id', videoId)
-          .single()
-        
-        if (favoriteError) {
-          setError('❌ Video must be favorited to update chord captions')
-          return
-        }
-        
-        const result = await updateChordInDB(editingChordId, dbFields, favoriteData.id)
-        
-        if (result.success) {
-          // Update chords and re-sort by start time
-          const updatedChords = chords.map(chord => 
-            chord.id === editingChordId 
-              ? { ...chord, ...dbFields }
+
+        // Use existing specialized utility function instead of direct supabase calls
+        const updatedChord = await updateChordCaptionInDB(editingChordId, dbFields, userId, setIsLoading, setError)
+
+        if (updatedChord) {
+          // Update chords and re-sort by start time + creation time
+          const updatedChords = chords.map(chord =>
+            chord.id === editingChordId
+              ? updatedChord
               : chord
           )
-          
-          // Sort the updated chords by start time
-          const sortedChords = sortChordsByStartTime(updatedChords)
+
+          // Sort the updated chords by start time + creation time
+          const sortedChords = sortChordsByTime(updatedChords)
           setChords(sortedChords)
-          
+
           // Notify parent component
           if (onChordsUpdated) {
             onChordsUpdated(sortedChords)
           }
-          
+
           setEditingChordId(null)
           setEditingChord({ chord_name: '', start_time: '', end_time: '' })
           setShowEditModal(false)
-          
+
           console.log('✅ Chord updated successfully and list re-sorted')
-        } else {
-          setError(result.error || 'Failed to update chord caption')
         }
+        // Error handling is done by the utility function
       }
       
     } catch (err) {
@@ -761,56 +750,46 @@ export const ChordCaptionModal = ({
           id: `duplicate-${Date.now()}`,
           start_time: chordData.start_time,
           end_time: chordData.end_time,
-          display_order: chords.length + 1
+          display_order: chords.length + 1,
+          created_at: new Date().toISOString() // Add creation time for sorting
         }
-        
-        setChords(prev => [...prev, duplicatedChord])
-        
-        // Notify parent component
+
+        // Add duplicate chord and sort by start time + creation time
+        const updatedChords = sortChordsByTime([...chords, duplicatedChord])
+        setChords(updatedChords)
+
+        // Notify parent component with sorted chords
         if (onChordsUpdated) {
-          onChordsUpdated([...chords, duplicatedChord])
+          onChordsUpdated(updatedChords)
         }
-        
+
         setError('✅ Chord duplicated successfully! (Mock mode)')
         setTimeout(() => setError(null), 3000)
         
       } else {
-        // Real database call - save the duplicate immediately
+        // Real database call using centralized utility function
         if (!userId) {
           setError('User ID is required to duplicate chord captions')
           return
         }
-        
-        // Get the favorite ID (UUID) for this video
-        const { data: favoriteData, error: favoriteError } = await supabase
-          .from('favorites')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('video_id', videoId)
-          .single()
-        
-        if (favoriteError) {
-          setError('Video must be favorited to duplicate chord captions')
-          return
-        }
-        
-        const result = await createChordInDB(chordData, favoriteData.id, userId)
-        
-        if (result.success) {
-          // Add the new chord and re-sort by start time
-          const updatedChords = [...chords, result.data]
-          const sortedChords = sortChordsByStartTime(updatedChords)
+
+        // Use existing specialized utility function instead of direct supabase calls
+        const duplicatedChord = await createChordCaptionInDB(chordData, videoId, userId, setIsLoading, setError)
+
+        if (duplicatedChord) {
+          // Add the new chord and re-sort by start time + creation time
+          const updatedChords = [...chords, duplicatedChord]
+          const sortedChords = sortChordsByTime(updatedChords)
           setChords(sortedChords)
-          
+
           // Notify parent component with sorted chords
           if (onChordsUpdated) {
             onChordsUpdated(sortedChords)
           }
-          
-          console.log('✅ Chord duplicated successfully and list re-sorted:', result.data)
-        } else {
-          setError(result.error || 'Failed to duplicate chord caption')
+
+          console.log('✅ Chord duplicated successfully and list re-sorted:', duplicatedChord)
         }
+        // Error handling is done by the utility function
       }
       moment
     } catch (err) {
@@ -875,46 +854,26 @@ export const ChordCaptionModal = ({
     
     if (confirm('Are you sure you want to delete ALL chord captions? This action cannot be undone.')) {
       try {
-        setIsLoading(true)
-        setError(null)
-        
-        // First get the favorite ID for this video
-        const { data: favoriteData, error: favoriteError } = await supabase
-          .from('favorites')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('video_id', videoId)
-          .single()
-        
-        if (favoriteError) {
-          setError('❌ Video must be favorited to delete chord captions')
-          return
-        }
-        
-        // Call the database function to delete all chords
-        const result = await deleteAllChordCaptionsForFavorite(favoriteData.id)
-        
-        if (result.success) {
+        // Use existing specialized utility function instead of direct supabase calls
+        const success = await deleteAllChordCaptionsFromDB(videoId, userId, setIsLoading, setError)
+
+        if (success) {
           // Clear local state after successful database deletion
           setChords([])
-          
+
           // Notify parent component
           if (onChordsUpdated) {
             onChordsUpdated([])
           }
-          
-          setError(`✅ Successfully deleted ${result.deletedCount} chord captions!`)
+
+          setError('✅ Successfully deleted all chord captions!')
           setTimeout(() => setError(null), 3000)
-        } else {
-          setError(`❌ Failed to delete: ${result.error}`)
-          setTimeout(() => setError(null), 5000)
         }
+        // Error handling is done by the utility function
       } catch (error) {
         console.error('❌ Error in handleDeleteAllChords:', error)
         setError(`❌ Failed to delete: ${error.message}`)
         setTimeout(() => setError(null), 5000)
-      } finally {
-        setIsLoading(false)
       }
     }
   }
