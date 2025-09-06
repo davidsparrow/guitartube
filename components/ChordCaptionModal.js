@@ -14,24 +14,17 @@
  * - Support for overlapping chord times
  */
 
-import React, { useState, useEffect } from 'react'
-import { FaPlus, FaTimes, FaEdit } from "react-icons/fa"
-import { RiEdit2Fill } from "react-icons/ri"
+import { useState, useEffect } from 'react'
+import { FaPlus, FaEdit } from "react-icons/fa"
 import { PiCloudArrowDownFill, PiXCircleFill, PiTrashBold } from "react-icons/pi"
-import { MdDeleteSweep } from "react-icons/md"
 import { IoDuplicate } from "react-icons/io5"
-import { 
-  validateChordTimes, 
-  isValidTimeFormat, 
-  getTimeFormatSuggestion,
+import {
+  validateChordTimes,
+  calculateEndTime,
+  formatTimeToTimeString,
   ROOT_NOTES,
   CHORD_MODIFIERS,
   buildChordName,
-  loadChordCaptions as loadChordsFromDB,
-  createChordCaption as createChordInDB,
-  updateChordCaption as updateChordInDB,
-  deleteChordCaption as deleteChordInDB,
-  deleteAllChordCaptionsForFavorite,
   parseTimeToSeconds
 } from '../song_data_processing/chord_processing/chordCaptionUtils'
 import { supabase } from '../lib/supabase/client'
@@ -63,7 +56,6 @@ import {
   updateChordCaption as updateChordCaptionInDB,
   deleteAllChordCaptions as deleteAllChordCaptionsFromDB
 } from '../song_data_processing/chord_processing/ChordCaptionDatabase'
-import { Space } from 'lucide-react'
 
 /**
  * Chord Caption Modal Component
@@ -175,15 +167,6 @@ export const ChordCaptionModal = ({
     loadUserChordCaptionDuration()
   }, [userId])
   
-  // State for adding new chords
-  const [isAddingChord, setIsAddingChord] = useState(false)
-  const [newChord, setNewChord] = useState({
-    rootNote: '',
-    modifier: '',
-    start_time: '',
-    end_time: ''
-  })
-  
   // State for editing existing chords
   const [editingChordId, setEditingChordId] = useState(null)
   const [editingChord, setEditingChord] = useState({
@@ -204,9 +187,6 @@ export const ChordCaptionModal = ({
     rootNote: '',
     modifier: ''
   })
-  
-  // State for validation
-  const [validationErrors, setValidationErrors] = useState([])
   
   // Load chord captions when modal opens
   useEffect(() => {
@@ -285,191 +265,9 @@ export const ChordCaptionModal = ({
     }
   }
   
-  /**
-   * Handle chord selection (root note + modifier)
-   */
-  const handleChordSelection = (rootNote, modifier) => {
-    const chordName = buildChordName(rootNote, modifier)
-    setNewChord(prev => ({
-      ...prev,
-      rootNote,
-      modifier,
-      chord_name: chordName
-    }))
-  }
+
   
-  /**
-   * Handle time input changes
-   */
-  const handleTimeChange = (field, value) => {
-    setNewChord(prev => ({
-      ...prev,
-      [field]: value
-    }))
-    
-    // Clear validation errors for this field
-    setValidationErrors(prev => prev.filter(err => err.field !== field))
-  }
-  
-  /**
-   * Validate the complete chord before saving
-   */
-  const validateChord = () => {
-    const errors = []
-    
-    if (!newChord.chord_name) {
-      errors.push({ field: 'chord_name', message: 'Please select both root note and modifier', type: 'required' })
-    }
-    
-    if (!newChord.start_time || !newChord.end_time) {
-      errors.push({ field: 'timing', message: 'Please enter both start and end times', type: 'required' })
-    }
-    
-    if (newChord.start_time && newChord.end_time) {
-      if (!isValidTimeFormat(newChord.start_time)) {
-        errors.push({ 
-          field: 'start_time', 
-          message: `Invalid start time format: ${getTimeFormatSuggestion(newChord.start_time)}`, 
-          type: 'validation' 
-        })
-      }
-      if (!isValidTimeFormat(newChord.end_time)) {
-        errors.push({ 
-          field: 'end_time', 
-          message: `Invalid end time format: ${getTimeFormatSuggestion(newChord.end_time)}`, 
-          type: 'validation' 
-        })
-      }
-      
-      if (isValidTimeFormat(newChord.start_time) && isValidTimeFormat(newChord.end_time)) {
-        // Use our validation utility
-        const validation = validateChordTimes(newChord, videoDurationSeconds)
-        
-        if (!validation.isValid) {
-          validation.failures.forEach(failure => {
-            errors.push({
-              field: 'timing',
-              message: failure.reason,
-              type: 'validation'
-            })
-          })
-        }
-      }
-    }
-    
-    setValidationErrors(errors)
-    return errors.length === 0
-  }
-  
-  /**
-   * Save the new chord caption
-   */
-  const handleSaveChord = async () => {
-    if (!validateChord()) {
-      return
-    }
-    
-    try {
-      setIsLoading(true)
-      setError(null)
-      
-      const chordData = {
-        chord_name: newChord.chord_name,
-        start_time: newChord.start_time,
-        end_time: newChord.end_time,
-        display_order: chords.length + 1
-      }
-      
-      // For testing: add directly to local state (skip database)
-      if (videoId.includes('test-')) {
-        console.log('🔄 Adding mock chord for testing:', chordData)
-        
-        const mockChord = {
-          id: `mock-${Date.now()}`, // Generate unique mock ID
-          ...chordData,
-          created_at: new Date().toISOString() // Add creation time for sorting
-        }
 
-        // Add mock chord and sort by start time + creation time
-        const updatedChords = sortChordsByTime([...chords, mockChord])
-        setChords(updatedChords)
-
-        // Reset form
-        setNewChord({
-          rootNote: '',
-          modifier: '',
-          start_time: '',
-          end_time: ''
-        })
-        setIsAddingChord(false)
-        setValidationErrors([])
-
-        // Show success message
-        setError('✅ Chord added successfully! (Mock mode)')
-        setTimeout(() => setError(null), 3000) // Clear after 3 seconds
-
-        // Notify parent component with sorted chords
-        if (onChordsUpdated) {
-          onChordsUpdated(updatedChords)
-        }
-        
-        console.log('✅ Mock chord added successfully:', mockChord)
-        
-      } else {
-        // Real database call using centralized utility function
-        if (!userId) {
-          setError('User ID is required to create chord captions')
-          return
-        }
-
-        // Use existing specialized utility function instead of direct supabase calls
-        const createdChord = await createChordCaptionInDB(chordData, videoId, userId, setIsLoading, setError)
-
-        if (createdChord) {
-          // Add new chord and sort by start time + creation time
-          const updatedChords = sortChordsByTime([...chords, createdChord])
-          setChords(updatedChords)
-
-          setNewChord({
-            rootNote: '',
-            modifier: '',
-            start_time: '',
-            end_time: ''
-          })
-          setIsAddingChord(false)
-          setValidationErrors([])
-
-          // Notify parent component with sorted chords
-          if (onChordsUpdated) {
-            onChordsUpdated(updatedChords)
-          }
-
-          console.log('✅ Chord saved successfully and sorted:', createdChord)
-        }
-        // Error handling is done by the utility function
-      }
-      
-    } catch (err) {
-      console.error('❌ Error creating chord caption:', err)
-      setError('Failed to create chord caption')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-  
-  /**
-   * Cancel adding new chord
-   */
-  const handleCancelChord = () => {
-    setNewChord({
-      rootNote: '',
-      modifier: '',
-      start_time: '',
-      end_time: ''
-    })
-    setValidationErrors([])
-    setIsAddingChord(false)
-  }
   
   /**
    * Start editing an existing chord
@@ -543,22 +341,6 @@ export const ChordCaptionModal = ({
     }
 
     try {
-      setIsLoading(true)
-      setError(null)
-
-      // First get the favorite ID for this video
-      const { data: favoriteData, error: favoriteError } = await supabase
-        .from('favorites')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('video_id', videoId)
-        .single()
-
-      if (favoriteError) {
-        setError('Video must be favorited to create chord captions')
-        return
-      }
-
       // Prepare chord data for saving
       const chordData = {
         chord_name: chordName,
@@ -567,19 +349,16 @@ export const ChordCaptionModal = ({
       }
 
       // Save to database using existing function with all required parameters
-      const result = await createChordInDB(chordData, favoriteData.id, userId)
+      const createdChord = await createChordCaptionInDB(chordData, videoId, userId, setIsLoading, setError)
 
-      if (result.success) {
-        // Add to local state and sort by start time
-        const updatedChords = [...chords, result.data]
-        const sortedChords = updatedChords.sort((a, b) =>
-          parseTimeToSeconds(a.start_time) - parseTimeToSeconds(b.start_time)
-        )
-        setChords(sortedChords)
+      if (createdChord) {
+        // Add to local state and sort by start time + creation time
+        const updatedChords = sortChordsByTime([...chords, createdChord])
+        setChords(updatedChords)
 
         // Notify parent component with sorted chords
         if (onChordsUpdated) {
-          onChordsUpdated(sortedChords)
+          onChordsUpdated(updatedChords)
         }
 
         // Close modal and reset state
@@ -589,9 +368,8 @@ export const ChordCaptionModal = ({
 
         setError('✅ Chord caption added successfully!')
         setTimeout(() => setError(null), 3000)
-      } else {
-        setError(result.error || 'Failed to save chord caption')
       }
+      // Error handling is done by the utility function
 
     } catch (error) {
       console.error('Error saving new chord:', error)
@@ -791,7 +569,6 @@ export const ChordCaptionModal = ({
         }
         // Error handling is done by the utility function
       }
-      moment
     } catch (err) {
       console.error('❌ Error duplicating chord caption:', err)
       setError('Failed to duplicate chord caption')
@@ -878,22 +655,7 @@ export const ChordCaptionModal = ({
     }
   }
   
-  /**
-   * Sort chords by start time (ascending) with creation order for identical times
-   */
-  const sortChordsByStartTime = (chordsToSort) => {
-    return [...chordsToSort].sort((a, b) => {
-      const aStart = parseTimeToSeconds(a.start_time)
-      const bStart = parseTimeToSeconds(b.start_time)
-      
-      if (aStart !== bStart) {
-        return aStart - bStart
-      }
-      
-      // If start times are identical, maintain creation order (display_order)
-      return (a.display_order || 0) - (b.display_order || 0)
-    })
-  }
+
 
   /**
    * Helper function to format seconds to time string
@@ -1463,7 +1225,7 @@ export const ChordCaptionModal = ({
               <p>No chord captions yet. Use the Add Chord button to create your first chord!</p>
             </div>
           ) : (
-            chords.map((chord, index) => (
+            chords.map((chord) => (
               <div 
                 key={chord.id} 
                 className="border-b border-gray-700 last:border-b-0"
@@ -1666,10 +1428,10 @@ export const ChordCaptionModal = ({
                   <button
                     onClick={editingChord?.serial_number ? handleSaveEditedChord : handleSaveNewChord}
                     disabled={isLoading}
-                    className="bg-transparent border-2 border-blue-600 text-white hover:bg-gray-900 rounded-[33px] px-2 py-1 sm:px-3 sm:py-2 flex items-center space-x-1 sm:space-x-2 transition-all duration-200 text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    className={`bg-transparent border-2 ${editingChord?.serial_number ? 'border-blue-600' : 'border-green-600'} text-white hover:bg-gray-900 rounded-[33px] px-2 py-1 sm:px-3 sm:py-2 flex items-center space-x-1 sm:space-x-2 transition-all duration-200 text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed`}
                   >
                     <PiCloudArrowDownFill className="w-4 h-4 sm:w-5 sm:h-5" />
-                    <span>{isLoading ? 'Saving...' : 'Save'}</span>
+                    <span>{isLoading ? 'Saving...' : (editingChord?.serial_number ? 'Save' : 'Add Chord')}</span>
                   </button>
                 </div>
               </div>
