@@ -391,7 +391,7 @@ export const ChordCaptionModal = ({
 
         // Close modal and reset state
         setEditingChord({ chord_name: '', start_time: '', end_time: '', serial_number: null, fret_position: 'Open' })
-        setEditingChordUI({ rootNote: '', modifier: '' })
+        setEditingChordUI({ rootNote: 'C', modifier: '' })
         setShowEditModal(false)
         console.log('✅ SAVE NEW CHORD - Modal closed and state reset')
 
@@ -500,7 +500,7 @@ export const ChordCaptionModal = ({
   const handleCancelAddChord = () => {
     // Reset state and close modal
     setEditingChord({ chord_name: '', start_time: '', end_time: '', serial_number: null, fret_position: 'Open' })
-    setEditingChordUI({ rootNote: '', modifier: '' })
+    setEditingChordUI({ rootNote: 'C', modifier: '' })
     setShowEditModal(false)
     setError(null)
   }
@@ -541,7 +541,7 @@ export const ChordCaptionModal = ({
     
     setEditingChordId(null)
     setEditingChord({ chord_name: '', start_time: '', end_time: '', fret_position: 'Open' })
-    setEditingChordUI({ rootNote: '', modifier: '' })
+    setEditingChordUI({ rootNote: 'C', modifier: '' })
     setOriginalChordSnapshot(null)
     setShowEditModal(false)
   }
@@ -551,6 +551,20 @@ export const ChordCaptionModal = ({
    */
   const handleDuplicateChord = async (chord) => {
     try {
+      console.log('🎸 DUPLICATE CHORD - Original chord:', chord)
+      console.log('🎸 DUPLICATE CHORD - All chord keys:', Object.keys(chord))
+      console.log('🎸 DUPLICATE CHORD - Group info:', {
+        chord_group_id: chord.chord_group_id,
+        chord_group_name: chord.chord_group_name,
+        fret_position: chord.fret_position
+      })
+      console.log('🎸 DUPLICATE CHORD - Position field check:', {
+        'chord.fret_position': chord.fret_position,
+        'chord.position': chord.position,
+        'chord.Position': chord.Position,
+        'chord.fret_pos': chord.fret_pos
+      })
+
       setIsLoading(true)
       setError(null)
       
@@ -559,9 +573,16 @@ export const ChordCaptionModal = ({
         chord_name: chord.chord_name,
         start_time: chord.start_time, // Use original chord's start time
         end_time: calculateEndTime(chord.start_time, chord.end_time), // Calculate proper end time
-        chord_data: chord.chord_data || null
+        chord_data: chord.chord_data || null,
+        // NEW: Include group information in duplicate
+        chord_group_id: chord.chord_group_id || null,
+        chord_group_name: chord.chord_group_name || null,
+        // NEW: Include fret position in duplicate
+        fret_position: chord.fret_position || null
       }
-      
+
+      console.log('🎸 DUPLICATE CHORD - Prepared chordData:', chordData)
+
       // For testing: add to local state with mock ID
       if (videoId.includes('test-')) {
         const duplicatedChord = {
@@ -570,7 +591,11 @@ export const ChordCaptionModal = ({
           start_time: chordData.start_time,
           end_time: chordData.end_time,
           display_order: chords.length + 1,
-          created_at: new Date().toISOString() // Add creation time for sorting
+          created_at: new Date().toISOString(), // Add creation time for sorting
+          // NEW: Ensure group fields are included in mock mode
+          chord_group_id: chord.chord_group_id || null,
+          chord_group_name: chord.chord_group_name || null,
+          fret_position: chord.fret_position || null
         }
 
         // Add duplicate chord and sort by start time + creation time
@@ -1222,7 +1247,7 @@ export const ChordCaptionModal = ({
 
     if (hasChanges) {
       console.log('⚠️ Changes detected - showing confirmation dialog')
-      const confirmed = window.confirm('Cancelling reverts all changes. Proceed?')
+      const confirmed = window.confirm('Click OK to Cancel & Revert all changes. Click Cancel to continue editing.')
 
       if (confirmed) {
         console.log('✅ User confirmed cancel - reverting changes')
@@ -1329,9 +1354,9 @@ export const ChordCaptionModal = ({
                       fret_position: 'Open' // Default position
                     })
 
-                    // Set UI state for chord selection
+                    // Set UI state for chord selection with default "C" root note
                     setEditingChordUI({
-                      rootNote: '',
+                      rootNote: 'C',
                       modifier: ''
                     })
 
@@ -1469,7 +1494,7 @@ export const ChordCaptionModal = ({
                       <span className="text-sm sm:text-lg font-bold text-white">
                         {chord.chord_name}
                         {chord.fret_position && chord.fret_position !== 'Open' && (
-                          <span className="text-xs text-gray-400 ml-1">{chord.fret_position}</span>
+                          <span className="text-sm text-white ml-1">{chord.fret_position}</span>
                         )}
                       </span>
                     </div>
@@ -1479,6 +1504,7 @@ export const ChordCaptionModal = ({
                       <select
                         value={chord.chord_group_name || ''}
                         onChange={async (e) => {
+                          console.log('🎸 GROUP DROPDOWN - chord.chord_group_name:', `"${chord.chord_group_name}"`, 'type:', typeof chord.chord_group_name)
                           if (e.target.value === 'manage_groups') {
                             handleOpenManageGroups()
                           } else {
@@ -1518,7 +1544,13 @@ export const ChordCaptionModal = ({
                             }
                           }
                         }}
-                        className="w-full max-w-[120px] px-2 py-1 bg-transparent border border-white/20 rounded text-white text-xs sm:text-sm focus:border-blue-400 focus:outline-none"
+                        className={`w-full max-w-[120px] px-2 py-1 bg-transparent border border-white/20 rounded text-xs sm:text-sm focus:border-blue-400 focus:outline-none ${
+                          (() => {
+                            const hasGroup = chord.chord_group_name && chord.chord_group_name.trim() !== '';
+                            console.log('🎨 GROUP COLOR - chord:', chord.chord_name, 'group_name:', `"${chord.chord_group_name}"`, 'hasGroup:', hasGroup, 'color:', hasGroup ? 'white' : 'gray');
+                            return hasGroup ? 'text-white' : 'text-gray-400';
+                          })()
+                        }`}
                         title="Select chord group"
                       >
                         <option value="" className="bg-gray-800">No Group</option>
@@ -1616,7 +1648,6 @@ export const ChordCaptionModal = ({
                       }}
                       className="w-20 sm:w-24 px-2 py-1 sm:px-3 sm:py-2 bg-transparent border border-white/20 rounded text-white text-sm sm:text-base focus:border-blue-400 focus:outline-none"
                     >
-                      <option value="" className="bg-gray-800">Root</option>
                       {ROOT_NOTES.map(note => (
                         <option key={note.value} value={note.value} className="bg-gray-800">
                           {note.label}
@@ -1646,7 +1677,7 @@ export const ChordCaptionModal = ({
                     <select
                       value={editingChord.fret_position || 'Open'}
                       onChange={(e) => setEditingChord(prev => ({ ...prev, fret_position: e.target.value }))}
-                      className="w-24 sm:w-28 px-2 py-1 sm:px-3 sm:py-2 bg-transparent border border-white/20 rounded text-white text-sm sm:text-base focus:border-blue-400 focus:outline-none"
+                      className="w-[72px] sm:w-28 px-2 py-1 sm:px-3 sm:py-2 bg-transparent border border-white/20 rounded text-white text-sm sm:text-base focus:border-blue-400 focus:outline-none"
                     >
                       <option value="Open" className="bg-gray-800">Open</option>
                       <option value="Pos1" className="bg-gray-800">Pos1</option>
