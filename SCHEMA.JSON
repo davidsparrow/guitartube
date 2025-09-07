@@ -386,17 +386,10 @@
   },
   {
     "table_name": "chord_captions",
-    "column_name": "sync_group_id",
+    "column_name": "chord_group_id",
     "data_type": "uuid",
     "is_nullable": "YES",
     "column_default": null
-  },
-  {
-    "table_name": "chord_captions",
-    "column_name": "is_master",
-    "data_type": "boolean",
-    "is_nullable": "YES",
-    "column_default": "false"
   },
   {
     "table_name": "chord_captions",
@@ -411,6 +404,83 @@
     "data_type": "timestamp with time zone",
     "is_nullable": "YES",
     "column_default": "now()"
+  },
+  {
+    "table_name": "chord_captions",
+    "column_name": "chord_group_name",
+    "data_type": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "chord_groups",
+    "column_name": "id",
+    "data_type": "uuid",
+    "is_nullable": "NO",
+    "column_default": "gen_random_uuid()"
+  },
+  {
+    "table_name": "chord_groups",
+    "column_name": "group_name",
+    "data_type": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "chord_groups",
+    "column_name": "position_data",
+    "data_type": "jsonb",
+    "is_nullable": "YES",
+    "column_default": "'{}'::jsonb"
+  },
+  {
+    "table_name": "chord_groups",
+    "column_name": "display_settings",
+    "data_type": "jsonb",
+    "is_nullable": "YES",
+    "column_default": "'{}'::jsonb"
+  },
+  {
+    "table_name": "chord_groups",
+    "column_name": "user_notes",
+    "data_type": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "chord_groups",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "chord_groups",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "chord_groups",
+    "column_name": "favorite_id",
+    "data_type": "uuid",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "chord_groups",
+    "column_name": "user_id",
+    "data_type": "uuid",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "chord_groups",
+    "column_name": "group_color",
+    "data_type": "text",
+    "is_nullable": "NO",
+    "column_default": "'#3B82F6'::text"
   },
   {
     "table_name": "chord_positions",
@@ -516,76 +586,6 @@
     "data_type": "uuid",
     "is_nullable": "NO",
     "column_default": null
-  },
-  {
-    "table_name": "chord_sync_chords",
-    "column_name": "id",
-    "data_type": "uuid",
-    "is_nullable": "NO",
-    "column_default": "gen_random_uuid()"
-  },
-  {
-    "table_name": "chord_sync_chords",
-    "column_name": "sync_group_id",
-    "data_type": "uuid",
-    "is_nullable": "NO",
-    "column_default": null
-  },
-  {
-    "table_name": "chord_sync_chords",
-    "column_name": "chord_name",
-    "data_type": "text",
-    "is_nullable": "NO",
-    "column_default": null
-  },
-  {
-    "table_name": "chord_sync_chords",
-    "column_name": "timing_ms",
-    "data_type": "integer",
-    "is_nullable": "NO",
-    "column_default": null
-  },
-  {
-    "table_name": "chord_sync_chords",
-    "column_name": "position_data",
-    "data_type": "jsonb",
-    "is_nullable": "YES",
-    "column_default": "'{}'::jsonb"
-  },
-  {
-    "table_name": "chord_sync_chords",
-    "column_name": "chord_variation_id",
-    "data_type": "uuid",
-    "is_nullable": "YES",
-    "column_default": null
-  },
-  {
-    "table_name": "chord_sync_chords",
-    "column_name": "display_settings",
-    "data_type": "jsonb",
-    "is_nullable": "YES",
-    "column_default": "'{}'::jsonb"
-  },
-  {
-    "table_name": "chord_sync_chords",
-    "column_name": "user_notes",
-    "data_type": "text",
-    "is_nullable": "YES",
-    "column_default": null
-  },
-  {
-    "table_name": "chord_sync_chords",
-    "column_name": "created_at",
-    "data_type": "timestamp with time zone",
-    "is_nullable": "YES",
-    "column_default": "now()"
-  },
-  {
-    "table_name": "chord_sync_chords",
-    "column_name": "updated_at",
-    "data_type": "timestamp with time zone",
-    "is_nullable": "YES",
-    "column_default": "now()"
   },
   {
     "table_name": "chord_sync_groups",

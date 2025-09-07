@@ -394,8 +394,9 @@ export const createChordCaption = async (chordData, favoriteId, userId) => {
         chord_data: chordData.chord_data || null,
         display_order: newDisplayOrder,
         serial_number: nextSerialNumber,
-        sync_group_id: null,
-        is_master: false
+        // NEW SCHEMA: Updated field names and removed is_master
+        chord_group_id: null,
+        chord_group_name: null
       })
       .select()
       .single()
@@ -524,29 +525,31 @@ export const deleteChordCaption = async (chordId) => {
 
 /**
  * Create a new sync group
+ * UPDATED: Now uses chord_groups table instead of chord_sync_groups
  */
-export const createSyncGroup = async (favoriteId, userId) => {
+export const createSyncGroup = async (favoriteId, userId, groupName = 'New Group') => {
   try {
     // Get next available color from our 12-color palette
     const { data: existingGroups } = await supabase
-      .from('chord_sync_groups')
+      .from('chord_groups')
       .select('group_color')
       .eq('favorite_id', favoriteId)
-    
+
     const colorPalette = [
       '#FFB3BA', '#BAFFC9', '#BAE1FF', '#FFFFBA', '#FFB3F7', '#B3FFE6',
       '#FFD4B3', '#E6B3FF', '#B3FFB3', '#FFE6B3', '#B3D4FF', '#FFB3D4'
     ]
-    
+
     const nextColor = colorPalette[(existingGroups?.length || 0) % 12]
-    
-    // Create the sync group
+
+    // Create the sync group in chord_groups table (NEW SCHEMA)
     const { data, error } = await supabase
-      .from('chord_sync_groups')
+      .from('chord_groups')
       .insert({
         favorite_id: favoriteId,
         user_id: userId,
-        group_color: nextColor
+        group_color: nextColor,
+        group_name: groupName
       })
       .select()
       .single()
@@ -568,13 +571,15 @@ export const createSyncGroup = async (favoriteId, userId) => {
 /**
  * Link a chord to a sync group
  */
-export const linkChordToGroup = async (chordId, syncGroupId, isMaster = false) => {
+// NEW SCHEMA: Removed isMaster parameter since we no longer use is_master field
+export const linkChordToGroup = async (chordId, syncGroupId) => {
   try {
     const { data, error } = await supabase
       .from('chord_captions')
       .update({
-        sync_group_id: syncGroupId,
-        is_master: isMaster
+        // NEW SCHEMA: Updated field names and removed is_master
+        chord_group_id: syncGroupId,
+        chord_group_name: null // Will be set when group is assigned
       })
       .eq('id', chordId)
       .select()
@@ -602,11 +607,13 @@ export const updateSyncGroupTiming = async (masterChordId, newStartTime, newEndT
     // Get the sync group ID from master chord
     const { data: masterChord } = await supabase
       .from('chord_captions')
-      .select('sync_group_id')
+      // NEW SCHEMA: Updated field name
+      .select('chord_group_id')
       .eq('id', masterChordId)
       .single()
     
-    if (!masterChord?.sync_group_id) {
+    // NEW SCHEMA: Updated field name
+    if (!masterChord?.chord_group_id) {
       throw new Error('Master chord not found or not in sync group')
     }
     
@@ -631,8 +638,9 @@ export const updateSyncGroupTiming = async (masterChordId, newStartTime, newEndT
         start_time: newStartTime,
         end_time: newEndTime
       })
-      .eq('sync_group_id', masterChord.sync_group_id)
-      .eq('is_master', false)
+      // NEW SCHEMA: Updated field name and removed is_master filter
+      .eq('chord_group_id', masterChord.chord_group_id)
+      .ne('id', masterChordId) // Exclude the master chord itself
     
     if (childrenError) {
       console.error('❌ Error updating child chord timing:', childrenError)
@@ -656,7 +664,8 @@ export const getSyncGroupChords = async (syncGroupId) => {
     const { data, error } = await supabase
       .from('chord_captions')
       .select('*')
-      .eq('sync_group_id', syncGroupId)
+      // NEW SCHEMA: Updated field name
+      .eq('chord_group_id', syncGroupId)
       .order('display_order', { ascending: true })
     
     if (error) {

@@ -54,8 +54,11 @@ export const loadChordCaptions = async (videoId, userId, setIsLoadingChords, set
       chord_data: chord.chord_data,
       display_order: chord.display_order,
       serial_number: chord.serial_number,
-      sync_group_id: chord.sync_group_id,
-      is_master: chord.is_master,
+      // NEW SCHEMA: Updated field names and removed is_master
+      chord_group_id: chord.chord_group_id,
+      chord_group_name: chord.chord_group_name,
+      // NEW FIELD: Include fret position information
+      fret_position: chord.fret_position,
       favorite_id: chord.favorite_id,
       user_id: chord.user_id,
       created_at: chord.created_at,
@@ -123,8 +126,9 @@ export const saveChordCaptions = async (chordCaptions, videoId, userId, setIsLoa
       chord_data: chord.chord_data || null,
       display_order: chord.display_order,
       serial_number: chord.serial_number,
-      sync_group_id: chord.sync_group_id || null,
-      is_master: chord.is_master || false
+      // NEW SCHEMA: Updated field names and removed is_master
+      chord_group_id: chord.chord_group_id || null,
+      chord_group_name: chord.chord_group_name || null
     }))
     
     // Insert all chord captions
@@ -166,6 +170,10 @@ export const updateChordCaption = async (chordId, updates, userId, setIsLoadingC
         end_time: updates.end_time,
         chord_data: updates.chord_data || null,
         display_order: updates.display_order,
+        // NEW SCHEMA: Include group and position fields
+        chord_group_id: updates.chord_group_id,
+        chord_group_name: updates.chord_group_name,
+        fret_position: updates.fret_position,
         updated_at: new Date().toISOString()
       })
       .eq('id', chordId)
@@ -184,8 +192,11 @@ export const updateChordCaption = async (chordId, updates, userId, setIsLoadingC
       chord_data: updatedChordCaption.chord_data,
       display_order: updatedChordCaption.display_order,
       serial_number: updatedChordCaption.serial_number,
-      sync_group_id: updatedChordCaption.sync_group_id,
-      is_master: updatedChordCaption.is_master,
+      // NEW SCHEMA: Updated field names and removed is_master
+      chord_group_id: updatedChordCaption.chord_group_id,
+      chord_group_name: updatedChordCaption.chord_group_name,
+      // NEW FIELD: Include fret position information
+      fret_position: updatedChordCaption.fret_position,
       favorite_id: updatedChordCaption.favorite_id,
       user_id: updatedChordCaption.user_id,
       created_at: updatedChordCaption.created_at,
@@ -289,6 +300,11 @@ export const deleteAllChordCaptions = async (videoId, userId, setIsLoadingChords
  */
 export const createChordCaption = async (chordData, videoId, userId, setIsLoadingChords, setDbError) => {
   try {
+    console.log('🎸 CREATE CHORD DB - Starting createChordCaption...')
+    console.log('🎸 CREATE CHORD DB - chordData:', chordData)
+    console.log('🎸 CREATE CHORD DB - videoId:', videoId)
+    console.log('🎸 CREATE CHORD DB - userId:', userId)
+
     setIsLoadingChords(true)
     setDbError(null)
     
@@ -351,8 +367,11 @@ export const createChordCaption = async (chordData, videoId, userId, setIsLoadin
         chord_data: chordData.chord_data || null,
         display_order: newDisplayOrder,
         serial_number: nextSerialNumber,
-        sync_group_id: null,
-        is_master: false
+        // NEW SCHEMA: Updated field names and removed is_master
+        chord_group_id: chordData.chord_group_id || null,
+        chord_group_name: chordData.chord_group_name || null,
+        // NEW FIELD: Include fret position information
+        fret_position: chordData.fret_position || null
       }])
       .select()
       .single()
@@ -369,20 +388,26 @@ export const createChordCaption = async (chordData, videoId, userId, setIsLoadin
       chord_data: createdChordCaption.chord_data,
       display_order: createdChordCaption.display_order,
       serial_number: createdChordCaption.serial_number,
-      sync_group_id: createdChordCaption.sync_group_id,
-      is_master: createdChordCaption.is_master,
+      // NEW SCHEMA: Updated field names and removed is_master
+      chord_group_id: createdChordCaption.chord_group_id,
+      chord_group_name: createdChordCaption.chord_group_name,
+      // NEW FIELD: Include fret position information
+      fret_position: createdChordCaption.fret_position,
       favorite_id: createdChordCaption.favorite_id,
       user_id: createdChordCaption.user_id,
       created_at: createdChordCaption.created_at,
       updated_at: createdChordCaption.updated_at
     }
     
+    console.log('✅ CREATE CHORD DB - Returning transformed chord:', transformedChordCaption)
     return transformedChordCaption
   } catch (error) {
-    console.error('❌ Error creating chord caption:', error)
+    console.error('❌ CREATE CHORD DB - Error in createChordCaption:', error)
+    console.error('❌ CREATE CHORD DB - Error stack:', error.stack)
     setDbError('Failed to create chord caption')
     return null
   } finally {
+    console.log('🎸 CREATE CHORD DB - Finally block, setting loading to false')
     setIsLoadingChords(false)
   }
 }

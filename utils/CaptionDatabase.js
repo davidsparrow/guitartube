@@ -480,8 +480,9 @@ export const createChordCaptionRecord = async (chordData, favoriteId, userId) =>
         chord_data: chordData.chord_data || {},
         display_order: chordData.display_order || 1,
         serial_number: chordData.serial_number || 1,
-        sync_group_id: chordData.sync_group_id || null,
-        is_master: chordData.is_master || false
+        // NEW SCHEMA: Updated field names and removed is_master
+        chord_group_id: chordData.chord_group_id || null,
+        chord_group_name: chordData.chord_group_name || null
       }])
       .select()
 
@@ -519,8 +520,9 @@ export const updateChordCaptionRecord = async (chordId, updates, userId) => {
     if (updates.chord_data !== undefined) updateData.chord_data = updates.chord_data
     if (updates.display_order !== undefined) updateData.display_order = updates.display_order
     if (updates.serial_number !== undefined) updateData.serial_number = updates.serial_number
-    if (updates.sync_group_id !== undefined) updateData.sync_group_id = updates.sync_group_id
-    if (updates.is_master !== undefined) updateData.is_master = updates.is_master
+    // NEW SCHEMA: Updated field names and removed is_master
+    if (updates.chord_group_id !== undefined) updateData.chord_group_id = updates.chord_group_id
+    if (updates.chord_group_name !== undefined) updateData.chord_group_name = updates.chord_group_name
 
     const { data, error } = await supabase
       .from('chord_captions')
@@ -602,8 +604,9 @@ export const duplicateChordCaptionRecord = async (originalChord, favoriteId, use
       chord_data: originalChord.chord_data || {},
       display_order: originalChord.display_order || 1, // Caller should set appropriate order
       serial_number: originalChord.serial_number || 1, // Caller should set appropriate serial
-      sync_group_id: originalChord.sync_group_id || null,
-      is_master: false // Duplicates are never masters
+      // NEW SCHEMA: Updated field names and removed is_master
+      chord_group_id: originalChord.chord_group_id || null,
+      chord_group_name: originalChord.chord_group_name || null
     }
 
     const { data, error } = await supabase

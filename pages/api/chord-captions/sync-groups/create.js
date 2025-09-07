@@ -30,8 +30,8 @@ export default async function handler(req, res) {
       });
     }
 
-    // Extract request parameters
-    const { favoriteId, groupColor = '#3B82F6' } = req.body;
+    // Extract request parameters (UPDATED: Added groupName parameter)
+    const { favoriteId, groupColor = '#3B82F6', groupName = 'New Group' } = req.body;
 
     // Validate required parameters
     if (!favoriteId) {
@@ -59,11 +59,12 @@ export default async function handler(req, res) {
       });
     }
 
-    // Call the SQL helper function to create the sync group
+    // Call the SQL helper function to create the sync group (UPDATED: Added group_name parameter)
     const { data, error } = await supabase.rpc('create_chord_sync_group', {
       p_favorite_id: favoriteId,
       p_user_id: user.id,
-      p_group_color: groupColor
+      p_group_color: groupColor,
+      p_group_name: groupName
     });
 
     if (error) {
