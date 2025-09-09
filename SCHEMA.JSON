@@ -1022,6 +1022,13 @@
     "column_default": null
   },
   {
+    "table_name": "favorites",
+    "column_name": "scroll_speed",
+    "data_type": "numeric",
+    "is_nullable": "YES",
+    "column_default": "1.0"
+  },
+  {
     "table_name": "feature_gates",
     "column_name": "id",
     "data_type": "uuid",

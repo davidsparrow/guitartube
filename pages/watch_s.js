@@ -2419,22 +2419,11 @@ export default function WatchS() {
           {/* Control Strips Container - Single Row for Scrolling Content */}
           <div className="h-full relative">
 
-            {/* Single Scrolling Row - Split into Lyrics (Left) and Chord SVGs (Right) */}
+            {/* Single Scrolling Row - Split into Chord SVGs (Left) and Scrolling Lyrics (Right) */}
             {showScrollRow && (
               <div className="absolute bottom-0 left-0 right-0 flex border-2 border-white rounded-lg overflow-hidden h-full transition-all duration-300">
-                {/* Left Half - Scrollable Lyrics */}
-                <div className="w-1/2 h-full p-2 bg-black/80 border-r border-white overflow-hidden">
-                  <SongContentScroller
-                    content={songContent}
-                    isLoading={isLoadingSongContent}
-                    error={lyricsError}
-                    currentTime={currentTimeSeconds}
-                    onRetry={loadSongContent}
-                  />
-                </div>
-
-                {/* Right Half - 3x2 Grid of Chord SVGs */}
-                <div className="w-1/2 h-full p-2 bg-black/80">
+                {/* Left Half - 3x2 Grid of Chord SVGs */}
+                <div className="w-1/2 h-full p-2 bg-black/80 border-r border-white">
                   <div className="h-full grid grid-cols-3 grid-rows-2 gap-1">
                     {(() => {
                       // Get current chord captions based on video time
@@ -2496,7 +2485,21 @@ export default function WatchS() {
                     </div>
                   )}
                 </div>
-            </div>
+
+                {/* Right Half - Scrollable Lyrics */}
+                <div className="w-1/2 h-full p-2 bg-black/80 overflow-hidden">
+                  <SongContentScroller
+                    content={songContent}
+                    isLoading={isLoadingSongContent}
+                    error={lyricsError}
+                    currentTime={currentTimeSeconds}
+                    onRetry={loadSongContent}
+                    player={player}
+                    videoId={videoId}
+                    userId={user?.id}
+                  />
+                </div>
+              </div>
             )}
 
 
