@@ -423,12 +423,19 @@ export default function Search() {
         remaining: Math.max(0, limit - used)
       });
       
+      // Create specific messages based on user's situation
+      const userTier = profile?.subscription_tier || 'freebird';
+      const tierNames = { freebird: 'Freebird', roadie: 'Roadie', hero: 'Hero' };
+      const currentTierName = tierNames[userTier] || 'Freebird';
+
       if (limit === 0) {
-        setCustomAlertMessage('Free users cannot search. Please upgrade to search for guitar videos.');
+        // User has a plan but 0 search limit (shouldn't happen with new system, but fallback)
+        setCustomAlertMessage(`Your ${currentTierName} plan doesn't include searches. Please upgrade to search for guitar videos.`);
       } else {
-        setCustomAlertMessage(`Daily search limit reached (${used}/${limit}). Upgrade to Hero for unlimited searches!`);
+        // User has reached their daily limit
+        setCustomAlertMessage(`🚫 Daily Search Limit Reached!\n\nYou've used all ${limit} searches in your ${currentTierName} plan today.\n\nUpgrade for more searches or try again tomorrow!`);
         setCustomAlertButtons([
-          { text: 'Upgrade Now', action: () => router.push('/pricing') },
+          { text: 'View Plans', action: () => router.push('/pricing') },
           { text: 'Close', action: () => setShowCustomAlert(false) }
         ]);
       }
@@ -550,12 +557,19 @@ export default function Search() {
         remaining: Math.max(0, limit - used)
       });
       
+      // Create specific messages based on user's situation
+      const userTier = profile?.subscription_tier || 'freebird';
+      const tierNames = { freebird: 'Freebird', roadie: 'Roadie', hero: 'Hero' };
+      const currentTierName = tierNames[userTier] || 'Freebird';
+
       if (limit === 0) {
-        setCustomAlertMessage('Free users cannot search. Please upgrade to search for guitar videos.');
+        // User has a plan but 0 search limit (shouldn't happen with new system, but fallback)
+        setCustomAlertMessage(`Your ${currentTierName} plan doesn't include searches. Please upgrade to search for guitar videos.`);
       } else {
-        setCustomAlertMessage(`Daily search limit reached (${used}/${limit}). Upgrade to Hero for unlimited searches!`);
+        // User has reached their daily limit
+        setCustomAlertMessage(`🚫 Daily Search Limit Reached!\n\nYou've used all ${limit} searches in your ${currentTierName} plan today.\n\nUpgrade for more searches or try again tomorrow!`);
         setCustomAlertButtons([
-          { text: 'Upgrade Now', action: () => router.push('/pricing') },
+          { text: 'View Plans', action: () => router.push('/pricing') },
           { text: 'Close', action: () => setShowCustomAlert(false) }
         ]);
       }
@@ -891,23 +905,55 @@ export default function Search() {
     const plan = planInfo[planType] || planInfo['freebird']
     const maxDisplay = plan.max === 'UNLIMITED' ? 'UNLIMITED' : plan.max
     
-    // Create message
-    const message = `You have ${currentCount} of ${maxDisplay} max faves in ${plan.name} Plan.`
+    // Create specific message based on situation
+    let message;
+    if (isFavorited) {
+      // User is removing a favorite
+      message = `Remove this video from your favorites?\n\nYou currently have ${currentCount} of ${maxDisplay} favorites in your ${plan.name} plan.`;
+    } else if (plan.max === 'UNLIMITED') {
+      // User has unlimited favorites
+      message = `Add this video to your favorites?\n\nYou have unlimited favorites in your ${plan.name} plan.`;
+    } else if (currentCount >= plan.max) {
+      // User has reached their limit
+      message = `⭐ Favorites Limit Reached!\n\nYou've saved ${currentCount} of ${plan.max} max favorites in your ${plan.name} plan.\n\nUpgrade for more favorites or remove some existing ones!`;
+    } else {
+      // User can add more favorites
+      message = `Add this video to your favorites?\n\nYou have ${currentCount} of ${plan.max} favorites in your ${plan.name} plan.`;
+    }
     
-    // Create buttons
-    const buttons = [
-      {
-        text: isFavorited ? 'REMOVE' : 'ADD',
-        action: () => {
-          closeCustomAlertModal()
-          handleVideoFavoriteToggle(video, isFavorited)
+    // Create buttons based on situation
+    let buttons;
+    if (!isFavorited && plan.max !== 'UNLIMITED' && currentCount >= plan.max) {
+      // User has reached limit and trying to add
+      buttons = [
+        {
+          text: 'VIEW PLANS',
+          action: () => {
+            closeCustomAlertModal()
+            router.push('/pricing')
+          }
+        },
+        {
+          text: 'CANCEL',
+          action: closeCustomAlertModal
         }
-      },
-      {
-        text: 'CANCEL',
-        action: closeCustomAlertModal
-      }
-    ]
+      ];
+    } else {
+      // Normal add/remove scenario
+      buttons = [
+        {
+          text: isFavorited ? 'REMOVE' : 'ADD',
+          action: () => {
+            closeCustomAlertModal()
+            handleVideoFavoriteToggle(video, isFavorited)
+          }
+        },
+        {
+          text: 'CANCEL',
+          action: closeCustomAlertModal
+        }
+      ];
+    }
     
     showCustomAlertModal(message, buttons)
   }

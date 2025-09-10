@@ -449,14 +449,14 @@ export default function WatchLyricsChords() {
   // Check daily watch time limits - consolidated function
   const checkDailyWatchTimeLimits = (dailyMinutes, options = {}) => {
     if (!user?.id || !planType) return options.returnBoolean ? false : null
-    
-    // Define daily limits for each plan (TODO: Move to Supabase, not hard-coded)
-    const dailyLimits = {
-      'freebird': 60,      // 60 minutes per day (1 hour)
-      'roadie': 180,   // 180 minutes per day (3 hours)
-      'hero': 480      // 480 minutes per day (8 hours)
+
+    // Get daily limits from feature gates (dynamic from admin settings)
+    const dailyLimits = featureGates?.daily_watch_time_limits || {
+      'freebird': 60,      // 60 minutes per day (1 hour) - fallback
+      'roadie': 180,       // 180 minutes per day (3 hours) - fallback
+      'hero': 480          // 480 minutes per day (8 hours) - fallback
     }
-    
+
     const userLimit = dailyLimits[planType] || dailyLimits.freebird
     const hasExceeded = dailyMinutes >= userLimit
     
@@ -467,9 +467,17 @@ export default function WatchLyricsChords() {
     
     // Show toast if exceeded
     if (hasExceeded) {
-      const message = `Daily watch time limit exceeded! You've used ${dailyMinutes} minutes of your ${userLimit} minute limit.`
+      const tierNames = { freebird: 'Freebird', roadie: 'Roadie', hero: 'Hero' };
+      const currentTierName = tierNames[planType] || 'Freebird';
+      const hoursLimit = Math.floor(userLimit / 60);
+      const minutesLimit = userLimit % 60;
+      const timeDisplay = hoursLimit > 0 ?
+        (minutesLimit > 0 ? `${hoursLimit}h ${minutesLimit}m` : `${hoursLimit} hour${hoursLimit > 1 ? 's' : ''}`) :
+        `${minutesLimit} minutes`;
+
+      const message = `⏰ Daily Watch Time Limit Reached!\n\nYou've used all ${timeDisplay} in your ${currentTierName} plan today.\n\nUpgrade for more watch time or try again tomorrow!`
       showToast(message, 'warning', [
-        { text: 'UPGRADE PLAN', action: () => window.open('/pricing', '_blank') },
+        { text: 'VIEW PLANS', action: () => window.open('/pricing', '_blank') },
         { text: 'OK', action: () => dismissAllToasts() }
       ])
     }

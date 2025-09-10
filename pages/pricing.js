@@ -1,4 +1,4 @@
-// pages/index.js - Homepage Using Your Actual Images
+// pages/pricing.js - Dynamic Pricing Page with Feature Gates Integration
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import AuthModal from '../components/AuthModal'
@@ -9,6 +9,7 @@ import { useRouter } from 'next/router'
 import { FaRegCreditCard } from "react-icons/fa"
 import { GiChickenOven, GiGuitar } from "react-icons/gi"
 import { loadStripe } from '@stripe/stripe-js'
+import { supabase } from '../lib/supabase/client'
 export default function Home() {
   const { isAuthenticated, user, profile, loading, signOut } = useAuth()
   const [showAuthModal, setShowAuthModal] = useState(false)
@@ -18,26 +19,130 @@ export default function Home() {
   const [showMenuModal, setShowMenuModal] = useState(false)
   const searchInputRef = useRef(null)
   const router = useRouter()
-  
+
   // Stripe initialization
   const [stripe, setStripe] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const footerRef = useRef()
+
+  // Feature Gates for dynamic pricing limits
+  const [featureGates, setFeatureGates] = useState(null)
+  const [featureGatesLoading, setFeatureGatesLoading] = useState(true)
+
+  // Testimonial Carousel
+  const [currentCarouselPage, setCurrentCarouselPage] = useState(0)
   
+  // Load feature gates for dynamic pricing limits
+  const loadFeatureGates = async () => {
+    try {
+      setFeatureGatesLoading(true)
+
+      const { data, error } = await supabase
+        .from('admin_settings')
+        .select('*')
+        .eq('setting_key', 'feature_gates')
+        .single()
+
+      if (error) {
+        console.error('❌ Error loading feature gates for pricing:', error)
+        // Set fallback values
+        setFeatureGates({
+          daily_search_limits: { freebird: 8, roadie: 24, hero: 100 },
+          daily_watch_time_limits: { freebird: 60, roadie: 180, hero: 480 },
+          favorite_limits: { freebird: 0, roadie: 12, hero: -1 }
+        })
+        return
+      }
+
+      if (data && data.setting_value) {
+        setFeatureGates(data.setting_value)
+        console.log('✅ Feature gates loaded for pricing:', data.setting_value)
+      } else {
+        // Set fallback values
+        setFeatureGates({
+          daily_search_limits: { freebird: 8, roadie: 24, hero: 100 },
+          daily_watch_time_limits: { freebird: 60, roadie: 180, hero: 480 },
+          favorite_limits: { freebird: 0, roadie: 12, hero: -1 }
+        })
+      }
+    } catch (error) {
+      console.error('❌ Error in loadFeatureGates for pricing:', error)
+      // Set fallback values
+      setFeatureGates({
+        daily_search_limits: { freebird: 8, roadie: 24, hero: 100 },
+        daily_watch_time_limits: { freebird: 60, roadie: 180, hero: 480 },
+        favorite_limits: { freebird: 0, roadie: 12, hero: -1 }
+      })
+    } finally {
+      setFeatureGatesLoading(false)
+    }
+  }
+
   // Prevent hydration issues
   useEffect(() => {
     setMounted(true)
-    
+
+    // Load feature gates
+    loadFeatureGates()
+
     // Initialize Stripe
     const initStripe = async () => {
-      const stripeInstance = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
-      setStripe(stripeInstance)
+      console.log('🔄 Initializing Stripe...')
+      console.log('📝 Stripe Key exists:', !!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+      console.log('🔑 Stripe Key (first 10 chars):', process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.substring(0, 10))
+
+      try {
+        const stripeInstance = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+        console.log('✅ Stripe loaded successfully:', !!stripeInstance)
+        setStripe(stripeInstance)
+      } catch (error) {
+        console.error('❌ Stripe loading failed:', error)
+      }
     }
-    
+
     if (process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
+      console.log('🚀 Starting Stripe initialization...')
       initStripe()
+    } else {
+      console.warn('⚠️ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY not found')
     }
   }, [])
+
+  // Auto-advance carousel every 20 seconds
+  useEffect(() => {
+    if (!mounted) return
+
+    const interval = setInterval(() => {
+      setCurrentCarouselPage((prevPage) => (prevPage + 1) % 3)
+    }, 20000) // 20 seconds
+
+    return () => clearInterval(interval)
+  }, [mounted])
+
+  // Helper functions to format limits for display
+  const formatSearchLimit = (tier) => {
+    if (!featureGates?.daily_search_limits) return 'Loading...'
+    const limit = featureGates.daily_search_limits[tier]
+    return limit.toString() // Show exact numbers from DB
+  }
+
+  const formatWatchTimeLimit = (tier) => {
+    if (!featureGates?.daily_watch_time_limits) return 'Loading...'
+    const minutes = featureGates.daily_watch_time_limits[tier]
+    const hours = Math.floor(minutes / 60)
+    const remainingMinutes = minutes % 60
+
+    if (hours >= 8) return `${hours} Hrs.`
+    if (remainingMinutes === 0) return `${hours} Hr${hours !== 1 ? 's' : ''}.`
+    return `${hours}h ${remainingMinutes}m`
+  }
+
+  const formatFavoriteLimit = (tier) => {
+    if (!featureGates?.favorite_limits) return 'Loading...'
+    const limit = featureGates.favorite_limits[tier]
+    return limit === -1 ? 'UNLIMITED' : limit.toString() // Show UNLIMITED only for -1
+  }
+
   // REMOVED: Smart redirect logic for authenticated users
   // Users need to be able to access the pricing page to select plans!
 
@@ -200,10 +305,20 @@ export default function Home() {
       overflow: 'hidden'
     }}>
       {/* Full-Screen Background - NEW DARK IMAGE */}
-      <div 
+      <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat hidden md:block"
         style={{
-          backgroundImage: `url('/images/gt_splashBG_dark.png')`,
+          backgroundImage: `url('/images/gt_splashBG_1200_dark22.png')`,
+          width: '100%',
+          height: '100%',
+          minWidth: '100vw',
+          minHeight: '100vh',
+        }}
+      />
+      {/* 50% Dark Overlay */}
+      <div
+        className="absolute inset-0 bg-black bg-opacity-60 hidden md:block"
+        style={{
           width: '100%',
           height: '100%',
           minWidth: '100vw',
@@ -256,25 +371,25 @@ export default function Home() {
           {/* Pricing Tiers */}
           <div className="flex flex-col md:grid md:grid-cols-3 gap-6 space-y-5 md:space-y-0">
             {/* Freebird */}
-            <div className="border border-white/60 rounded-xl p-6 relative bg-black/75">
-              
+            <div className="border border-white/60 rounded-xl p-6 pb-9 relative bg-black/75">
+
               {/* Plan Icon - Upper Right */}
               <div className="absolute top-4 right-4">
-                <img 
-                  src="/images/plan_icon_freebird.png" 
-                  alt="Freebird Plan Icon" 
+                <img
+                  src="/images/plan_icon_freebird.png"
+                  alt="Freebird Plan Icon"
                   className="w-12 h-12 filter brightness-0 invert"
                 />
               </div>
-              
-              {/* No Credit Card Pill - Bottom Edge Overlap */}
-              <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-bold">
+
+              {/* No Credit Card Pill - Bottom Edge Overlap - Made Wider */}
+              <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-7 py-1 rounded-full text-xs font-bold whitespace-nowrap">
                 No credit card
               </div>
-              <div className="mb-6">
-                <div className="-mt-2">
+              <div className="mb-6 mt-2">
+                <div className="mt-1">
                   <h3 className="text-2xl font-bold text-left">Freebird</h3>
-                  <div className="text-gray-400 font-bold text-base">free</div>
+                  <div className="text-gray-400 font-bold text-base">100% Free</div>
                 </div>
               </div>
               <div className="space-y-3 text-sm">
@@ -300,9 +415,9 @@ export default function Home() {
                 </div>
               </div>
               <div className="mt-6 space-y-2 text-sm text-gray-400">
-                <div>max faves: <span className="text-white">0</span></div>
-                <div>max daily searches: <span className="text-white">12</span></div>
-                <div>max daily watch time: <span className="text-white">1 Hr.</span></div>
+                <div>max faves: <span className="text-white">{formatFavoriteLimit('freebird')}</span></div>
+                <div>max daily searches: <span className="text-white">{formatSearchLimit('freebird')}</span></div>
+                <div>max daily watch time: <span className="text-white">{formatWatchTimeLimit('freebird')}</span></div>
               </div>
               <button 
                 onClick={handleFreePlanSelection}
@@ -328,29 +443,29 @@ export default function Home() {
             </div>
 
             {/* Roadie */}
-            <div className="border border-yellow-500 rounded-xl p-6 relative bg-black/75">
-              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-yellow-500 text-black px-4 py-1 rounded-full text-sm font-bold">
+            <div className="border border-orange-500 rounded-xl p-6 pb-9 relative bg-black/75">
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-orange-500 text-black px-4 py-1 rounded-full text-sm font-bold">
                 POPULAR
               </div>
-              
+
               {/* Plan Icon - Upper Right */}
               <div className="absolute top-4 right-4">
-                <img 
-                  src="/images/plan_icon_roadie.png" 
-                  alt="Roadie Plan Icon" 
+                <img
+                  src="/images/plan_icon_roadie.png"
+                  alt="Roadie Plan Icon"
                   className="w-12 h-12"
                   style={{ filter: 'hue-rotate(45deg) saturate(200%) brightness(1.6)' }}
                 />
               </div>
-              
-              {/* 30-day Trial Pill - Bottom Edge Overlap */}
-              <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-bold">
+
+              {/* 30-day Trial Pill - Bottom Edge Overlap - Made Wider */}
+              <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-7 py-1 rounded-full text-xs font-bold whitespace-nowrap">
                 30-day Free Trial
               </div>
-              <div className="mb-6">
-                <div className="-mt-2">
+              <div className="mb-6 mt-2">
+                <div className="mt-1">
                   <h3 className="text-2xl font-bold text-left">Roadie</h3>
-                  <div className="text-yellow-400 font-bold text-base">
+                  <div className="text-orange-400 font-bold text-base">
                     ${isAnnualBilling ? '8' : '10'}/mo.
                   </div>
                 </div>
@@ -378,15 +493,15 @@ export default function Home() {
                 </div>
               </div>
               <div className="mt-6 space-y-2 text-sm text-gray-400">
-                <div>max faves: <span className="text-yellow-400">12</span></div>
-                <div>max daily searches: <span className="text-yellow-400">36</span></div>
-                <div>max daily watch time: <span className="text-yellow-400">3 Hrs.</span></div>
+                <div>max faves: <span className="text-orange-400">{formatFavoriteLimit('roadie')}</span></div>
+                <div>max daily searches: <span className="text-orange-400">{formatSearchLimit('roadie')}</span></div>
+                <div>max daily watch time: <span className="text-orange-400">{formatWatchTimeLimit('roadie')}</span></div>
               </div>
               
-              <button 
+              <button
                 onClick={() => handleCheckout('roadie')}
                 disabled={isLoading}
-                className="w-full mt-6 bg-yellow-500 text-black py-3 rounded-lg hover:bg-yellow-400 transition-colors font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                className="w-full mt-6 bg-orange-500 text-black py-3 rounded-lg hover:bg-orange-400 transition-colors font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
               >
                 {isLoading ? (
                   <div className="flex items-center space-x-2">
@@ -400,23 +515,23 @@ export default function Home() {
             </div>
 
             {/* Hero */}
-            <div className="border rounded-xl p-6 relative bg-black/75" style={{ borderColor: '#8dc641' }}>
+            <div className="border rounded-xl p-6 pb-9 relative bg-black/75" style={{ borderColor: '#8dc641' }}>
               {/* Plan Icon - Upper Right */}
               <div className="absolute top-4 right-4">
-                <img 
-                  src="/images/plan_icon_hero.png" 
-                  alt="Hero Plan Icon" 
+                <img
+                  src="/images/plan_icon_hero.png"
+                  alt="Hero Plan Icon"
                   className="w-14 h-14"
                   style={{ filter: 'brightness(0.8)' }}
                 />
               </div>
-              
-              {/* 30-day Trial Pill - Bottom Edge Overlap */}
-              <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-bold">
+
+              {/* 30-day Trial Pill - Bottom Edge Overlap - Made Wider */}
+              <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-7 py-1 rounded-full text-xs font-bold whitespace-nowrap">
                 30-day Free Trial
               </div>
-              <div className="mb-6">
-                <div className="-mt-2">
+              <div className="mb-6 mt-2">
+                <div className="mt-1">
                   <h3 className="text-2xl font-bold text-left">Hero</h3>
                   <div className="font-bold text-base" style={{ color: '#8dc641' }}>
                     ${isAnnualBilling ? '16' : '19'}/mo.
@@ -446,9 +561,9 @@ export default function Home() {
                 </div>
               </div>
               <div className="mt-6 space-y-2 text-sm text-gray-400">
-                <div>max faves: <span style={{ color: '#8dc641' }}>UNLIMITED</span></div>
-                <div>max daily searches: <span style={{ color: '#8dc641' }}>UNLIMITED</span></div>
-                <div>max daily watch time: <span style={{ color: '#8dc641' }}>8 Hrs.</span></div>
+                <div>max faves: <span style={{ color: '#8dc641' }}>{formatFavoriteLimit('hero')}</span></div>
+                <div>max daily searches: <span style={{ color: '#8dc641' }}>{formatSearchLimit('hero')}</span></div>
+                <div>max daily watch time: <span style={{ color: '#8dc641' }}>{formatWatchTimeLimit('hero')}</span></div>
               </div>
               
               <button 
@@ -466,6 +581,240 @@ export default function Home() {
                   'GO BROKE'
                 )}
               </button>
+            </div>
+          </div>
+
+          {/* Testimonial Carousel */}
+          <div className="mt-20">
+            <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 text-yellow-400">What Our Users Say</h2>
+
+            {/* Carousel Container */}
+            <div className="relative">
+              {/* Review Cards - Page 1 of 3 */}
+              {currentCarouselPage === 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Review Card 1 */}
+                  <div className="p-4 text-center">
+                    <div className="flex justify-center mb-2">
+                      <div className="flex space-x-1">
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                      </div>
+                    </div>
+                    <div className="relative">
+                      <p className="text-white text-sm leading-relaxed px-2">
+                        "The pricing is so reasonable! Finally found a guitar learning platform that doesn't break the bank."
+                      </p>
+                    </div>
+                    <div className="mt-2 text-right">
+                      <p className="text-white/70 text-xs italic">Marcus T.</p>
+                    </div>
+                  </div>
+
+                  {/* Review Card 2 */}
+                  <div className="p-4 text-center">
+                    <div className="flex justify-center mb-2">
+                      <div className="flex space-x-1">
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                      </div>
+                    </div>
+                    <div className="relative">
+                      <p className="text-white text-sm leading-relaxed px-2">
+                        "Love that I can start free and upgrade when I'm ready. No pressure, just great value!"
+                      </p>
+                    </div>
+                    <div className="mt-2 text-right">
+                      <p className="text-white/70 text-xs italic">Jennifer K.</p>
+                    </div>
+                  </div>
+
+                  {/* Review Card 3 */}
+                  <div className="p-4 text-center">
+                    <div className="flex justify-center mb-2">
+                      <div className="flex space-x-1">
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                      </div>
+                    </div>
+                    <div className="relative">
+                      <p className="text-white text-sm leading-relaxed px-2">
+                        "The Hero plan gives me everything I need. Worth every penny for unlimited access!"
+                      </p>
+                    </div>
+                    <div className="mt-2 text-right">
+                      <p className="text-white/70 text-xs italic">Carlos R.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Review Cards - Page 2 of 3 */}
+              {currentCarouselPage === 1 && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Review Card 4 */}
+                  <div className="p-4 text-center">
+                    <div className="flex justify-center mb-2">
+                      <div className="flex space-x-1">
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                      </div>
+                    </div>
+                    <div className="relative">
+                      <p className="text-white text-sm leading-relaxed px-2">
+                        "The annual billing discount is amazing! Saved me $48 this year on my Roadie plan."
+                      </p>
+                    </div>
+                    <div className="mt-2 text-right">
+                      <p className="text-white/70 text-xs italic">Amanda S.</p>
+                    </div>
+                  </div>
+
+                  {/* Review Card 5 */}
+                  <div className="p-4 text-center">
+                    <div className="flex justify-center mb-2">
+                      <div className="flex space-x-1">
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                      </div>
+                    </div>
+                    <div className="relative">
+                      <p className="text-white text-sm leading-relaxed px-2">
+                        "Transparent pricing with no hidden fees. What you see is what you pay - refreshing!"
+                      </p>
+                    </div>
+                    <div className="mt-2 text-right">
+                      <p className="text-white/70 text-xs italic">Robert H.</p>
+                    </div>
+                  </div>
+
+                  {/* Review Card 6 */}
+                  <div className="p-4 text-center">
+                    <div className="flex justify-center mb-2">
+                      <div className="flex space-x-1">
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                      </div>
+                    </div>
+                    <div className="relative">
+                      <p className="text-white text-sm leading-relaxed px-2">
+                        "The 30-day free trial convinced me. Now I'm a happy Hero subscriber!"
+                      </p>
+                    </div>
+                    <div className="mt-2 text-right">
+                      <p className="text-white/70 text-xs italic">Michelle C.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Review Cards - Page 3 of 3 */}
+              {currentCarouselPage === 2 && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Review Card 7 */}
+                  <div className="p-4 text-center">
+                    <div className="flex justify-center mb-2">
+                      <div className="flex space-x-1">
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                      </div>
+                    </div>
+                    <div className="relative">
+                      <p className="text-white text-sm leading-relaxed px-2">
+                        "Best value for money in guitar learning. The features you get for the price are unbeatable!"
+                      </p>
+                    </div>
+                    <div className="mt-2 text-right">
+                      <p className="text-white/70 text-xs italic">Kevin H.</p>
+                    </div>
+                  </div>
+
+                  {/* Review Card 8 */}
+                  <div className="p-4 text-center">
+                    <div className="flex justify-center mb-2">
+                      <div className="flex space-x-1">
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                      </div>
+                    </div>
+                    <div className="relative">
+                      <p className="text-white text-sm leading-relaxed px-2">
+                        "Flexible plans that grow with you. Started free, now on Roadie, considering Hero!"
+                      </p>
+                    </div>
+                    <div className="mt-2 text-right">
+                      <p className="text-white/70 text-xs italic">Diana M.</p>
+                    </div>
+                  </div>
+
+                  {/* Review Card 9 */}
+                  <div className="p-4 text-center">
+                    <div className="flex justify-center mb-2">
+                      <div className="flex space-x-1">
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-yellow-400 text-lg">★</span>
+                      </div>
+                    </div>
+                    <div className="relative">
+                      <p className="text-white text-sm leading-relaxed px-2">
+                        "Fair pricing for premium features. GuitarTube delivers exactly what they promise!"
+                      </p>
+                    </div>
+                    <div className="mt-2 text-right">
+                      <p className="text-white/70 text-xs italic">Steven L.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Carousel Navigation - Hidden on Mobile */}
+              <div className="hidden md:flex justify-center mt-4 space-x-2">
+                <button
+                  onClick={() => setCurrentCarouselPage(0)}
+                  className={`w-3 h-3 rounded-full transition-colors ${
+                    currentCarouselPage === 0 ? 'bg-yellow-400' : 'bg-white/30'
+                  }`}
+                />
+                <button
+                  onClick={() => setCurrentCarouselPage(1)}
+                  className={`w-3 h-3 rounded-full transition-colors ${
+                    currentCarouselPage === 1 ? 'bg-yellow-400' : 'bg-white/30'
+                  }`}
+                />
+                <button
+                  onClick={() => setCurrentCarouselPage(2)}
+                  className={`w-3 h-3 rounded-full transition-colors ${
+                    currentCarouselPage === 2 ? 'bg-yellow-400' : 'bg-white/30'
+                  }`}
+                />
+              </div>
             </div>
           </div>
         </div>

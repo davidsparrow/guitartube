@@ -16,6 +16,8 @@ export const useUser = () => {
 export const UserProvider = ({ children }) => {
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [featureGates, setFeatureGates] = useState(null)
+  const [featureGatesLoading, setFeatureGatesLoading] = useState(true)
 
   // Get user from AuthContext
   const { user } = useAuth()
@@ -29,17 +31,74 @@ export const UserProvider = ({ children }) => {
     }
   }, [user])
 
+  // Load feature gates on mount
+  useEffect(() => {
+    loadFeatureGates()
+  }, [])
+
   // Daily search reset logic - check if we need to reset daily counts
   useEffect(() => {
     if (profile?.last_search_reset) {
       const lastReset = new Date(profile.last_search_reset);
       const today = new Date();
-      
+
       if (lastReset.toDateString() !== today.toDateString()) {
         resetDailySearchCount();
       }
     }
   }, [profile?.last_search_reset])
+
+  // Load feature gates from admin settings
+  const loadFeatureGates = async () => {
+    try {
+      setFeatureGatesLoading(true)
+
+      const { data, error } = await supabase
+        .from('admin_settings')
+        .select('*')
+        .eq('setting_key', 'feature_gates')
+        .single()
+
+      if (error) {
+        console.error('❌ Error loading feature gates:', error)
+        // Set default fallback values
+        setFeatureGates({
+          daily_search_limits: {
+            freebird: 8,
+            roadie: 24,
+            hero: 100
+          }
+        })
+        return
+      }
+
+      if (data && data.setting_value) {
+        setFeatureGates(data.setting_value)
+        console.log('✅ Feature gates loaded:', data.setting_value)
+      } else {
+        // Set default fallback values
+        setFeatureGates({
+          daily_search_limits: {
+            freebird: 8,
+            roadie: 24,
+            hero: 100
+          }
+        })
+      }
+    } catch (error) {
+      console.error('❌ Error in loadFeatureGates:', error)
+      // Set default fallback values
+      setFeatureGates({
+        daily_search_limits: {
+          freebird: 8,
+          roadie: 24,
+          hero: 100
+        }
+      })
+    } finally {
+      setFeatureGatesLoading(false)
+    }
+  }
 
   const fetchUserProfile = async (userId) => {
     if (!userId) return
@@ -74,23 +133,26 @@ export const UserProvider = ({ children }) => {
     }
   }
 
-  // Daily search limit management
+  // Daily search limit management - now uses dynamic feature gates
   const getDailySearchLimit = () => {
-    const limit = (() => {
-      switch (profile?.subscription_tier) {
-        case 'freebird': return 0;      // Free users: 0 searches
-        case 'roadie': return 36;       // Roadie users: 36 searches (from pricing.js)
-        case 'hero': return 999999;     // Hero users: unlimited
-        default: return 0;
-      }
-    })();
-    
-    console.log('🔍 getDailySearchLimit:', {
-      userTier: profile?.subscription_tier,
+    // Get limits from feature gates (dynamic from admin settings)
+    const searchLimits = featureGates?.daily_search_limits || {
+      freebird: 8,      // Fallback: 8 searches for free users
+      roadie: 24,       // Fallback: 24 searches for roadie users
+      hero: 100         // Fallback: 100 searches for hero users
+    }
+
+    const userTier = profile?.subscription_tier || 'freebird'
+    const limit = searchLimits[userTier] || searchLimits.freebird
+
+    console.log('🔍 getDailySearchLimit (Dynamic):', {
+      userTier: userTier,
+      featureGatesLoaded: !!featureGates,
+      searchLimits: searchLimits,
       dailyLimit: limit,
       dailyUsed: profile?.daily_searches_used || 0
     });
-    
+
     return limit;
   }
 
@@ -159,31 +221,34 @@ export const UserProvider = ({ children }) => {
     // State
     profile,
     loading,
-    
+    featureGates,
+    featureGatesLoading,
+
     // Computed values
     isPremium: profile?.subscription_tier === 'premium',
     hasPlanAccess: !!(profile?.subscription_tier && profile?.subscription_status === 'active'),
     planType: profile?.subscription_tier || 'freebird',
     planStatus: profile?.subscription_status || null,
-    
-    // Feature access - Free users cannot search, only paid users can
-    canSearch: profile?.subscription_tier !== 'freebird' && profile?.subscription_status === 'active',
-    
+
+    // Feature access - Now uses dynamic search limits from feature gates
+    canSearch: checkDailySearchLimit() && profile?.subscription_status === 'active',
+
     // User data helpers
     userName: profile?.full_name || profile?.email?.split('@')[0] || 'User',
     userEmail: profile?.email,
     dailySearchesUsed: profile?.daily_searches_used || 0,
     searchLimit: getDailySearchLimit(),
-    
+
     // Daily search management
     getDailySearchLimit,
     checkDailySearchLimit,
     incrementDailySearchCount,
     resetDailySearchCount,
-    
+
     // Actions
     fetchUserProfile,
     refreshProfile,
+    loadFeatureGates,
   }
 
   return (

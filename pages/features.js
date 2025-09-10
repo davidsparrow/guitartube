@@ -215,7 +215,7 @@ export default function Features() {
                       </p>
                     </div>
                     <div className="mt-2 text-right">
-                      <p className="text-white/70 text-xs italic">Sarah - Guitar Student</p>
+                      <p className="text-white/70 text-xs italic">Sarah J.</p>
                     </div>
                   </div>
 
@@ -236,7 +236,7 @@ export default function Features() {
                       </p>
                     </div>
                     <div className="mt-2 text-right">
-                      <p className="text-white/70 text-xs italic">Mike - Rock Guitarist</p>
+                      <p className="text-white/70 text-xs italic">Mike R.</p>
                     </div>
                   </div>
 
@@ -257,7 +257,7 @@ export default function Features() {
                       </p>
                     </div>
                     <div className="mt-2 text-right">
-                      <p className="text-white/70 text-xs italic">Alex - Beginner Guitarist</p>
+                      <p className="text-white/70 text-xs italic">Alex B.</p>
                     </div>
                   </div>
                 </div>
@@ -283,7 +283,7 @@ export default function Features() {
                       </p>
                     </div>
                     <div className="mt-2 text-right">
-                      <p className="text-white/70 text-xs italic">Emma - Folk Guitarist</p>
+                      <p className="text-white/70 text-xs italic">Emma F.</p>
                     </div>
                   </div>
 
@@ -304,7 +304,7 @@ export default function Features() {
                       </p>
                     </div>
                     <div className="mt-2 text-right">
-                      <p className="text-white/70 text-xs italic">David - Working Professional</p>
+                      <p className="text-white/70 text-xs italic">David W.</p>
                     </div>
                   </div>
 
@@ -325,7 +325,7 @@ export default function Features() {
                       </p>
                     </div>
                     <div className="mt-2 text-right">
-                      <p className="text-white/70 text-xs italic">Lisa - Visual Learner</p>
+                      <p className="text-white/70 text-xs italic">Lisa V.</p>
                     </div>
                   </div>
                 </div>
@@ -351,7 +351,7 @@ export default function Features() {
                       </p>
                     </div>
                     <div className="mt-2 text-right">
-                      <p className="text-white/70 text-xs italic">Tom - Tab Reader</p>
+                      <p className="text-white/70 text-xs italic">Tom T.</p>
                     </div>
                   </div>
 
@@ -372,7 +372,7 @@ export default function Features() {
                       </p>
                     </div>
                     <div className="mt-2 text-right">
-                      <p className="text-white/70 text-xs italic">Rachel - Chord Learner</p>
+                      <p className="text-white/70 text-xs italic">Rachel C.</p>
                     </div>
                   </div>
 
@@ -393,7 +393,7 @@ export default function Features() {
                       </p>
                     </div>
                     <div className="mt-2 text-right">
-                      <p className="text-white/70 text-xs italic">Chris - Guitar Enthusiast</p>
+                      <p className="text-white/70 text-xs italic">Chris G.</p>
                     </div>
                   </div>
                 </div>

@@ -68,71 +68,73 @@ export default function CommunityGuidelines() {
       />
 
       {/* Main Content - Community Guidelines */}
-      <div className="relative z-10 flex flex-col items-center justify-center px-6 mt-16 md:mt-20" style={{ 
-        height: 'calc(100vh - 120px)',
-        backgroundColor: 'transparent'
-      }}>
-        <div className="max-w-4xl w-full rounded-2xl p-8 text-white overflow-y-auto max-h-full" style={{ 
-          fontFamily: 'Futura, sans-serif',
-          scrollbarWidth: 'thin',
-          scrollbarColor: 'rgba(0, 0, 0, 0.3) transparent'
+      <div className="relative z-10 flex flex-col items-center justify-center px-6 mt-16 md:mt-20" style={{
+          height: 'calc(100vh - 120px)',
+          backgroundColor: 'transparent'
         }}>
-          <h1 className="text-4xl font-bold text-center mb-8 text-yellow-400">Community Guidelines</h1>
+          <div className="max-w-4xl w-full rounded-2xl p-8 text-white overflow-y-auto max-h-full" style={{ 
+            fontFamily: 'Futura, sans-serif',
+            scrollbarWidth: 'thin',
+            scrollbarColor: 'rgba(0, 0, 0, 0.3) transparent'
+          }}>
+            <h1 className="text-4xl font-bold text-center mb-8 text-yellow-400">Community Guidelines</h1>
+            
+            <div className="space-y-6 text-lg leading-relaxed">
+          <p className="text-center text-yellow-300 font-semibold">
+            <strong>Effective Date: January 1, 2025</strong>
+          </p>
           
-          <div className="space-y-6 text-lg leading-relaxed">
-            <p className="text-center text-yellow-300 font-semibold">
-              <strong>Effective Date: January 1, 2025</strong>
-            </p>
+          <p>
+            Welcome to GuitarTube! We're building a community of guitar enthusiasts who support and inspire each other. 
+            To ensure everyone has a positive experience, please follow these guidelines:
+          </p>
+          
+          <div className="space-y-6">
+            <section>
+              <h2 className="text-2xl font-semibold text-yellow-300 mb-4">1. BE RESPECTFUL</h2>
+              <p>
+            Treat all community members with kindness and respect. We welcome players of all skill levels, 
+            from beginners to advanced musicians. Remember that everyone was a beginner once.
+              </p>
+            </section>
             
-            <p>
-              Welcome to GuitarTube! We're building a community of guitar enthusiasts who support and inspire each other. 
-              To ensure everyone has a positive experience, please follow these guidelines:
-            </p>
+            <section>
+              <h2 className="text-2xl font-semibold text-yellow-300 mb-4">2. SHARE CONSTRUCTIVELY</h2>
+              <p>
+            When sharing feedback or advice, be constructive and encouraging. Focus on helping others improve 
+            rather than pointing out mistakes. Celebrate progress and effort.
+              </p>
+            </section>
             
-            <div className="space-y-6">
-              <section>
-                <h2 className="text-2xl font-semibold text-yellow-300 mb-4">1. BE RESPECTFUL</h2>
-                <p>
-                  Treat all community members with kindness and respect. We welcome players of all skill levels, 
-                  from beginners to advanced musicians. Remember that everyone was a beginner once.
-                </p>
-              </section>
-              
-              <section>
-                <h2 className="text-2xl font-semibold text-yellow-300 mb-4">2. SHARE CONSTRUCTIVELY</h2>
-                <p>
-                  When sharing feedback or advice, be constructive and encouraging. Focus on helping others improve 
-                  rather than pointing out mistakes. Celebrate progress and effort.
-                </p>
-              </section>
-              
-              <section>
-                <h2 className="text-2xl font-semibold text-yellow-300 mb-4">3. RESPECT COPYRIGHT</h2>
-                <p>
-                  Only share content that you have the right to use. Respect the intellectual property of artists, 
-                  songwriters, and content creators. When in doubt, seek permission or use royalty-free materials.
-                </p>
-              </section>
-              
-              <section>
-                <h2 className="text-2xl font-semibold text-yellow-300 mb-4">4. KEEP IT MUSICAL</h2>
-                <p>
-                  This is a space for guitar-related content and discussions. While we encourage friendly conversation, 
-                  please keep discussions focused on music, learning, and the guitar community.
-                </p>
-              </section>
-              
-              <section>
-                <h2 className="text-2xl font-semibold text-yellow-300 mb-4">5. REPORT ISSUES</h2>
-                <p>
-                  If you encounter content that violates these guidelines, please report it to our support team. 
-                  We're committed to maintaining a safe and welcoming environment for all members.
-                </p>
-              </section>
-              
-              <div className="bg-yellow-400/20 p-4 rounded-lg border border-yellow-400/30">
-                <p className="text-yellow-300 text-center font-semibold">
-                  <strong>Remember:</strong> The goal is to create a supportive community where guitarists can learn, 
+            <section>
+              <h2 className="text-2xl font-semibold text-yellow-300 mb-4">3. RESPECT COPYRIGHT</h2>
+              <p>
+            Only share content that you have the right to use. Respect the intellectual property of artists, 
+            songwriters, and content creators. When in doubt, seek permission or use royalty-free materials. 
+            If you add lyrics and chords moment for moment, and lyrics that are timed note for note you are breaking copyright law becasue you are COPYING a song.
+            The law provides room to TEACH/LEARN the music, focus on that aspect rather than trying to recreate songs using the captioning tools we provide.
+              </p>
+            </section>
+            
+            <section>
+              <h2 className="text-2xl font-semibold text-yellow-300 mb-4">4. KEEP IT MUSICAL</h2>
+              <p>
+            This is a space for guitar-related content and learning. If you want to interact with other Members, please use our  <a href="https://www.reddit.com/r/guitartube/" target="_blank" rel="noopener noreferrer" className="text-yellow-400 underline">Reddit Channel</a>.  
+              While we encourage friendly conversation, please keep discussions focused on music, learning, and the guitar community. And, bashing our devs of course.
+              </p>
+            </section>
+            
+            <section>
+              <h2 className="text-2xl font-semibold text-yellow-300 mb-4">5. REPORT ISSUES</h2>
+              <p>
+            If you encounter content that violates these guidelines, please report it to our support team. 
+            We're committed to maintaining a safe and welcoming environment for all members.
+              </p>
+            </section>
+            
+            <div className="bg-yellow-400/20 p-4 rounded-lg border border-yellow-400/30">
+              <p className="text-yellow-300 text-center font-semibold">
+            <strong>Remember:</strong> The goal is to create a supportive community where guitarists can learn, 
                   grow, and share their passion for music together.
                 </p>
               </div>

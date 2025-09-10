@@ -7,7 +7,6 @@ export default function FeatureGates() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
-  const [editingFeature, setEditingFeature] = useState(null)
 
 
 
@@ -40,10 +39,47 @@ export default function FeatureGates() {
         console.error('Error loading error messages:', errorMessagesError)
       }
 
-      // Combine both configurations
+      // Default feature gates structure
+      const defaultFeatureGates = {
+        feature_gates: {
+          scrolling_lyrics: {
+            display_name: "Scrolling Lyrics Page",
+            description: "Access to the enhanced scrolling lyrics page (watch_s)",
+            required_tiers: ["hero"],
+            is_enabled: true,
+            upgrade_message: "Upgrade to HERO to access the Scrolling Lyrics page with enhanced video synchronization!"
+          },
+          login_resume: {
+            display_name: "Login Resume Video",
+            description: "Automatically resume last watched video on login",
+            required_tiers: ["roadie", "hero"],
+            is_enabled: true,
+            upgrade_message: "Upgrade to ROADIE or higher to automatically resume your last video on login!"
+          },
+          caption_sharing: {
+            display_name: "Caption Sharing",
+            description: "Share videos with custom captions and timing",
+            required_tiers: ["roadie", "hero"],
+            is_enabled: true,
+            upgrade_message: "Upgrade to ROADIE or higher to share videos with custom captions!"
+          }
+        },
+        global_settings: {
+          maintenance_mode: false,
+          announcement_message: ""
+        }
+      }
+
+      // Combine both configurations with defaults
       const combinedConfig = {
+        ...defaultFeatureGates,
         ...(featureGatesData?.setting_value || {}),
-        error_messages: errorMessagesData?.setting_value || {}
+        error_messages: errorMessagesData?.setting_value || {},
+        // Ensure feature_gates exist and merge with defaults
+        feature_gates: {
+          ...defaultFeatureGates.feature_gates,
+          ...(featureGatesData?.setting_value?.feature_gates || {})
+        }
       }
 
       setFeatureGates(combinedConfig)
@@ -63,40 +99,89 @@ export default function FeatureGates() {
   const saveFeatureGates = async () => {
     try {
       setSaving(true)
-      
-      // Save feature gates
-      const { error: featureGatesError } = await supabase
-        .from('admin_settings')
-        .update({ 
-          setting_value: {
-            feature_gates: featureGates.feature_gates,
-            global_settings: featureGates.global_settings,
-            daily_limits: featureGates.daily_limits
-          },
-          updated_at: new Date().toISOString()
-        })
-        .eq('setting_key', 'feature_gates')
 
-      if (featureGatesError) throw featureGatesError
-
-      // Save error messages if they exist
-      if (featureGates.error_messages) {
-        const { error: errorMessagesError } = await supabase
-          .from('admin_settings')
-          .upsert({
-            setting_key: 'error_messages',
-            setting_name: 'Error Messages',
-            description: 'Application-wide error messages that can be customized by administrators',
-            setting_value: featureGates.error_messages,
-            is_active: true,
-            updated_at: new Date().toISOString()
-          })
-
-        if (errorMessagesError) throw errorMessagesError
+      // Prepare the complete feature gates structure for saving
+      const featureGatesPayload = {
+        feature_gates: normalizeFeatureGates(featureGates.feature_gates || {}),
+        global_settings: featureGates.global_settings || {},
+        daily_search_limits: featureGates.daily_search_limits || {
+          freebird: 8,
+          roadie: 24,
+          hero: 100
+        },
+        daily_watch_time_limits: featureGates.daily_watch_time_limits || {
+          freebird: 60,
+          roadie: 180,
+          hero: 480
+        },
+        favorite_limits: featureGates.favorite_limits || {
+          freebird: 0,
+          roadie: 12,
+          hero: -1
+        }
       }
 
-      setMessage('Feature gates and error messages saved successfully!')
-      setTimeout(() => setMessage(''), 3000)
+      // Validate feature gates structure
+      const validationErrors = []
+
+      // Check that each feature gate has required properties
+      Object.entries(featureGatesPayload.feature_gates).forEach(([key, feature]) => {
+        if (!feature.display_name) {
+          validationErrors.push(`Feature '${key}' missing display_name`)
+        }
+        if (!feature.description) {
+          validationErrors.push(`Feature '${key}' missing description`)
+        }
+        if (!Array.isArray(feature.required_tiers) || feature.required_tiers.length === 0) {
+          validationErrors.push(`Feature '${key}' missing or invalid required_tiers`)
+        }
+        if (typeof feature.is_enabled !== 'boolean') {
+          validationErrors.push(`Feature '${key}' missing or invalid is_enabled`)
+        }
+      })
+
+      if (validationErrors.length > 0) {
+        throw new Error(`Validation failed: ${validationErrors.join(', ')}`)
+      }
+
+      console.log('💾 Saving feature gates payload:', featureGatesPayload)
+
+      // Save feature gates using API endpoint with service role
+      const response = await fetch('/api/admin/feature-gates', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          featureGates: featureGatesPayload,
+          userRole: 'admin' // You could get this from user context
+        })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        console.error('❌ Feature gates API error:', result)
+        throw new Error(result.error || 'Failed to save feature gates')
+      }
+
+      console.log('✅ Feature gates saved successfully via API:', result)
+
+      // Error messages are now included in the main feature gates payload
+      // No separate save needed - they're part of featureGatesPayload above
+
+      // Verify the save was successful by reloading the data
+      await loadFeatureGates()
+
+      setMessage('✅ Feature gates and error messages saved successfully! Pricing page will update automatically.')
+      setTimeout(() => setMessage(''), 5000)
+
+      // Trigger a custom event to notify other components that feature gates have been updated
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('featureGatesUpdated', {
+          detail: { featureGates: featureGatesPayload }
+        }))
+      }
     } catch (error) {
       console.error('Error saving settings:', error)
       setMessage('Error saving settings')
@@ -138,6 +223,35 @@ export default function FeatureGates() {
     }))
   }
 
+  const updateDailyLimit = (limitType, tier, value) => {
+    setFeatureGates(prev => ({
+      ...prev,
+      [limitType]: {
+        ...prev[limitType],
+        [tier]: parseInt(value) || 0
+      }
+    }))
+  }
+
+  // Helper function to ensure feature gates have all required properties
+  const normalizeFeatureGates = (gates) => {
+    const normalized = {}
+
+    Object.entries(gates).forEach(([key, feature]) => {
+      normalized[key] = {
+        display_name: feature.display_name || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+        description: feature.description || `Access control for ${key}`,
+        required_tiers: Array.isArray(feature.required_tiers) ? feature.required_tiers : ['hero'],
+        is_enabled: typeof feature.is_enabled === 'boolean' ? feature.is_enabled : true,
+        upgrade_message: feature.upgrade_message || `Upgrade your plan to access this feature!`,
+        // Preserve any additional properties
+        ...feature
+      }
+    })
+
+    return normalized
+  }
+
   if (loading) {
     return (
       <div className="bg-white rounded-lg shadow p-6">
@@ -162,13 +276,32 @@ export default function FeatureGates() {
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Feature Gates</h2>
-        <button
-          onClick={saveFeatureGates}
-          disabled={saving}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-        >
-          {saving ? 'Saving...' : 'Save Changes'}
-        </button>
+        <div className="flex space-x-3">
+          <button
+            onClick={() => {
+              try {
+                const normalized = normalizeFeatureGates(featureGates.feature_gates || {})
+                console.log('✅ Feature gates validation passed:', normalized)
+                setMessage('✅ Feature gates structure is valid!')
+                setTimeout(() => setMessage(''), 3000)
+              } catch (error) {
+                console.error('❌ Feature gates validation failed:', error)
+                setMessage(`❌ Validation failed: ${error.message}`)
+                setTimeout(() => setMessage(''), 5000)
+              }
+            }}
+            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+          >
+            Validate
+          </button>
+          <button
+            onClick={saveFeatureGates}
+            disabled={saving}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          >
+            {saving ? 'Saving...' : 'Save Changes'}
+          </button>
+        </div>
       </div>
 
       {message && (
@@ -247,6 +380,150 @@ export default function FeatureGates() {
         </div>
       </div>
 
+      {/* Daily Limits */}
+      <div className="mb-8 p-4 bg-blue-50 rounded-lg">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Daily Limits</h3>
+        <div className="space-y-6">
+          {/* Daily Search Limits */}
+          <div>
+            <h4 className="text-md font-medium text-blue-900 mb-3">Daily Search Limits</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-blue-700 mb-2">
+                  Freebird (Free)
+                </label>
+                <input
+                  type="number"
+                  value={featureGates?.daily_search_limits?.freebird || 8}
+                  onChange={(e) => updateDailyLimit('daily_search_limits', 'freebird', e.target.value)}
+                  className="w-full px-3 py-2 border border-blue-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  min="0"
+                />
+                <p className="text-xs text-blue-600 mt-1">searches per day</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-blue-700 mb-2">
+                  Roadie
+                </label>
+                <input
+                  type="number"
+                  value={featureGates?.daily_search_limits?.roadie || 24}
+                  onChange={(e) => updateDailyLimit('daily_search_limits', 'roadie', e.target.value)}
+                  className="w-full px-3 py-2 border border-blue-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  min="0"
+                />
+                <p className="text-xs text-blue-600 mt-1">searches per day</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-blue-700 mb-2">
+                  Hero
+                </label>
+                <input
+                  type="number"
+                  value={featureGates?.daily_search_limits?.hero || 100}
+                  onChange={(e) => updateDailyLimit('daily_search_limits', 'hero', e.target.value)}
+                  className="w-full px-3 py-2 border border-blue-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  min="0"
+                />
+                <p className="text-xs text-blue-600 mt-1">searches per day</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Daily Watch Time Limits */}
+          <div>
+            <h4 className="text-md font-medium text-blue-900 mb-3">Daily Watch Time Limits (minutes)</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-blue-700 mb-2">
+                  Freebird (Free)
+                </label>
+                <input
+                  type="number"
+                  value={featureGates?.daily_watch_time_limits?.freebird || 60}
+                  onChange={(e) => updateDailyLimit('daily_watch_time_limits', 'freebird', e.target.value)}
+                  className="w-full px-3 py-2 border border-blue-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  min="0"
+                />
+                <p className="text-xs text-blue-600 mt-1">minutes per day</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-blue-700 mb-2">
+                  Roadie
+                </label>
+                <input
+                  type="number"
+                  value={featureGates?.daily_watch_time_limits?.roadie || 180}
+                  onChange={(e) => updateDailyLimit('daily_watch_time_limits', 'roadie', e.target.value)}
+                  className="w-full px-3 py-2 border border-blue-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  min="0"
+                />
+                <p className="text-xs text-blue-600 mt-1">minutes per day</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-blue-700 mb-2">
+                  Hero
+                </label>
+                <input
+                  type="number"
+                  value={featureGates?.daily_watch_time_limits?.hero || 480}
+                  onChange={(e) => updateDailyLimit('daily_watch_time_limits', 'hero', e.target.value)}
+                  className="w-full px-3 py-2 border border-blue-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  min="0"
+                />
+                <p className="text-xs text-blue-600 mt-1">minutes per day</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Favorite Limits */}
+          <div>
+            <h4 className="text-md font-medium text-blue-900 mb-3">Favorite Limits</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-blue-700 mb-2">
+                  Freebird (Free)
+                </label>
+                <input
+                  type="number"
+                  value={featureGates?.favorite_limits?.freebird || 0}
+                  onChange={(e) => updateDailyLimit('favorite_limits', 'freebird', e.target.value)}
+                  className="w-full px-3 py-2 border border-blue-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  min="0"
+                />
+                <p className="text-xs text-blue-600 mt-1">favorites saved</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-blue-700 mb-2">
+                  Roadie
+                </label>
+                <input
+                  type="number"
+                  value={featureGates?.favorite_limits?.roadie || 12}
+                  onChange={(e) => updateDailyLimit('favorite_limits', 'roadie', e.target.value)}
+                  className="w-full px-3 py-2 border border-blue-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  min="0"
+                />
+                <p className="text-xs text-blue-600 mt-1">favorites saved</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-blue-700 mb-2">
+                  Hero
+                </label>
+                <input
+                  type="number"
+                  value={featureGates?.favorite_limits?.hero || -1}
+                  onChange={(e) => updateDailyLimit('favorite_limits', 'hero', e.target.value)}
+                  className="w-full px-3 py-2 border border-blue-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  min="-1"
+                />
+                <p className="text-xs text-blue-600 mt-1">favorites saved (-1 = unlimited)</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Feature List */}
       <div className="space-y-6">
         {Object.entries(features).map(([featureKey, feature]) => (
@@ -270,34 +547,58 @@ export default function FeatureGates() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Tier Requirement */}
+              {/* Tier Requirements */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Minimum Tier
+                  Required Tiers
                 </label>
-                <select
-                  value={feature.min_tier}
-                  onChange={(e) => updateFeature(featureKey, { min_tier: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="free">FREE</option>
-                  <option value="roadie">ROADIE</option>
-                  <option value="hero">HERO</option>
-                </select>
+                <div className="space-y-2">
+                  {['freebird', 'roadie', 'hero'].map(tier => (
+                    <label key={tier} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={feature.required_tiers?.includes(tier) || false}
+                        onChange={(e) => {
+                          const currentTiers = feature.required_tiers || []
+                          const newTiers = e.target.checked
+                            ? [...currentTiers, tier]
+                            : currentTiers.filter(t => t !== tier)
+                          updateFeature(featureKey, { required_tiers: newTiers })
+                        }}
+                        className="mr-2"
+                      />
+                      <span className="text-sm text-gray-700 capitalize">{tier}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
 
-              {/* Video Restriction */}
+              {/* Upgrade Message */}
               <div>
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={feature.video_restricted}
-                    onChange={(e) => updateFeature(featureKey, { video_restricted: e.target.checked })}
-                    className="mr-2"
-                  />
-                  <span className="text-sm text-gray-700">Restricted while video playing</span>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Upgrade Message
                 </label>
+                <textarea
+                  value={feature.upgrade_message || ''}
+                  onChange={(e) => updateFeature(featureKey, { upgrade_message: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows="2"
+                  placeholder="Message shown to users who don't have access to this feature"
+                />
               </div>
+            </div>
+
+            {/* Video Restriction */}
+            <div className="mt-4">
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={feature.video_restricted}
+                  onChange={(e) => updateFeature(featureKey, { video_restricted: e.target.checked })}
+                  className="mr-2"
+                />
+                <span className="text-sm text-gray-700">Restricted while video playing</span>
+              </label>
             </div>
 
             {/* Messages Section */}

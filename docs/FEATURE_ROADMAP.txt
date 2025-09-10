@@ -2,6 +2,20 @@ FEATURE_SPECIFICATIONS
 
 # 🎯 Feature Specifications
 
+## 🚀 CURRENT STATUS: Feature Gates System Complete ✅
+**Last Updated**: January 2025
+**Migration Status**: Phase 1 of Branch2 → Main migration COMPLETE
+
+### **✅ Recently Completed: Dynamic Feature Gates & Limits System**
+Our comprehensive tier-based access control system is now fully operational:
+- **Admin Control**: Full CRUD interface for managing feature access and daily limits
+- **Dynamic Limits**: Search, watch time, and favorite limits configurable without code changes
+- **Access Control**: Scrolling lyrics page restricted to HERO users with upgrade prompts
+- **User Experience**: Contextual upgrade messages with direct pricing page integration
+- **Technical**: Robust validation, error handling, and graceful fallbacks
+
+**Next Phase**: SVG Chord Library Building System migration from Branch2
+
 ## 🔄 Video Flipping Controls
 ### Free Tier ✅
 - **Vertical Flip**: CSS `transform: rotateX(180deg)`
@@ -31,8 +45,79 @@ FEATURE_SPECIFICATIONS
 ## 🔐 User Management
 - **Authentication**: Supabase Auth (email + OAuth)
 - **Profiles**: Extended user data in user_profiles table
-- **Feature Gates**: Dynamic system for premium features
 - **Usage Tracking**: Analytics and limit enforcement
+
+## 🚪 Feature Gates System ✅ COMPLETED
+### **Dynamic Tier-Based Access Control**
+Our comprehensive feature gating system provides admin-configurable access control for all premium features.
+
+#### **🏗️ Architecture**
+- **Database**: JSONB structure in `admin_settings` table with `setting_key='feature_gates'`
+- **Admin Interface**: Full CRUD management via `/admin/settings` with validation
+- **Real-time**: Dynamic loading and enforcement across all pages
+- **Fallback**: Graceful degradation if feature gates fail to load
+
+#### **📊 Daily Limits Management**
+**Search Limits** (Admin Configurable):
+- **Freebird**: 8 searches/day
+- **Roadie**: 24 searches/day
+- **Hero**: 100 searches/day
+
+**Watch Time Limits** (Admin Configurable):
+- **Freebird**: 60 minutes/day (1 hour)
+- **Roadie**: 180 minutes/day (3 hours)
+- **Hero**: 480 minutes/day (8 hours)
+
+**Favorite Limits** (Admin Configurable):
+- **Freebird**: 0 favorites saved
+- **Roadie**: 12 favorites saved
+- **Hero**: Unlimited (-1)
+
+#### **🎯 Implemented Feature Gates**
+**1. Scrolling Lyrics (`scrolling_lyrics`)** - HERO Only
+- **Access Control**: Blocks `/watch_s` page for non-hero users
+- **UX**: Upgrade modal on scroll button click with "UPGRADE TO HERO" + "CANCEL"
+- **Redirect**: Auto-redirects non-hero users from watch_s to regular watch page
+
+**2. Login Resume (`login_resume`)** - ROADIE or Higher
+- **Functionality**: Auto-resume last video on login
+- **Implementation**: Ready for integration with UserContext
+- **Message**: "Upgrade to ROADIE or higher to automatically resume your last video on login!"
+
+**3. Caption Sharing (`caption_sharing`)** - ROADIE or Higher
+- **Functionality**: Share videos with custom captions and timing
+- **Implementation**: Ready for integration with sharing components
+- **Message**: "Upgrade to ROADIE or higher to share videos with custom captions!"
+
+#### **🔧 Technical Implementation**
+**Admin Interface** (`components/admin/FeatureGates.js`):
+- **Tier Selection**: Multi-checkbox system (freebird/roadie/hero)
+- **Custom Messages**: Configurable upgrade prompts per feature
+- **Validation**: Pre-save validation with detailed error reporting
+- **Live Preview**: Test configuration before saving
+
+**Access Control Logic**:
+```javascript
+// Example: Scrolling lyrics access check
+const scrollingLyricsGate = featureGates?.feature_gates?.scrolling_lyrics
+const userTier = profile?.subscription_tier || 'freebird'
+const requiredTiers = scrollingLyricsGate.required_tiers || ['hero']
+const hasAccess = requiredTiers.includes(userTier)
+```
+
+**Dynamic Limits Integration**:
+```javascript
+// Watch time limits now use admin settings instead of hardcoded values
+const dailyLimits = featureGates?.daily_watch_time_limits || fallbackLimits
+const userLimit = dailyLimits[planType] || dailyLimits.freebird
+```
+
+#### **✅ Benefits Achieved**
+- **Admin Control**: No code changes needed to modify limits or add features
+- **User Experience**: Consistent upgrade messaging with direct pricing links
+- **Scalability**: Easy to add new feature gates without database migrations
+- **Reliability**: Robust validation and fallback systems prevent errors
+- **Flexibility**: Supports complex tier combinations and custom messaging
 
 ## 📝 Caption Management System
 ### Premium Only 💎
@@ -301,7 +386,57 @@ FEATURE_SPECIFICATIONS
 ### **Analytics & Usage**
 - **`user_usage`**: Daily user activity tracking
 - **`billing_history`**: Payment and subscription history
-- **`feature_gates`**: Dynamic feature access control
+
+### **Admin & Configuration** ✅ IMPLEMENTED
+- **`admin_settings`**: JSONB-based configuration system for dynamic feature management
+
+#### **Feature Gates Configuration Structure**
+```json
+{
+  "feature_gates": {
+    "scrolling_lyrics": {
+      "display_name": "Scrolling Lyrics Page",
+      "description": "Access to enhanced scrolling lyrics page (watch_s)",
+      "required_tiers": ["hero"],
+      "is_enabled": true,
+      "upgrade_message": "Upgrade to HERO to access Scrolling Lyrics!"
+    },
+    "login_resume": {
+      "display_name": "Login Resume Video",
+      "description": "Automatically resume last watched video on login",
+      "required_tiers": ["roadie", "hero"],
+      "is_enabled": true,
+      "upgrade_message": "Upgrade to ROADIE or higher for auto-resume!"
+    },
+    "caption_sharing": {
+      "display_name": "Caption Sharing",
+      "description": "Share videos with custom captions and timing",
+      "required_tiers": ["roadie", "hero"],
+      "is_enabled": true,
+      "upgrade_message": "Upgrade to ROADIE or higher to share captions!"
+    }
+  },
+  "daily_search_limits": {
+    "freebird": 8,
+    "roadie": 24,
+    "hero": 100
+  },
+  "daily_watch_time_limits": {
+    "freebird": 60,
+    "roadie": 180,
+    "hero": 480
+  },
+  "favorite_limits": {
+    "freebird": 0,
+    "roadie": 12,
+    "hero": -1
+  },
+  "global_settings": {
+    "maintenance_mode": false,
+    "announcement_message": ""
+  }
+}
+```
 
 ## 📊 Success Metrics by Phase
 
@@ -341,11 +476,69 @@ FEATURE_SPECIFICATIONS
 
 ## 🆕 Recent Additions & Enhancements
 
+### **✅ COMPLETED: Feature Gates & Dynamic Limits System (Phase 1)**
+**Migration Date**: January 2025
+**Status**: ✅ PRODUCTION READY
+
+#### **Phase 1 Deliverables Completed:**
+- **✅ Step 1.1**: Enhanced FeatureGates admin component with daily limits UI
+- **✅ Step 1.2**: Dynamic daily watch time limits (replaced hardcoded values)
+- **✅ Step 1.3**: New feature gates implementation:
+  - `scrolling_lyrics` (HERO only) with access control + upgrade modals
+  - `login_resume` (ROADIE+) ready for integration
+  - `caption_sharing` (ROADIE+) ready for integration
+- **✅ Step 1.4**: Enhanced save logic with validation and error handling
+
+#### **Technical Achievements:**
+- **Admin Interface**: Full CRUD with validation, test buttons, and real-time preview
+- **Access Control**: Dynamic tier checking across all watch pages
+- **User Experience**: Contextual upgrade prompts with direct pricing links
+- **Database Integration**: JSONB-based configuration in admin_settings table
+- **Error Handling**: Robust validation with graceful fallbacks
+
 ### **✅ Completed Database Infrastructure**
 - **Creator Revenue Sharing System**: Complete database schema for tracking per-channel watch time and monthly payouts
 - **Caption Management System**: Full database support for user captions with sharing capabilities
 - **Advanced Sharing Features**: Database support for expiration-based sharing links with usage tracking
 - **Enterprise Security**: Row Level Security (RLS) policies for all new tables
+
+### **🔄 Next Migration Phases (Branch2 → Main)**
+
+#### **Phase 2: SVG Chord Library Building System** 🎸
+**Priority**: HIGH
+**Dependencies**: Feature Gates System (✅ Complete)
+**Deliverables**:
+- Complete chord processing pipeline from Branch2
+- SVG chord diagram generation and display
+- Chord library management interface
+- Integration with existing caption system
+
+#### **Phase 3: Enhanced Lyrics API Integration** 📝
+**Priority**: HIGH
+**Dependencies**: Phase 2 completion
+**Deliverables**:
+- Server-side HTML escaping fixes from Branch2
+- Enhanced lyrics processing and display
+- API error handling improvements
+- Fallback content generation
+
+#### **Phase 4: Database Schema Updates** 🗄️
+**Priority**: MEDIUM
+**Dependencies**: Phases 2-3 completion
+**Deliverables**:
+- Song database schema enhancements
+- Chord progression storage optimization
+- Performance improvements and indexing
+- Data migration scripts
+
+#### **Phase 5: Documentation & Architecture Updates** 📚
+**Priority**: LOW
+**Dependencies**: All previous phases
+**Deliverables**:
+- Updated system architecture documentation
+- API documentation refresh
+- Developer onboarding guides
+- Performance optimization guides
 
 ### **🔄 In Progress**
 - **Frontend Supabase Integration**: Connecting watch.js to new database tables
