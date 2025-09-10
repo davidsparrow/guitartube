@@ -13,7 +13,7 @@ import { supabase } from '../lib/supabase'
 
 import { BiHide } from "react-icons/bi"
 import { LuTextSelect } from "react-icons/lu"
-import { PiScrollFill, PiPlaylistFill, PiPauseCircleBold, PiPlayFill, PiPauseFill, PiRewindFill, PiFastForwardFill, PiArrowULeftUpBold } from "react-icons/pi"
+import { PiScrollFill, PiPlaylistFill, PiPauseCircleBold, PiPlayFill, PiPauseFill, PiRewindFill, PiFastForwardFill, PiArrowULeftUpBold, PiPaintBrushBroadFill } from "react-icons/pi"
 import TopBanner from '../components/TopBanner'
 import Header from '../components/Header'
 import WatchFooter from '../components/WatchFooter'
@@ -2278,6 +2278,14 @@ export default function WatchS() {
     }
   }, [user?.id])
 
+  // Auto-open captions when navigated from watch page
+  useEffect(() => {
+    if (router.isReady && router.query.openCaptions === 'true') {
+      setShowControlStrips(true)
+      setShowScrollRow(true)
+    }
+  }, [router.isReady, router.query.openCaptions])
+
   // REMOVED: Problematic useEffect that was corrupting caption data
   // This useEffect was bypassing validation and setting invalid times
   // Caption updates now only happen through the SAVE button with proper validation
@@ -2330,7 +2338,7 @@ export default function WatchS() {
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: `url('/images/gt_splashBG_dark.png')`,
+          backgroundImage: `url('/images/gt_splashBG_1200_dark1.png')`,
           width: '100%',
           height: '100%',
           minWidth: '100vw',
@@ -2339,7 +2347,7 @@ export default function WatchS() {
       />
 
       {/* 75% Black Overlay */}
-      <div className="absolute inset-0 bg-black/75 z-0" />
+      <div className="absolute inset-0 bg-black/60 z-0" />
 
       {/* Page Type Indicator for Specialized Pages */}
       {pageType !== 'default' && (
@@ -2380,7 +2388,7 @@ export default function WatchS() {
 
       {/* Main Content Area - Theatre Mode Layout with Dynamic Height */}
       <div className="relative z-10 overflow-hidden px-6 mt-20" style={{
-        height: showControlStrips ? `calc(100vh - ${160 + (showScrollRow ? 256 : 0)}px)` : 'calc(100vh - 155px)',
+        height: showControlStrips ? `calc(100vh - ${160 + (showScrollRow ? 356 : 0)}px)` : 'calc(100vh - 155px)',
         transition: 'height 0.3s ease-in-out'
       }}>
         {/* Video Player Container - Edge-to-Edge Width with Dynamic Height */}
@@ -2416,7 +2424,7 @@ export default function WatchS() {
 
       {/* STICKY CONTROL STRIPS FOOTER - MODIFIED FOR SCROLLING VERSION */}
       {showControlStrips && (
-        <div className="fixed bottom-16 left-0 right-0 z-40 h-64 bg-transparent px-4 md:px-6">
+        <div className="fixed bottom-16 left-0 right-0 z-40 h-[356px] bg-transparent px-4 md:px-6">
           {/* Control Strips Container - Single Row for Scrolling Content */}
           <div className="h-full relative">
 
@@ -2424,7 +2432,7 @@ export default function WatchS() {
             {showScrollRow && (
               <div className="absolute bottom-0 left-0 right-0 flex border-2 border-white rounded-lg overflow-hidden h-full transition-all duration-300">
                 {/* Left Half - 3x2 Grid of Chord SVGs */}
-                <div className="w-1/2 h-full p-2 bg-black/80 border-r border-white">
+                <div className="w-1/2 h-full p-2 bg-black/80 border-r border-white relative">
                   <div className="h-full grid grid-cols-3 grid-rows-2 gap-1">
                     {(() => {
                       // Get current chord captions based on video time
@@ -2485,10 +2493,19 @@ export default function WatchS() {
                       <span className="text-red-400 text-sm">{chordCaptionsError}</span>
                     </div>
                   )}
+
+                  {/* Paint Brush Icon - Lower Right Corner */}
+                  <button
+                    onClick={() => setShowChordModal(true)}
+                    className="absolute bottom-2 right-2 p-2 text-white hover:bg-white/10 rounded-lg transition-colors duration-300"
+                    title="Edit Chord Captions"
+                  >
+                    <PiPaintBrushBroadFill className="w-6 h-6" />
+                  </button>
                 </div>
 
-                {/* Right Half - Scrollable Lyrics */}
-                <div className="w-1/2 h-full p-2 bg-black/80 overflow-hidden">
+                {/* Right Half - Scrollable Lyrics - FULL WIDTH/HEIGHT */}
+                <div className="w-1/2 h-full bg-black/80 overflow-hidden">
                   <SongContentScroller
                     content={songContent}
                     isLoading={isLoadingSongContent}
@@ -2550,6 +2567,18 @@ export default function WatchS() {
 
         // Page type for icon colors
         pageType="watch_s"
+
+        // Navigation functions
+        onNavigateToWatchPage={() => {
+          const currentQuery = router.query
+          const queryString = new URLSearchParams({
+            v: currentQuery.v,
+            ...(currentQuery.title && { title: currentQuery.title }),
+            ...(currentQuery.channel && { channel: currentQuery.channel }),
+            openCaptions: 'true' // Auto-open captions
+          }).toString()
+          router.push(`/watch?${queryString}`)
+        }}
       />
 
 
@@ -2802,21 +2831,14 @@ export default function WatchS() {
         onChordsUpdated={(chordData) => {
           // Handle chord updates - reload chord captions if needed
           console.log('✅ Chord captions updated')
-          
-          // 🎸 CAPTURE ORIGINAL CHORD CAPTIONS AS JSON BLOB FOR CANCEL FUNCTIONALITY 🎸
-          // =============================================================================
-          // Only capture blob if we don't have one yet (first time loading)
-          if (!originalChordCaptionsBlob && chordData && chordData.length > 0) {
-            setOriginalChordCaptionsBlob(JSON.parse(JSON.stringify(chordData)))
-            console.log('🎸 CHORD CAPTIONS CAPTURED:', {
-              count: chordData.length,
-              blob: JSON.parse(JSON.stringify(chordData))
-            })
+
+          // Reload chord captions for the SVG display
+          if (chordData && chordData.length > 0) {
+            setChordCaptions(chordData)
           }
-          // =============================================================================
         }}
         userId={user?.id}
-        onCancel={handleCancelChordCaptions}
+        onCancel={() => setShowChordModal(false)}
       />
 
       {/* Auth Modal */}

@@ -2043,6 +2043,17 @@ export default function Watch() {
     }
   }, [user?.id])
 
+  // Auto-open captions when navigated from scroll page
+  useEffect(() => {
+    if (router.isReady && router.query.openCaptions === 'true') {
+      setShowControlStrips(true)
+      // Also show all individual rows
+      setShowRow1(true)
+      setShowRow2(true)
+      setShowRow3(true)
+    }
+  }, [router.isReady, router.query.openCaptions])
+
   // REMOVED: Problematic useEffect that was corrupting caption data
   // This useEffect was bypassing validation and setting invalid times
   // Caption updates now only happen through the SAVE button with proper validation
@@ -2095,7 +2106,7 @@ export default function Watch() {
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: `url('/images/gt_splashBG_dark.png')`,
+          backgroundImage: `url('/images/gt_splashBG_1200_dark1.png')`,
           width: '100%',
           height: '100%',
           minWidth: '100vw',
@@ -2104,7 +2115,7 @@ export default function Watch() {
       />
 
       {/* 75% Black Overlay */}
-      <div className="absolute inset-0 bg-black/75 z-0" />
+      <div className="absolute inset-0 bg-black/60 z-0" />
 
       {/* Page Type Indicator for Specialized Pages */}
       {pageType !== 'default' && (
@@ -2187,13 +2198,13 @@ export default function Watch() {
             
             {/* Row 1: Text Captions - 24% height, positioned from bottom */}
             {showRow1 && getLayoutRowVisibility(currentLayout).showRow1 && (
-              <div className={`absolute left-0 right-0 flex border-2 border-white rounded-t-lg overflow-hidden h-[24%] transition-all duration-300 ${
+              <div className={`absolute left-0 right-0 flex overflow-hidden h-[24%] transition-all duration-300 border-b border-white/30 ${
                 (showRow2 && getLayoutRowVisibility(currentLayout).showRow2) && (showRow3 && getLayoutRowVisibility(currentLayout).showRow3) ? 'bottom-[76%]' :
                 (showRow2 && getLayoutRowVisibility(currentLayout).showRow2) ? 'bottom-[38%]' :
                 (showRow3 && getLayoutRowVisibility(currentLayout).showRow3) ? 'bottom-[38%]' : 'bottom-0'
               }`}>
               {/* Left Column - Main Content (96% width) */}
-              <div className="w-[96%] p-2 bg-transparent border-r-2 border-white flex flex-col justify-center overflow-hidden">
+              <div className="w-[96%] p-2 bg-transparent flex flex-col justify-center overflow-hidden">
                 {/* Display current caption based on video time */}
                 {(() => {
                   if (!player || captions.length === 0) {
@@ -2293,11 +2304,11 @@ export default function Watch() {
 
             {/* Row 2: Chords Captions - 38% height, positioned from bottom */}
             {showRow2 && getLayoutRowVisibility(currentLayout).showRow2 && (
-              <div className={`absolute left-0 right-0 flex border-l-2 border-r-2 border-white overflow-hidden h-[38%] transition-all duration-300 ${
+              <div className={`absolute left-0 right-0 flex overflow-hidden h-[38%] transition-all duration-300 border-b border-white/30 ${
                 (showRow3 && getLayoutRowVisibility(currentLayout).showRow3) ? 'bottom-[38%]' : 'bottom-0'
               }`}>
               {/* Left Column - Main Content (96% width) */}
-              <div className="w-[96%] p-2 bg-transparent border-r-2 border-white flex items-center">
+              <div className="w-[96%] p-2 bg-transparent flex items-center">
                 <span className="text-white text-sm font-medium">Chords Captions</span>
               </div>
               {/* Right Column - Hide + TextSelect icons (4% width) */}
@@ -2333,9 +2344,9 @@ export default function Watch() {
 
             {/* Row 3: Auto-Gen - 38% height, always at bottom */}
             {showRow3 && getLayoutRowVisibility(currentLayout).showRow3 && (
-              <div className="absolute bottom-0 left-0 right-0 flex border-2 border-white rounded-b-lg overflow-hidden h-[38%] transition-all duration-300">
+              <div className="absolute bottom-0 left-0 right-0 flex overflow-hidden h-[38%] transition-all duration-300 border-b border-white/30">
               {/* Left Column - Main Content (96% width) */}
-              <div className="w-[96%] p-2 bg-transparent border-r-2 border-white flex items-center">
+              <div className="w-[96%] p-2 bg-transparent flex items-center">
                 <span className="text-white text-sm font-medium">Auto-Gen</span>
               </div>
               {/* Right Column - Hide + TextSelect icons (4% width) */}
@@ -2411,6 +2422,18 @@ export default function Watch() {
 
         // Page type for icon colors
         pageType="watch"
+
+        // Navigation functions
+        onNavigateToScrollPage={() => {
+          const currentQuery = router.query
+          const queryString = new URLSearchParams({
+            v: currentQuery.v,
+            ...(currentQuery.title && { title: currentQuery.title }),
+            ...(currentQuery.channel && { channel: currentQuery.channel }),
+            openCaptions: 'true' // Auto-open captions
+          }).toString()
+          router.push(`/watch_s?${queryString}`)
+        }}
       />
 
 

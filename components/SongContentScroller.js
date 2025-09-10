@@ -664,7 +664,6 @@ export default function SongContentScroller({
 
         {/* Speed Control (always available) */}
         <div className="flex items-center gap-1">
-          <span className="text-xs text-gray-300">Speed:</span>
           <select
             value={scrollSpeed}
             onChange={(e) => {
@@ -699,7 +698,6 @@ export default function SongContentScroller({
 
         {/* Font Size */}
         <div className="flex items-center gap-1">
-          <span className="text-gray-300 text-xs">Font:</span>
           <select
             value={fontSize}
             onChange={(e) => setFontSize(e.target.value)}

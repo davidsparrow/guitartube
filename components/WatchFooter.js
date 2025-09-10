@@ -44,7 +44,11 @@ export default function WatchFooter({
   handleFullscreenToggle,
 
   // NEW: Page type for icon colors
-  pageType = 'watch' // 'watch' or 'watch_s'
+  pageType = 'watch', // 'watch' or 'watch_s'
+
+  // NEW: Navigation functions
+  onNavigateToScrollPage,
+  onNavigateToWatchPage
 }) {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-[60] bg-black/90 backdrop-blur-sm border-t border-white/20 p-1">
@@ -155,30 +159,46 @@ export default function WatchFooter({
             <TbGuitarPickFilled className="w-5 h-5" />
           </button>
           
-          {/* Control Strip Toggle (Rotated Table Icon) - RED on watch.js when captions open */}
+          {/* Control Strip Toggle (Rotated Table Icon) - RED on watch.js when captions open, Navigate on watch_s.js */}
           <button
             data-testid="caption-controls-toggle"
-            onClick={handleControlStripsToggle}
+            onClick={
+              pageType === 'watch_s'
+                ? onNavigateToWatchPage
+                : handleControlStripsToggle
+            }
             className={`rounded-lg transition-colors duration-300 ${
               (showControlStrips && pageType === 'watch')
                 ? 'text-red-400 hover:bg-white/10'
                 : 'text-white hover:bg-white/10'
             }`}
             style={{ padding: '5.5px' }}
-            title={showControlStrips ? "Hide Control Strips" : "Show Control Strips"}
+            title={
+              pageType === 'watch_s'
+                ? "Open 3-Row Captions Page"
+                : (showControlStrips ? "Hide Control Strips" : "Show Control Strips")
+            }
           >
             <BsReverseLayoutSidebarInsetReverse className="w-5 h-5 transform rotate-90" />
           </button>
 
-          {/* Scroll Content Toggle Icon - RED on watch_s.js when open */}
+          {/* Scroll Content Toggle Icon - RED on watch_s.js when open, Navigate on watch.js */}
           <button
             className={`p-2 rounded-lg transition-colors duration-300 ${
               (showControlStrips && pageType === 'watch_s')
                 ? 'text-red-400 hover:bg-white/10'
                 : 'text-white hover:bg-white/10'
             }`}
-            title={showControlStrips ? "Hide Scroll Content" : "Show Scroll Content"}
-            onClick={handleControlStripsToggle}
+            title={
+              pageType === 'watch'
+                ? "Open Scrolling Lyrics Page"
+                : (showControlStrips ? "Hide Scroll Content" : "Show Scroll Content")
+            }
+            onClick={
+              pageType === 'watch'
+                ? onNavigateToScrollPage
+                : handleControlStripsToggle
+            }
           >
             <PiScrollFill className="w-6 h-6" />
           </button>
