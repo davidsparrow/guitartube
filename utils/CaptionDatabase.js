@@ -151,11 +151,12 @@ export const loadCaptions = async (videoId, userId, setIsLoadingCaptions, setDbE
       throw favoriteError
     }
     
-    // Now get captions for this favorite
+    // Now get captions for this favorite (only text captions, row_type = 1)
     const { data, error } = await supabase
       .from('captions')
       .select('*')
       .eq('favorite_id', favoriteData.id)
+      .eq('row_type', 1) // Only load text captions, exclude pause captions (row_type = 3)
       .order('start_time', { ascending: true })
     
     if (error) throw error

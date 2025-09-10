@@ -13,6 +13,7 @@ import { supabase } from '../lib/supabase'
 
 import { BiHide } from "react-icons/bi"
 import { LuTextSelect } from "react-icons/lu"
+import { PiScrollFill, PiPlaylistFill, PiPauseCircleBold, PiPlayFill, PiPauseFill, PiRewindFill, PiFastForwardFill, PiArrowULeftUpBold } from "react-icons/pi"
 import TopBanner from '../components/TopBanner'
 import Header from '../components/Header'
 import WatchFooter from '../components/WatchFooter'
@@ -62,7 +63,7 @@ import CaptionManager from '../components/watch/CaptionManager'
 import useCaptionManager from '../hooks/useCaptionManager'
 import useLoopManagerComponent from '../components/watch/LoopManager'
 import useLoopManager from '../hooks/useLoopManager'
-import SongContentScroller from '../components/SongContentScroller'
+import SongContentScroller from '../components/SongContentScroller' // FIXED: No more dangerouslySetInnerHTML
 import { fetchLyrics, extractSongInfo, generateFallbackLyrics } from '../utils/lyricsUtils'
 
 export default function WatchS() {
@@ -2440,7 +2441,7 @@ export default function WatchS() {
                       }
 
                       return gridItems.map((chord, index) => (
-                        <div key={index} className="bg-gray-800 rounded border border-gray-600 flex items-center justify-center overflow-hidden">
+                        <div key={index} className="bg-black rounded flex items-center justify-center overflow-hidden">
                           {chord && chord.chord_position ? (
                             <img
                               src={chord.chord_position.aws_svg_url_dark || chord.chord_position.aws_svg_url_light}
@@ -2546,6 +2547,9 @@ export default function WatchS() {
         // Fullscreen
         isFullscreen={isFullscreen}
         handleFullscreenToggle={handleFullscreenToggle}
+
+        // Page type for icon colors
+        pageType="watch_s"
       />
 
 
@@ -2836,7 +2840,8 @@ export default function WatchS() {
         onSupportClick={() => setShowSupportModal(true)}
       />
 
-      {/* Layout Selection Modal */}
+      {/* Layout Selection Modal - COMMENTED OUT - Only using watch.js and watch_s.js pages now */}
+      {/*
       <LayoutSelectionModal
         isOpen={showLayoutModal}
         onClose={() => setShowLayoutModal(false)}
@@ -2857,6 +2862,7 @@ export default function WatchS() {
           router.push(`${baseUrl}?${queryString}`)
         }}
       />
+      */}
     </div>
   )
 }

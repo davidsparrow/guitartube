@@ -5,6 +5,7 @@ import { IoText } from "react-icons/io5"
 import { TbGuitarPickFilled } from "react-icons/tb"
 import { BsReverseLayoutSidebarInsetReverse, BsArrowsFullscreen } from "react-icons/bs"
 import { CiGrid31 } from "react-icons/ci"
+import { PiScrollFill } from "react-icons/pi"
 
 export default function WatchFooter({
   // Video controls
@@ -40,10 +41,13 @@ export default function WatchFooter({
   
   // Fullscreen
   isFullscreen,
-  handleFullscreenToggle
+  handleFullscreenToggle,
+
+  // NEW: Page type for icon colors
+  pageType = 'watch' // 'watch' or 'watch_s'
 }) {
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-t border-white/20 p-1">
+    <div className="fixed bottom-0 left-0 right-0 z-[60] bg-black/90 backdrop-blur-sm border-t border-white/20 p-1">
       <div className="flex justify-between max-w-7xl mx-auto h-full">
         
         {/* Left Column - Left-justified content with Video Controls */}
@@ -151,12 +155,12 @@ export default function WatchFooter({
             <TbGuitarPickFilled className="w-5 h-5" />
           </button>
           
-          {/* Control Strip Toggle (Rotated Table Icon) */}
+          {/* Control Strip Toggle (Rotated Table Icon) - RED on watch.js when captions open */}
           <button
             data-testid="caption-controls-toggle"
             onClick={handleControlStripsToggle}
             className={`rounded-lg transition-colors duration-300 ${
-              showControlStrips
+              (showControlStrips && pageType === 'watch')
                 ? 'text-red-400 hover:bg-white/10'
                 : 'text-white hover:bg-white/10'
             }`}
@@ -166,17 +170,25 @@ export default function WatchFooter({
             <BsReverseLayoutSidebarInsetReverse className="w-5 h-5 transform rotate-90" />
           </button>
 
-          {/* Layout Selection Icon */}
-          <button 
-            className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors duration-300" 
-            title="Select Caption Layout"
-            onClick={() => setShowLayoutModal(true)}
+          {/* Scroll Content Toggle Icon - RED on watch_s.js when open */}
+          <button
+            className={`p-2 rounded-lg transition-colors duration-300 ${
+              (showControlStrips && pageType === 'watch_s')
+                ? 'text-red-400 hover:bg-white/10'
+                : 'text-white hover:bg-white/10'
+            }`}
+            title={showControlStrips ? "Hide Scroll Content" : "Show Scroll Content"}
+            onClick={handleControlStripsToggle}
           >
-            <CiGrid31 className="w-6 h-6" />
+            <PiScrollFill className="w-6 h-6" />
           </button>
           
-          {/* Layout Icon */}
-          <button className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors duration-300" title="Inline Search - under development">
+          {/* Layout Icon - STAYS WHITE, NOT CONNECTED TO CAPTIONS */}
+          <button
+            className="p-2 rounded-lg transition-colors duration-300 text-white hover:bg-white/10"
+            title="Layout Selection - Not Connected"
+            onClick={() => {/* Does nothing */}}
+          >
             <BsReverseLayoutSidebarInsetReverse className="w-5 h-5" />
           </button>
           

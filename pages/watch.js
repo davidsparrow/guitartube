@@ -2408,6 +2408,9 @@ export default function Watch() {
         // Fullscreen
         isFullscreen={isFullscreen}
         handleFullscreenToggle={handleFullscreenToggle}
+
+        // Page type for icon colors
+        pageType="watch"
       />
 
 

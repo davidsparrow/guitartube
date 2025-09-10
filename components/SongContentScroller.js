@@ -4,6 +4,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import PauseCaptionsModal from './PauseCaptionsModal'
+import { PiPlaylistFill, PiPauseCircleBold, PiPlayFill, PiPauseFill, PiRewindFill, PiFastForwardFill, PiArrowULeftUpBold } from 'react-icons/pi'
 
 export default function SongContentScroller({
   content,
@@ -33,6 +34,7 @@ export default function SongContentScroller({
   const [isInPauseSegment, setIsInPauseSegment] = useState(false)
   const lastVideoStateRef = useRef(null) // Track video play/pause state
   const lastVideoTimeRef = useRef(0) // Track video time for seeking detection
+  const hasResetAtStartRef = useRef(false) // Track if we've already reset at video start
 
   // NEW: YouTube speed integration
   const [youtubePlaybackRate, setYoutubePlaybackRate] = useState(1) // YouTube's speed setting
@@ -257,17 +259,22 @@ export default function SongContentScroller({
         })
       }
 
+      // Reset flag when video moves past the start
+      if (currentVideoTime > 5) {
+        hasResetAtStartRef.current = false
+      }
+
       // Reset scroll to top when:
-      // 1. Video is playing AND at beginning (0-5 seconds) AND we have been scrolling
+      // 1. Video is playing AND at beginning (0-2 seconds) AND we have been scrolling AND haven't reset yet
       // 2. OR when user seeks back to beginning (big time jump to start)
-      if (contentRef.current && currentVideoTime <= 5) {
+      if (contentRef.current && currentVideoTime <= 2) {
         const currentScrollTop = contentRef.current.scrollTop
         const hasAnimation = contentRef.current.style.animation && contentRef.current.style.animation !== 'none'
         const hasBeenScrolling = isScrolling || isPaused || hasAnimation // Check if we've been scrolling
 
         const shouldReset = (
-          (videoState === 1 && hasBeenScrolling) || // Playing at start and we've been scrolling
-          (wasSeeking && lastVideoTime > 10) // Seeked back from later time
+          (videoState === 1 && hasBeenScrolling && !hasResetAtStartRef.current) || // Playing at start, scrolling, and haven't reset yet
+          (wasSeeking && lastVideoTime > 10 && !hasResetAtStartRef.current) // Seeked back from later time and haven't reset yet
         )
 
         console.log('🔍 Reset check at beginning:', {
@@ -280,7 +287,8 @@ export default function SongContentScroller({
           isScrolling,
           isPaused,
           wasSeeking,
-          lastTime: lastVideoTime
+          lastTime: lastVideoTime,
+          hasResetAlready: hasResetAtStartRef.current
         })
 
         if (shouldReset) {
@@ -299,6 +307,9 @@ export default function SongContentScroller({
           // Reset states
           setIsPaused(false)
           setIsScrolling(false)
+
+          // Mark that we've reset at start to prevent repeated resets
+          hasResetAtStartRef.current = true
 
           console.log('✅ Scroll reset complete, position:', contentRef.current.scrollTop)
         }
@@ -590,71 +601,29 @@ export default function SongContentScroller({
 
       {/* Controls Bar - Moved to Bottom */}
       <div className="absolute bottom-0 left-0 right-0 bg-gray-800/90 backdrop-blur-sm border-t border-gray-600 px-2 py-1 flex items-center gap-2 text-xs z-10">
-        {/* Video Sync Toggle */}
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            id="video-sync"
-            checked={isVideoSyncEnabled}
-            onChange={(e) => {
-              const enabled = e.target.checked
-              setIsVideoSyncEnabled(enabled)
-              console.log('🔄 Video sync toggled:', enabled ? 'ON' : 'OFF')
 
-              if (!enabled) {
-                // When disabling sync, stop any active scrolling
-                if (isScrolling) {
-                  stopScrolling()
-                }
-              } else {
-                // When enabling sync, load pause captions
-                loadPauseCaptions()
+        {/* Left Side Controls: Skip-Back → Play/Pause → Skip-Fwd → Restart → Speed → Font */}
 
-                // If we're at the beginning and have scrolled, reset to top
-                if (player && contentRef.current) {
-                  const currentTime = player.getCurrentTime() || 0
-                  const scrollTop = contentRef.current.scrollTop
-                  if (currentTime <= 5 && scrollTop > 50) {
-                    console.log('🔄 Sync enabled at beginning, resetting scroll to top')
-                    contentRef.current.style.animation = 'none'
-                    contentRef.current.scrollTop = 0
-                    setIsPaused(false)
-                    setIsScrolling(false)
-                  }
-                }
-              }
-            }}
-            className="w-4 h-4"
-          />
-          <label htmlFor="video-sync" className="text-xs text-white cursor-pointer">
-            📹 Sync with Video
-          </label>
-        </div>
+        {/* Skip Backward Button (leftmost) */}
+        <button
+          onClick={() => skipTime(-1)}
+          className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors duration-300"
+          title="Skip backward"
+        >
+          <PiRewindFill className="w-6 h-6" />
+        </button>
 
-        {/* Pause Captions Button (only show when sync is enabled) */}
-        {isVideoSyncEnabled && (
-          <button
-            onClick={() => setShowPauseCaptionsModal(true)}
-            className="px-3 py-1 rounded text-xs bg-purple-600 text-white hover:bg-purple-700 transition-colors"
-            title="Manage pause segments for video sync"
-          >
-            ⏸️ Pauses
-          </button>
-        )}
-
-        {/* Single Play/Pause Button (disabled when sync is active) */}
+        {/* Play/Pause Button (disabled when sync is active) */}
         <button
           onClick={() => {
             console.log('🎵 Play/Pause button clicked! Current state:', { isScrolling, isPaused })
             togglePlayPause()
           }}
           disabled={isVideoSyncEnabled}
-          className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+          className={`p-2.5 rounded-lg transition-colors duration-300 ${
             isVideoSyncEnabled
-              ? 'bg-gray-500 text-gray-300 cursor-not-allowed'
-              : isScrolling && !isPaused
-                ? 'bg-yellow-600 text-white hover:bg-yellow-700'
-                : 'bg-green-600 text-white hover:bg-green-700'
+              ? 'text-gray-400 cursor-not-allowed'
+              : 'hover:bg-white/10'
           }`}
           title={
             isVideoSyncEnabled
@@ -666,65 +635,37 @@ export default function SongContentScroller({
                   : 'Pause scrolling'
           }
         >
-          {!isScrolling ? '▶️ PLAY' : isPaused ? '▶️ PLAY' : '⏸️ PAUSE'}
+          {!isScrolling ? (
+            <PiPlayFill className={`w-5 h-5 ${isVideoSyncEnabled ? 'text-gray-400' : 'text-green-400'}`} />
+          ) : isPaused ? (
+            <PiPlayFill className={`w-5 h-5 ${isVideoSyncEnabled ? 'text-gray-400' : 'text-green-400'}`} />
+          ) : (
+            <PiPauseFill className={`w-5 h-5 ${isVideoSyncEnabled ? 'text-gray-400' : 'text-red-400'}`} />
+          )}
         </button>
 
-        {/* Stop Button (disabled when sync is active) */}
-        {isScrolling && (
-          <button
-            onClick={() => {
-              console.log('🔴 STOP button clicked! Current state:', { isScrolling, isPaused })
-              stopScrolling()
-            }}
-            disabled={isVideoSyncEnabled}
-            className={`px-3 py-2 rounded text-sm transition-colors ${
-              isVideoSyncEnabled
-                ? 'bg-gray-500 text-gray-300 cursor-not-allowed'
-                : 'bg-red-600 text-white hover:bg-red-700'
-            }`}
-            title={
-              isVideoSyncEnabled
-                ? 'Manual controls disabled - Video sync is active'
-                : 'Stop and reset scrolling'
-            }
-          >
-            ⏹️ STOP
-          </button>
-        )}
-
-        {/* Skip Controls */}
-        <button
-          onClick={() => skipTime(-1)}
-          className="px-2 py-1 rounded bg-blue-600 text-white text-xs hover:bg-blue-700"
-          title="Skip backward"
-        >
-          ⏪
-        </button>
+        {/* Skip Forward Button */}
         <button
           onClick={() => skipTime(1)}
-          className="px-2 py-1 rounded bg-blue-600 text-white text-xs hover:bg-blue-700"
+          className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors duration-300"
           title="Skip forward"
         >
-          ⏩
+          <PiFastForwardFill className="w-6 h-6" />
         </button>
 
         {/* Reset Button */}
         <button
           onClick={resetScrollPosition}
-          className="px-2 py-1 rounded bg-purple-600 text-white text-xs hover:bg-purple-700"
-          title="Reset to top"
+          className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors duration-300"
+          title="Restart Lyrics from the Top"
         >
-          🔄
+          <PiArrowULeftUpBold className="w-6 h-6" />
         </button>
 
         {/* Speed Control (always available) */}
         <div className="flex items-center gap-1">
           <span className="text-xs text-gray-300">Speed:</span>
-          <input
-            type="range"
-            min="0.25"
-            max="3"
-            step="0.25"
+          <select
             value={scrollSpeed}
             onChange={(e) => {
               const newSpeed = parseFloat(e.target.value)
@@ -734,16 +675,26 @@ export default function SongContentScroller({
                 saveScrollSpeedToFavorites(newSpeed)
               }
             }}
-            className="w-12 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer"
-            title="Adjust scrolling speed (works in sync mode too)"
-          />
-          <span className="text-xs w-12 text-gray-300" title={
-            isVideoSyncEnabled
-              ? `User: ${scrollSpeed}x × YouTube: ${youtubePlaybackRate}x = ${effectiveScrollSpeed.toFixed(1)}x`
-              : `Scroll speed: ${scrollSpeed}x`
-          }>
-            {isVideoSyncEnabled ? `${effectiveScrollSpeed.toFixed(1)}x` : `${scrollSpeed}x`}
-          </span>
+            className="px-1 py-1 text-xs border border-gray-600 rounded bg-gray-700 text-white font-bold"
+            title={
+              isVideoSyncEnabled
+                ? `User: ${scrollSpeed}x × YouTube: ${youtubePlaybackRate}x = ${effectiveScrollSpeed.toFixed(1)}x`
+                : `Scroll speed: ${scrollSpeed}x`
+            }
+          >
+            <option value="0.25">0.25x</option>
+            <option value="0.5">0.5x</option>
+            <option value="0.75">0.75x</option>
+            <option value="1">1x</option>
+            <option value="1.25">1.25x</option>
+            <option value="1.5">1.5x</option>
+            <option value="1.75">1.75x</option>
+            <option value="2">2x</option>
+            <option value="2.25">2.25x</option>
+            <option value="2.5">2.5x</option>
+            <option value="2.75">2.75x</option>
+            <option value="3">3x</option>
+          </select>
         </div>
 
         {/* Font Size */}
@@ -752,7 +703,7 @@ export default function SongContentScroller({
           <select
             value={fontSize}
             onChange={(e) => setFontSize(e.target.value)}
-            className="px-1 py-1 text-xs border border-gray-600 rounded bg-gray-700 text-gray-200"
+            className="px-1 py-1 text-xs border border-gray-600 rounded bg-gray-700 text-white font-bold"
           >
             {fontSizeOptions.map(option => (
               <option key={option.value} value={option.value}>
@@ -761,20 +712,89 @@ export default function SongContentScroller({
             ))}
           </select>
         </div>
+
+        {/* Spacer to push right-side controls to the right */}
+        <div className="flex-1"></div>
+
+        {/* Right Side Controls: Pause Captions → Sync */}
+        {/* Pause Captions Button (only show when sync is enabled) */}
+        {isVideoSyncEnabled && (
+          <button
+            onClick={() => setShowPauseCaptionsModal(true)}
+            className={`p-2 rounded-lg transition-colors duration-300 ${
+              pauseCaptions.length > 0
+                ? 'text-blue-400 hover:bg-white/10'
+                : 'text-white hover:bg-white/10'
+            }`}
+            title={
+              pauseCaptions.length > 0
+                ? pauseCaptions
+                    .sort((a, b) => parseTimeToSeconds(a.start_time) - parseTimeToSeconds(b.start_time))
+                    .map(p => `${p.start_time}-${p.end_time}: ${p.line1}`)
+                    .join('\n')
+                : "Add pause segments for video sync"
+            }
+          >
+            <PiPauseCircleBold className="w-6 h-6" />
+          </button>
+        )}
+
+        {/* Video Sync Toggle */}
+        <button
+          onClick={() => {
+            const enabled = !isVideoSyncEnabled
+            setIsVideoSyncEnabled(enabled)
+            console.log('🔄 Video sync toggled:', enabled ? 'ON' : 'OFF')
+
+            if (!enabled) {
+              // When disabling sync, stop any active scrolling
+              if (isScrolling) {
+                stopScrolling()
+              }
+            } else {
+              // When enabling sync, load pause captions
+              loadPauseCaptions()
+
+              // If we're at the beginning and have scrolled, reset to top
+              if (player && contentRef.current) {
+                const currentTime = player.getCurrentTime() || 0
+                const scrollTop = contentRef.current.scrollTop
+                if (currentTime <= 5 && scrollTop > 50) {
+                  console.log('🔄 Sync enabled at beginning, resetting scroll to top')
+                  contentRef.current.style.animation = 'none'
+                  contentRef.current.scrollTop = 0
+                  setIsPaused(false)
+                  setIsScrolling(false)
+                }
+              }
+            }
+          }}
+          className={`p-2 rounded-lg transition-colors duration-300 ${
+            isVideoSyncEnabled
+              ? 'text-green-400 hover:bg-white/10'
+              : 'text-white hover:bg-white/10'
+          }`}
+          title="Sync Scrolling to Video Playback"
+        >
+          <PiPlaylistFill className="w-6 h-6" />
+        </button>
       </div>
 
       {/* Content Container */}
       <div ref={containerRef} className="pb-8 h-full overflow-hidden">
         <div
           ref={contentRef}
-          className={`${fontSize} leading-relaxed px-3 py-2 font-mono`}
-          dangerouslySetInnerHTML={{ __html: content }}
+          className={`${fontSize} leading-relaxed px-3 py-2 font-mono text-white`}
           style={{
-            color: 'white',
             backgroundColor: 'transparent',
             animationFillMode: 'both'
           }}
-        />
+        >
+          {/* FIXED: Safe HTML rendering instead of dangerouslySetInnerHTML */}
+          <pre className="whitespace-pre-wrap">
+            {content ? content.replace(/<[^>]*>/g, '') : 'No content available'}
+          </pre>
+        </div>
       </div>
 
       {/* Pause Captions Modal */}
