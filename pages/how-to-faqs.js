@@ -53,9 +53,19 @@ export default function HowToFaqs() {
       <div 
         className="fixed inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: `url('/images/dark_guitarPink.png')`,
+          backgroundImage: `url('/images/gt_splashBG6_1200_dark1.png')`,
           width: '100vw',
           height: '100vh'
+        }}
+      />
+        {/* 50% Dark Overlay */}
+      <div
+        className="absolute inset-0 bg-black bg-opacity-40 hidden md:block"
+        style={{
+          width: '100%',
+          height: '100%',
+          minWidth: '100vw',
+          minHeight: '100vh',
         }}
       />
       

@@ -119,12 +119,18 @@ export const AuthProvider = ({ children }) => {
           setUser(session.user)
 
           // Handle auto-resume on sign in (not on initial session load)
-          if (event === 'SIGNED_IN') {
-            console.log('🎯 USER SIGNED IN - Checking auto-resume')
+          // Only trigger if auto-resume hasn't been done this session
+          if (event === 'SIGNED_IN' && !sessionStorage.getItem('autoResumeTriggered')) {
+            console.log('🎯 USER SIGNED IN - Checking auto-resume (first time this session)')
+            sessionStorage.setItem('autoResumeTriggered', 'true')
             handleAutoResume(session.user.id)
+          } else if (event === 'SIGNED_IN') {
+            console.log('🔄 USER SIGNED IN - Auto-resume already triggered this session, skipping')
           }
         } else {
           setUser(null)
+          // Clear auto-resume flag when user signs out
+          sessionStorage.removeItem('autoResumeTriggered')
         }
 
         setLoading(false)
@@ -138,6 +144,7 @@ export const AuthProvider = ({ children }) => {
 
   // AUTO-RESUME FUNCTIONALITY - Implemented with proper state management
   // Triggers only on SIGNED_IN event, not on initial session load
+  // Uses sessionStorage to prevent multiple auto-resume triggers per session
 
   const signUp = async (email, password, fullName) => {
     try {
@@ -187,8 +194,12 @@ export const AuthProvider = ({ children }) => {
 const signOut = async () => {
   try {
     console.log('Starting sign out...')
+
+    // Clear auto-resume session flag before signing out
+    sessionStorage.removeItem('autoResumeTriggered')
+
     const { error } = await supabase.auth.signOut()
-    
+
     if (error) {
       console.error('Sign out error:', error)
       return { error }

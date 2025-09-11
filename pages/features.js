@@ -80,7 +80,17 @@ export default function Features() {
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat hidden md:block"
         style={{
-          backgroundImage: `url('/images/gt_splashBG_dark.png')`,
+          backgroundImage: `url('/images/gt_splashBG5_1200_dark1.png')`,
+          width: '100%',
+          height: '100%',
+          minWidth: '100vw',
+          minHeight: '100vh',
+        }}
+      />
+       {/* 50% Dark Overlay */}
+      <div
+        className="absolute inset-0 bg-black bg-opacity-60 hidden md:block"
+        style={{
           width: '100%',
           height: '100%',
           minWidth: '100vw',
@@ -110,7 +120,18 @@ export default function Features() {
           scrollbarColor: 'rgba(0, 0, 0, 0.3) transparent'
         }}>
           <h1 className="text-2xl md:text-4xl font-bold text-center mb-2 text-yellow-400">Addictive features. Astounding results</h1>
-          <p className="text-center text-white font-bold text-l mb-6" style={{ fontFamily: 'Futura, sans-serif' }}>Flippin', Loopin', Resumin', Text & Chord-Captionin', Auto-generatin' Chords and Tabs</p>
+          <p className="text-center text-white font-bold text-l mb-6" style={{ fontFamily: 'Futura, sans-serif' }}>
+            Learning Guitar just got easier and more fun. {' '}
+            <a
+              href="https://www.youtube.com/watch?v=KbRJ_PsgRJU"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-yellow-400 hover:text-yellow-300 underline transition-colors"
+            >
+              Why
+            </a>
+            {' '} it matters.
+          </p>
           
           {/* Main Feature Graphic with Hotspots */}
           <div className="relative max-w-4xl mx-auto">
@@ -206,12 +227,12 @@ export default function Features() {
                         <span className="text-yellow-400 text-lg">★</span>
                         <span className="text-yellow-400 text-lg">★</span>
                         <span className="text-yellow-400 text-lg">★</span>
-                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-gray-400 text-lg">★</span>
                       </div>
                     </div>
                     <div className="relative">
                       <p className="text-white text-sm leading-relaxed px-2">
-                        GuitarTube completely changed how I learn guitar. The video flipping feature is a game-changer!
+                        "Sometimes when I flip the video it make me feel dizzy so I flip it back real fast. Then I throw up. Kidding!"
                       </p>
                     </div>
                     <div className="mt-2 text-right">
@@ -273,13 +294,13 @@ export default function Features() {
                         <span className="text-yellow-400 text-lg">★</span>
                         <span className="text-yellow-400 text-lg">★</span>
                         <span className="text-yellow-400 text-lg">★</span>
-                        <span className="text-yellow-400 text-lg">★</span>
-                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-gray-400 text-lg">★</span>
+                        <span className="text-gray-400 text-lg">★</span>
                       </div>
                     </div>
                     <div className="relative">
                       <p className="text-white text-sm leading-relaxed px-2">
-                        The auto-generated chord diagrams are incredible. Saves me so much time!
+                        "The design could be better, like the size of the chords are too samll I think."
                       </p>
                     </div>
                     <div className="mt-2 text-right">
@@ -363,12 +384,12 @@ export default function Features() {
                         <span className="text-yellow-400 text-lg">★</span>
                         <span className="text-yellow-400 text-lg">★</span>
                         <span className="text-yellow-400 text-lg">★</span>
-                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-gray-400 text-lg">★</span>
                       </div>
                     </div>
                     <div className="relative">
                       <p className="text-white text-sm leading-relaxed px-2">
-                        The chord diagram selection tool is genius. I can see exactly which chords to play!
+                        "The supprt was kind of slow when I sent in a simple question about cancelling my subscription, but they were friendly and helpful."
                       </p>
                     </div>
                     <div className="mt-2 text-right">
@@ -462,7 +483,7 @@ export default function Features() {
               </ul>
               <div className="bg-pink-900/30 p-4 rounded-lg border border-pink-500/30 mt-6">
                 <p className="text-pink-300 text-sm">
-                  <strong>Premium Feature:</strong> Custom loops require a subscription for unlimited use and saving capabilities.
+                  <strong>Paid Subscription Feature:</strong> Custom loops require any paid subscription (Roadie or Hero) for use and saving capabilities.
                 </p>
               </div>
             </div>
@@ -506,7 +527,7 @@ export default function Features() {
               </ul>
               <div className="bg-green-900/30 p-4 rounded-lg border border-green-500/30 mt-6">
                 <p className="text-green-300 text-sm">
-                  <strong>Premium Feature:</strong> Session resume is available for premium subscribers across all devices.
+                  <strong>Paid Subscription Feature:</strong> Session resume is available for any paid subscribers (Roadie or Hero) across all devices.
                 </p>
               </div>
             </div>
@@ -550,7 +571,7 @@ export default function Features() {
               </ul>
               <div className="bg-blue-900/30 p-4 rounded-lg border border-blue-500/30 mt-6">
                 <p className="text-blue-300 text-sm">
-                  <strong>Coming Soon for Premium Members only:</strong> Auto-generated chords will be available for premium subscribers with unlimited access.
+                  <strong>Coming Soon for Premium Members only:</strong> Auto-generated chords will be available for premium subscribers.
                 </p>
               </div>
             </div>
@@ -594,7 +615,7 @@ export default function Features() {
               </ul>
               <div className="bg-green-900/30 p-4 rounded-lg border border-green-500/30 mt-6">
                 <p className="text-green-300 text-sm">
-                  <strong>Coming Soon for Premium Members only:</strong> Auto-generated tabs will be available for premium subscribers with unlimited access.
+                  <strong>Coming Soon for Premium Members only:</strong> Auto-generated tabs will be available for premium subscribers.
                 </p>
               </div>
             </div>
@@ -811,10 +832,11 @@ export default function Features() {
                 <li>Chord Names above Strumming Patterns</li>
                 <li>Highlighting key techniques and tips</li>
                 <li>Adding song structure markers</li>
+                <li>Sharing Captioned Videos with Community</li>
               </ul>
               <div className="bg-purple-900/30 p-4 rounded-lg border border-purple-500/30 mt-6">
                 <p className="text-purple-300 text-sm">
-                  <strong>Premium Feature:</strong> Custom captions are available for premium subscribers with unlimited access.
+                  <strong>Paid Subscription Feature:</strong> Custom captions are available for any paid subscribers (Roadie or Hero).
                 </p>
               </div>
             </div>
@@ -855,10 +877,11 @@ export default function Features() {
                 <li>Visual chord reference during practice</li>
                 <li>Saved preferences for future sessions</li>
                 <li>Consistent chord display across videos</li>
+                <li>Sharing Captioned Videos with Community</li>
               </ul>
               <div className="bg-orange-900/30 p-4 rounded-lg border border-orange-500/30 mt-6">
                 <p className="text-orange-300 text-sm">
-                  <strong>Premium Feature:</strong> Chord diagram selection is available for premium subscribers with unlimited access.
+                  <strong>Hero Subscribers Only:</strong> Captioned chord diagrams are available exclusively for Hero subscribers.
                 </p>
               </div>
             </div>

@@ -6,11 +6,21 @@ import { updateUserProfile } from '../lib/supabase'
 
 export default function MenuModal({ isOpen, onClose, onSupportClick }) {
   const { profile, userEmail, refreshProfile } = useUser()
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, signOut } = useAuth()
   const [showProfileModal, setShowProfileModal] = useState(false)
   const [showPlanModal, setShowPlanModal] = useState(false)
   const [showBackstageAlert, setShowBackstageAlert] = useState(false)
   const [isUpdatingResume, setIsUpdatingResume] = useState(false)
+
+  // Handle logout functionality
+  const handleLogout = async () => {
+    try {
+      await signOut()
+      onClose() // Close the menu modal
+    } catch (error) {
+      console.error('Logout failed:', error)
+    }
+  }
 
   // Handle resume toggle
   const handleResumeToggle = async () => {
@@ -132,12 +142,19 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
                 >
                   PROFILE
                 </button>
-                
+
                 <button
                   onClick={() => setShowPlanModal(true)}
                   className="block w-full text-white hover:text-yellow-400 transition-colors text-lg font-semibold"
                 >
                   PLAN DEETS
+                </button>
+
+                <button
+                  onClick={handleLogout}
+                  className="block w-full text-white hover:text-yellow-400 transition-colors text-lg font-semibold"
+                >
+                  LOGOUT
                 </button>
               </div>
               

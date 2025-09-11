@@ -308,7 +308,7 @@ export default function Home() {
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat hidden md:block"
         style={{
-          backgroundImage: `url('/images/gt_splashBG_1200_dark22.png')`,
+          backgroundImage: `url('/images/gt_splashBG4_1200_dark1.png')`,
           width: '100%',
           height: '100%',
           minWidth: '100vw',
@@ -344,17 +344,17 @@ export default function Home() {
           scrollbarColor: 'rgba(0, 0, 0, 0.3) transparent'
         }}>
           <h1 className="text-2xl md:text-4xl font-bold text-center mb-2 text-yellow-400">Choose Your Plan</h1>
-          <p className="text-center text-white font-bold text-l mb-11" style={{ fontFamily: 'Futura, sans-serif' }}>Subscriptions are like Guitars. New ones all the time.</p>
+          <p className="text-center text-white font-bold text-l mb-11" style={{ fontFamily: 'Futura, sans-serif' }}>Subscriptions. Guitars. Another one!</p>
           
           {/* Billing Toggle */}
           <div className="flex items-center justify-center mb-8 space-x-4">
-            <span className={`text-sm font-medium ${isAnnualBilling ? 'text-gray-500' : 'text-orange-400'}`}>
+            <span className={`text-sm font-medium ${isAnnualBilling ? 'text-gray-500' : 'text-yellow-400'}`}>
               Billed Monthly
             </span>
             <button
               onClick={() => setIsAnnualBilling(!isAnnualBilling)}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                isAnnualBilling ? 'bg-blue-600' : 'bg-orange-500'
+                isAnnualBilling ? 'bg-blue-600' : 'bg-yellow-500'
               }`}
             >
               <span
@@ -369,7 +369,7 @@ export default function Home() {
           </div>
           
           {/* Pricing Tiers */}
-          <div className="flex flex-col md:grid md:grid-cols-3 gap-6 space-y-5 md:space-y-0">
+          <div className="flex flex-col md:grid md:grid-cols-3 gap-6 space-y-12 md:space-y-0">
             {/* Freebird */}
             <div className="border border-white/60 rounded-xl p-6 pb-9 relative bg-black/75">
 
@@ -419,10 +419,14 @@ export default function Home() {
                 <div>max daily searches: <span className="text-white">{formatSearchLimit('freebird')}</span></div>
                 <div>max daily watch time: <span className="text-white">{formatWatchTimeLimit('freebird')}</span></div>
               </div>
-              <button 
+
+              <div className="h-4"></div>
+
+              <button
                 onClick={handleFreePlanSelection}
                 disabled={isLoading}
-                className="w-full mt-6 bg-gray-700 text-white py-3 rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center space-x-2"
+                className="w-full mt-6 bg-white/15 border-2 border-white text-white py-2 text-sm hover:bg-white/25 transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ borderRadius: '60px' }}
               >
                 {isLoading ? (
                   <div className="flex items-center space-x-2">
@@ -444,7 +448,7 @@ export default function Home() {
 
             {/* Roadie */}
             <div className="border border-orange-500 rounded-xl p-6 pb-9 relative bg-black/75">
-              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-orange-500 text-black px-4 py-1 rounded-full text-sm font-bold">
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-orange-500 text-white px-4 py-1 rounded-full text-sm font-bold">
                 POPULAR
               </div>
 
@@ -497,11 +501,14 @@ export default function Home() {
                 <div>max daily searches: <span className="text-orange-400">{formatSearchLimit('roadie')}</span></div>
                 <div>max daily watch time: <span className="text-orange-400">{formatWatchTimeLimit('roadie')}</span></div>
               </div>
-              
+
+              <div className="h-4"></div>
+
               <button
                 onClick={() => handleCheckout('roadie')}
                 disabled={isLoading}
-                className="w-full mt-6 bg-orange-500 text-black py-3 rounded-lg hover:bg-orange-400 transition-colors font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                className="w-full mt-6 bg-orange-500/15 border-2 border-orange-500 text-white py-2 text-sm hover:bg-orange-500/25 transition-colors font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                style={{ borderRadius: '60px' }}
               >
                 {isLoading ? (
                   <div className="flex items-center space-x-2">
@@ -549,11 +556,11 @@ export default function Home() {
                 </div>
                 <div className="flex items-center">
                   <span className="mr-3" style={{ color: '#8dc641' }}>✓</span>
-                  <span>Auto-Gen Chord Diagrams</span>
+                  <span>Auto-Gen Chord Diagrams*</span>
                 </div>
                 <div className="flex items-center">
                   <span className="mr-3" style={{ color: '#8dc641' }}>✓</span>
-                  <span>Auto-Gen Tabs</span>
+                  <span>Auto-Gen Tabs*</span>
                 </div>
                 <div className="flex items-center">
                   <span className="text-black mr-3">-</span>
@@ -565,12 +572,21 @@ export default function Home() {
                 <div>max daily searches: <span style={{ color: '#8dc641' }}>{formatSearchLimit('hero')}</span></div>
                 <div>max daily watch time: <span style={{ color: '#8dc641' }}>{formatWatchTimeLimit('hero')}</span></div>
               </div>
-              
-              <button 
+
+              <div className="h-4"></div>
+
+              <button
                 onClick={() => handleCheckout('hero')}
                 disabled={isLoading}
-                className="w-full mt-6 text-black py-3 rounded-lg transition-colors font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                style={{ backgroundColor: '#8dc641' }}
+                className="w-full mt-6 text-white py-2 text-sm transition-colors font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center border-2"
+                onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(141, 198, 65, 0.25)'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(141, 198, 65, 0.15)'}
+
+                style={{
+                  backgroundColor: 'rgba(141, 198, 65, 0.15)',
+                  borderColor: '#8dc641',
+                  borderRadius: '60px'
+                }}
               >
                 {isLoading ? (
                   <div className="flex items-center space-x-2">
@@ -584,8 +600,13 @@ export default function Home() {
             </div>
           </div>
 
+          {/* Bubbling Text - Right-aligned under Hero card */}
+          <div className="flex justify-end mt-4 mb-16">
+            <div className="text-gray-500 text-xs">*bubbling</div>
+          </div>
+
           {/* Testimonial Carousel */}
-          <div className="mt-20">
+          <div className="mt-12">
             <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 text-yellow-400">What Our Users Say</h2>
 
             {/* Carousel Container */}
@@ -606,7 +627,7 @@ export default function Home() {
                     </div>
                     <div className="relative">
                       <p className="text-white text-sm leading-relaxed px-2">
-                        "The pricing is so reasonable! Finally found a guitar learning platform that doesn't break the bank."
+                        "The text captions are a game changer! I can finally follow along with any YouTube guitar video. So simple to use."
                       </p>
                     </div>
                     <div className="mt-2 text-right">
@@ -622,12 +643,12 @@ export default function Home() {
                         <span className="text-yellow-400 text-lg">★</span>
                         <span className="text-yellow-400 text-lg">★</span>
                         <span className="text-yellow-400 text-lg">★</span>
-                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-gray-400 text-lg">★</span>
                       </div>
                     </div>
                     <div className="relative">
                       <p className="text-white text-sm leading-relaxed px-2">
-                        "Love that I can start free and upgrade when I'm ready. No pressure, just great value!"
+                        "The loop feature is brilliant for practicing tricky parts. Sometimes the video loads slowly, but it might be my connection."
                       </p>
                     </div>
                     <div className="mt-2 text-right">
@@ -642,13 +663,13 @@ export default function Home() {
                         <span className="text-yellow-400 text-lg">★</span>
                         <span className="text-yellow-400 text-lg">★</span>
                         <span className="text-yellow-400 text-lg">★</span>
-                        <span className="text-yellow-400 text-lg">★</span>
-                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-gray-400 text-lg">★</span>
+                        <span className="text-gray-400 text-lg">★</span>
                       </div>
                     </div>
                     <div className="relative">
                       <p className="text-white text-sm leading-relaxed px-2">
-                        "The Hero plan gives me everything I need. Worth every penny for unlimited access!"
+                        "Love the chord diagrams feature! I wish they let Free users have chord-captions though. Still a solid app overall."
                       </p>
                     </div>
                     <div className="mt-2 text-right">
@@ -674,7 +695,7 @@ export default function Home() {
                     </div>
                     <div className="relative">
                       <p className="text-white text-sm leading-relaxed px-2">
-                        "The annual billing discount is amazing! Saved me $48 this year on my Roadie plan."
+                        "The resume feature is incredible! I can pick up exactly where I left off on any video. Makes learning so much easier."
                       </p>
                     </div>
                     <div className="mt-2 text-right">
@@ -690,12 +711,12 @@ export default function Home() {
                         <span className="text-yellow-400 text-lg">★</span>
                         <span className="text-yellow-400 text-lg">★</span>
                         <span className="text-yellow-400 text-lg">★</span>
-                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-gray-400 text-lg">★</span>
                       </div>
                     </div>
                     <div className="relative">
                       <p className="text-white text-sm leading-relaxed px-2">
-                        "Transparent pricing with no hidden fees. What you see is what you pay - refreshing!"
+                        "Interface is clean and intuitive. The search works great, though I'd love to see more filter options added."
                       </p>
                     </div>
                     <div className="mt-2 text-right">
@@ -716,7 +737,7 @@ export default function Home() {
                     </div>
                     <div className="relative">
                       <p className="text-white text-sm leading-relaxed px-2">
-                        "The 30-day free trial convinced me. Now I'm a happy Hero subscriber!"
+                        "Finally, a guitar app that actually works with YouTube! The sync feature is brilliant for following along."
                       </p>
                     </div>
                     <div className="mt-2 text-right">
@@ -737,12 +758,12 @@ export default function Home() {
                         <span className="text-yellow-400 text-lg">★</span>
                         <span className="text-yellow-400 text-lg">★</span>
                         <span className="text-yellow-400 text-lg">★</span>
-                        <span className="text-yellow-400 text-lg">★</span>
+                        <span className="text-gray-400 text-lg">★</span>
                       </div>
                     </div>
                     <div className="relative">
                       <p className="text-white text-sm leading-relaxed px-2">
-                        "Best value for money in guitar learning. The features you get for the price are unbeatable!"
+                        "The favorites feature helps me organize my practice sessions. Could use more sorting options, but it's solid."
                       </p>
                     </div>
                     <div className="mt-2 text-right">
@@ -763,7 +784,7 @@ export default function Home() {
                     </div>
                     <div className="relative">
                       <p className="text-white text-sm leading-relaxed px-2">
-                        "Flexible plans that grow with you. Started free, now on Roadie, considering Hero!"
+                        "Auto-generated tabs are a lifesaver! Not always perfect, but saves me hours of figuring out songs myself."
                       </p>
                     </div>
                     <div className="mt-2 text-right">
@@ -784,7 +805,7 @@ export default function Home() {
                     </div>
                     <div className="relative">
                       <p className="text-white text-sm leading-relaxed px-2">
-                        "Fair pricing for premium features. GuitarTube delivers exactly what they promise!"
+                        "Simple, clean design that just works. No bloated features or confusing menus - exactly what I needed."
                       </p>
                     </div>
                     <div className="mt-2 text-right">

@@ -131,7 +131,9 @@ export default function TermsOfUse() {
                   <div>
                     <h3 className="text-xl font-semibold text-yellow-200 mb-2">3.1 User Content Ownership</h3>
                     <p className="bg-green-400/20 p-3 rounded-lg border border-green-400/30">
-                      <strong>You retain full ownership of all User Content you create, upload, or submit to our Service.</strong> This includes:
+                      <strong>You retain full ownership of all User Content you create, upload, or submit to our Service.
+                        Your data is encrypted and protected by RLS policies. We do allow paid users to share their data between themselves.
+                        We use "smart-link" sharing that works on backend, and never exposes any user data directly</strong> This includes:
                     </p>
                     <ul className="ml-6 mt-2 space-y-1">
                       <li>• Custom video captions and annotations</li>
@@ -244,9 +246,11 @@ export default function TermsOfUse() {
               
               <section>
                 <h2 className="text-2xl font-semibold text-yellow-300 mb-4">9. CONTACT INFORMATION</h2>
-                <p>For questions about these Terms, contact us at:</p>
+                <p>This website is provided “as is” without any representations or warranties, express or implied. 
+                  The authors make no representations or warranties in relation to this website or the information and materials provided on this website.
+                  For questions about these Terms, contact us at:</p>
                 <ul className="ml-6 mt-2 space-y-1">
-                  <li>• <strong>Email</strong>: legal@GuitarTube.com</li>
+
                   <li>• <strong>Support</strong>: support@GuitarTube.com</li>
                 </ul>
               </section>

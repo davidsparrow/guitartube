@@ -113,6 +113,7 @@ export default function CommunityGuidelines() {
             songwriters, and content creators. When in doubt, seek permission or use royalty-free materials. 
             If you add lyrics and chords moment for moment, and lyrics that are timed note for note you are breaking copyright law becasue you are COPYING a song.
             The law provides room to TEACH/LEARN the music, focus on that aspect rather than trying to recreate songs using the captioning tools we provide.
+            We pay a percentage of our profits to the creators of the top 100 most-watched videos and shared captions on our platform.
               </p>
             </section>
             
@@ -120,15 +121,29 @@ export default function CommunityGuidelines() {
               <h2 className="text-2xl font-semibold text-yellow-300 mb-4">4. KEEP IT MUSICAL</h2>
               <p>
             This is a space for guitar-related content and learning. If you want to interact with other Members, please use our  <a href="https://www.reddit.com/r/guitartube/" target="_blank" rel="noopener noreferrer" className="text-yellow-400 underline">Reddit Channel</a>.  
-              While we encourage friendly conversation, please keep discussions focused on music, learning, and the guitar community. And, bashing our devs of course.
+            While we encourage friendly conversation, please keep discussions focused on music, learning, and the guitar community. And, bashing our devs of course.
               </p>
             </section>
             
             <section>
-              <h2 className="text-2xl font-semibold text-yellow-300 mb-4">5. REPORT ISSUES</h2>
+              <h2 className="text-2xl font-semibold text-yellow-300 mb-4">5. GUITARTUBE IS NOT PERFECT</h2>
+              <p>
+            If you discover a "bug" or just get annoyed by something silly, our development team is waiting to hear from you.
+            Use the SUPPORT link in the footer or menu to send us a note! 
+            This website is provided “as is” without any representations or warranties, express or implied. 
+            The authors make no representations or warranties in relation to this website or the information and materials provided on this website.
+            
+              </p>
+            </section>
+
+             
+            <section>
+              <h2 className="text-2xl font-semibold text-yellow-300 mb-4">6. REPORT ISSUES</h2>
               <p>
             If you encounter content that violates these guidelines, please report it to our support team. 
-            We're committed to maintaining a safe and welcoming environment for all members.
+            We're committed to maintaining a safe, legal and welcoming environment for all members. 
+            Any overly nasty, threatening or harassing comments will be grounds for immediate removal from that channel with no appeals.
+            
               </p>
             </section>
             

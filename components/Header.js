@@ -4,6 +4,7 @@ import { IoMdPower } from "react-icons/io"
 import { RiLogoutCircleRLine } from "react-icons/ri"
 import { PiHamburger } from "react-icons/pi"
 import { LuBrain } from "react-icons/lu"
+import { PiCurrencyCircleDollar } from "react-icons/pi"
 import { FaSearch, FaTimes } from "react-icons/fa"
 import { TbGuitarPick, TbGuitarPickFilled } from "react-icons/tb"
 import { VscDebugRestart } from "react-icons/vsc"
@@ -84,9 +85,28 @@ export default function Header({
                 <button
                   onClick={() => router.push('/features')}
                   className="p-2 rounded-lg transition-colors duration-300 relative group text-white hover:bg-white/10"
-                  title="GuitarTube Features"
+                  title="Brain detanglement therapy"
                 >
-                  <LuBrain className="w-5 h-5 group-hover:text-yellow-400 transition-colors" />
+                  <LuBrain className={`w-5 h-5 transition-colors ${
+                    router.pathname === '/features'
+                      ? 'text-yellow-400'
+                      : 'group-hover:text-yellow-400'
+                  }`} />
+                </button>
+              )}
+
+              {/* Pricing Icon Button - Conditional */}
+              {showBrainIcon && (
+                <button
+                  onClick={() => router.push('/pricing')}
+                  className="p-2 rounded-lg transition-colors duration-300 relative group text-white hover:bg-white/10"
+                  title="I want my GTV!"
+                >
+                  <PiCurrencyCircleDollar className={`w-6 h-6 transition-colors ${
+                    router.pathname === '/pricing'
+                      ? 'text-yellow-400'
+                      : 'group-hover:text-yellow-400'
+                  }`} />
                 </button>
               )}
               
@@ -324,9 +344,28 @@ export default function Header({
                 <button
                   onClick={() => router.push('/features')}
                   className="p-2 rounded-lg transition-colors duration-300 relative group text-white hover:bg-white/10"
-                  title="GuitarTube Features"
+                  title="Purple Haze...cleared!"
                 >
-                  <LuBrain className="w-5 h-5 group-hover:text-yellow-400 transition-colors" />
+                  <LuBrain className={`w-5 h-5 transition-colors ${
+                    router.pathname === '/features'
+                      ? 'text-yellow-400'
+                      : 'group-hover:text-yellow-400'
+                  }`} />
+                </button>
+              )}
+
+              {/* Pricing Icon Button - Conditional */}
+              {showBrainIcon && (
+                <button
+                  onClick={() => router.push('/pricing')}
+                  className="p-2 rounded-lg transition-colors duration-300 relative group text-white hover:bg-white/10"
+                  title="I want my GTV!"
+                >
+                  <PiCurrencyCircleDollar className={`w-6 h-6 transition-colors ${
+                    router.pathname === '/pricing'
+                      ? 'text-yellow-400'
+                      : 'group-hover:text-yellow-400'
+                  }`} />
                 </button>
               )}
               
@@ -380,7 +419,7 @@ export default function Header({
               <button 
                 onClick={onMenuClick}
                 className="text-white p-2 hover:bg-white/10 rounded-lg transition-colors group relative"
-                title="Yummy!"
+                title="Breezeburger in paradise."
               >
                 <PiHamburger className="w-5 h-5 group-hover:text-yellow-400 transition-colors" />
               </button>
@@ -396,9 +435,28 @@ export default function Header({
               <button
                 onClick={() => router.push('/features')}
                 className="p-2 rounded-lg transition-colors duration-300 relative group text-white hover:bg-white/10"
-                title="GuitarTube Features"
+                title="The Sloth's reign just ended."
               >
-                <LuBrain className="w-5 h-5 group-hover:text-yellow-400 transition-colors" />
+                <LuBrain className={`w-5 h-5 transition-colors ${
+                  router.pathname === '/features'
+                    ? 'text-yellow-400'
+                    : 'group-hover:text-yellow-400'
+                }`} />
+              </button>
+            )}
+
+            {/* Pricing Icon Button - Conditional */}
+            {showBrainIcon && (
+              <button
+                onClick={() => router.push('/pricing')}
+                className="p-2 rounded-lg transition-colors duration-300 relative group text-white hover:bg-white/10"
+                title="I want my GTV!"
+              >
+                <PiCurrencyCircleDollar className={`w-6 h-6 transition-colors ${
+                  router.pathname === '/pricing'
+                    ? 'text-yellow-400'
+                    : 'group-hover:text-yellow-400'
+                }`} />
               </button>
             )}
             
