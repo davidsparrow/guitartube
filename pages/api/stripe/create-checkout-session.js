@@ -1,6 +1,6 @@
 // pages/api/stripe/create-checkout-session.js
 import Stripe from 'stripe';
-import { supabase } from '../../../lib/supabase';
+import { supabase, updateUserProfile } from '../../../lib/supabase';
 
 // Initialize Stripe with your secret key
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -58,17 +58,14 @@ export default async function handler(req, res) {
       console.log('🔍 CHECKOUT SESSION API: Processing freebird plan')
       console.log('🔍 CHECKOUT SESSION API: userId exists?', !!userId)
 
-      // Update user profile to freebird plan
+      // Update user profile to freebird plan using centralized utility
       if (userId) {
         console.log('🔍 CHECKOUT SESSION API: Updating user profile for userId:', userId)
-        const { error } = await supabase
-          .from('user_profiles')
-          .update({
-            subscription_tier: 'freebird',
-            subscription_status: 'active',
-            plan_selected_at: new Date().toISOString()
-          })
-          .eq('id', userId);
+        const { data, error } = await updateUserProfile(userId, {
+          subscription_tier: 'freebird',
+          subscription_status: 'active',
+          plan_selected_at: new Date().toISOString()
+        });
 
         if (error) {
           console.error('❌ CHECKOUT SESSION API: Database update error:', error);
@@ -78,7 +75,7 @@ export default async function handler(req, res) {
           });
         }
 
-        console.log('✅ CHECKOUT SESSION API: Database update successful')
+        console.log('✅ CHECKOUT SESSION API: Database update successful, updated data:', data)
       } else {
         console.log('❌ CHECKOUT SESSION API: No userId provided, skipping database update')
       }
