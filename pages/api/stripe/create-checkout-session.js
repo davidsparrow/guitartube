@@ -20,79 +20,70 @@ const PRICE_IDS = {
 };
 
 export default async function handler(req, res) {
+  console.log('🔍 CHECKOUT SESSION API: Request received')
+  console.log('🔍 CHECKOUT SESSION API: Method:', req.method)
+  console.log('🔍 CHECKOUT SESSION API: Body:', req.body)
+
   if (req.method !== 'POST') {
+    console.log('❌ CHECKOUT SESSION API: Invalid method')
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
   try {
     const { plan, billingCycle, userEmail, userId } = req.body;
 
+    console.log('🔍 CHECKOUT SESSION API: Extracted data:', {
+      plan,
+      billingCycle,
+      userEmail,
+      userId
+    })
+
     // Validate required fields
     if (!plan || !userEmail) {
-      return res.status(400).json({ 
-        message: 'Missing required fields: plan, userEmail' 
+      console.log('❌ CHECKOUT SESSION API: Missing required fields')
+      return res.status(400).json({
+        message: 'Missing required fields: plan, userEmail'
       });
     }
 
     // Validate plan
     if (!['freebird', 'roadie', 'hero'].includes(plan)) {
+      console.log('❌ CHECKOUT SESSION API: Invalid plan:', plan)
       return res.status(400).json({ message: 'Invalid plan selected' });
     }
 
     // Handle freebird plan (no Stripe needed)
     if (plan === 'freebird') {
-      console.log('🔵 FREEBIRD API RECEIVED:', {
-        plan,
-        userId,
-        userEmail,
-        billingCycle
-      });
+      console.log('🔍 CHECKOUT SESSION API: Processing freebird plan')
+      console.log('🔍 CHECKOUT SESSION API: userId exists?', !!userId)
 
       // Update user profile to freebird plan
       if (userId) {
-        console.log('🔵 FREEBIRD UPDATE ATTEMPT:', {
-          userId,
-          updateData: {
-            subscription_tier: 'freebird',
-            subscription_status: 'active',
-            plan_selected_at: new Date().toISOString()
-          }
-        });
-
-        const { data, error } = await supabase
+        console.log('🔍 CHECKOUT SESSION API: Updating user profile for userId:', userId)
+        const { error } = await supabase
           .from('user_profiles')
           .update({
             subscription_tier: 'freebird',
             subscription_status: 'active',
             plan_selected_at: new Date().toISOString()
           })
-          .eq('id', userId)
-          .select(); // Add select to see what was updated
-
-        console.log('🔵 FREEBIRD UPDATE RESULT:', {
-          error: error ? error.message : null,
-          data,
-          userId
-        });
+          .eq('id', userId);
 
         if (error) {
-          console.error('🔵 FREEBIRD UPDATE ERROR:', error);
+          console.error('❌ CHECKOUT SESSION API: Database update error:', error);
           return res.status(500).json({
             message: 'Failed to update user profile',
             error: error.message
           });
         }
 
-        console.log('🔵 FREEBIRD UPDATE SUCCESS:', data);
+        console.log('✅ CHECKOUT SESSION API: Database update successful')
       } else {
-        console.log('🔵 FREEBIRD ERROR: No userId provided');
-        return res.status(400).json({
-          message: 'User ID is required for plan update',
-          error: 'Missing userId'
-        });
+        console.log('❌ CHECKOUT SESSION API: No userId provided, skipping database update')
       }
 
-      console.log('🔵 FREEBIRD API SUCCESS: Returning success response');
+      console.log('✅ CHECKOUT SESSION API: Returning success response')
       return res.status(200).json({
         message: 'Successfully updated to freebird plan',
         plan: 'freebird'
