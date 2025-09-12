@@ -1,7 +1,7 @@
 !!README
 
 
-# 🎬 GuitarTube - the best guitar learning video platform in the galaxy, sorry Orion.
+# 🎬 GuitarTube - the best guitar learning video platform in the galaxy, sorry Orion. Help.
 
 Transform your YouTube experience with custom video controls, flipping, and looping features.
 
