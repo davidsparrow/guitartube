@@ -60,22 +60,42 @@ export default async function handler(req, res) {
 
       // Update user profile to freebird plan using centralized utility
       if (userId) {
-        console.log('🔍 CHECKOUT SESSION API: Updating user profile for userId:', userId)
-        const { data, error } = await updateUserProfile(userId, {
+        console.log('🔍 CHECKOUT SESSION API: Starting database update for userId:', userId)
+
+        const updateData = {
           subscription_tier: 'freebird',
           subscription_status: 'active',
           plan_selected_at: new Date().toISOString()
-        });
+        };
+
+        console.log('🔍 CHECKOUT SESSION API: Update data:', updateData)
+
+        const { data, error } = await updateUserProfile(userId, updateData);
+
+        console.log('🔍 CHECKOUT SESSION API: Raw database response:', { data, error })
 
         if (error) {
           console.error('❌ CHECKOUT SESSION API: Database update error:', error);
+          console.error('❌ CHECKOUT SESSION API: Error details:', JSON.stringify(error, null, 2));
           return res.status(500).json({
             message: 'Failed to update user profile',
             error: error.message
           });
         }
 
-        console.log('✅ CHECKOUT SESSION API: Database update successful, updated data:', data)
+        console.log('✅ CHECKOUT SESSION API: Database update successful')
+        console.log('✅ CHECKOUT SESSION API: Updated data:', JSON.stringify(data, null, 2))
+
+        // Verify the update actually worked by reading it back
+        console.log('🔍 CHECKOUT SESSION API: Verifying update by reading back...')
+        const { data: verifyData, error: verifyError } = await supabase
+          .from('user_profiles')
+          .select('subscription_tier, subscription_status, plan_selected_at')
+          .eq('id', userId)
+          .single();
+
+        console.log('🔍 CHECKOUT SESSION API: Verification result:', { verifyData, verifyError })
+
       } else {
         console.log('❌ CHECKOUT SESSION API: No userId provided, skipping database update')
       }
