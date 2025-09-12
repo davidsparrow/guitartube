@@ -1,6 +1,7 @@
 // pages/pricing.js - Dynamic Pricing Page with Feature Gates Integration
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { useUser } from '../contexts/UserContext'
 import AuthModal from '../components/AuthModal'
 import MenuModal from '../components/MenuModal'
 import Header from '../components/Header'
@@ -12,6 +13,7 @@ import { loadStripe } from '@stripe/stripe-js'
 import { supabase } from '../lib/supabase/client'
 export default function Home() {
   const { isAuthenticated, user, profile, loading, signOut } = useAuth()
+  const { refreshProfile } = useUser()
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [isAnnualBilling, setIsAnnualBilling] = useState(true) // Default to annual billing
   const [searchQuery, setSearchQuery] = useState('')
@@ -240,52 +242,82 @@ export default function Home() {
 
   // Handle free plan selection (no Stripe needed)
   const handleFreePlanSelection = async () => {
+    console.log('🔵 FREEBIRD SELECTION STARTED:', {
+      isAuthenticated,
+      userId: user?.id,
+      userEmail: user?.email,
+      currentProfile: profile,
+      currentTier: profile?.subscription_tier,
+      currentStatus: profile?.subscription_status
+    });
+
     if (!isAuthenticated) {
+      console.log('🔵 FREEBIRD BLOCKED: User not authenticated');
       setShowAuthModal(true)
       return
     }
 
     // ✅ Use AuthContext to check existing subscription (no API call needed)
     if (profile?.subscription_tier && profile?.subscription_tier !== 'freebird') {
+      console.log('🔵 FREEBIRD BLOCKED: User already has plan:', profile.subscription_tier);
       alert(`You already have a ${profile.subscription_tier} plan. Contact support to downgrade.`)
       return
     }
-    
+
     if (profile?.subscription_tier === 'freebird') {
+      console.log('🔵 FREEBIRD BLOCKED: User already on Freebird plan');
       alert('You\'re already on the Freebird plan!')
       return
     }
 
+    console.log('🔵 FREEBIRD PROCEEDING: Starting API call');
     setIsLoading(true)
 
     try {
+      const requestBody = {
+        plan: 'freebird',
+        billingCycle: 'none', // Free plans don't have billing cycles
+        userEmail: user.email,
+        userId: user.id
+      };
+
+      console.log('🔵 FREEBIRD API REQUEST:', requestBody);
+
       const response = await fetch('/api/stripe/create-checkout-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          plan: 'freebird',
-          billingCycle: 'none', // Free plans don't have billing cycles
-          userEmail: user.email,
-          userId: user.id
-        }),
+        body: JSON.stringify(requestBody),
       })
 
+      console.log('🔵 FREEBIRD API RESPONSE STATUS:', response.status, response.statusText);
+
       const data = await response.json()
+      console.log('🔵 FREEBIRD API RESPONSE DATA:', data);
 
       if (response.ok) {
         // Successfully updated to free plan
+        console.log('🔵 FREEBIRD SUCCESS: Plan updated successfully');
+
+        // Refresh user profile to get updated plan info
+        console.log('🔵 FREEBIRD REFRESH: Refreshing user profile');
+        if (refreshProfile) {
+          refreshProfile();
+        }
+
         alert('Welcome to the Freebird plan! You can now enjoy basic features.')
         // Optionally redirect to search page or refresh the page
         router.push('/search')
       } else {
+        console.log('🔵 FREEBIRD ERROR: API returned error:', data);
         alert('Failed to update plan. Please try again.')
       }
     } catch (error) {
-      console.error('Free plan selection error:', error)
+      console.error('🔵 FREEBIRD EXCEPTION:', error)
       alert('An error occurred. Please try again.')
     } finally {
+      console.log('🔵 FREEBIRD COMPLETED: Setting loading to false');
       setIsLoading(false)
     }
   }

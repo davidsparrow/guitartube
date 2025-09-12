@@ -41,27 +41,59 @@ export default async function handler(req, res) {
 
     // Handle freebird plan (no Stripe needed)
     if (plan === 'freebird') {
+      console.log('🔵 FREEBIRD API RECEIVED:', {
+        plan,
+        userId,
+        userEmail,
+        billingCycle
+      });
+
       // Update user profile to freebird plan
       if (userId) {
-        const { error } = await supabase
+        console.log('🔵 FREEBIRD UPDATE ATTEMPT:', {
+          userId,
+          updateData: {
+            subscription_tier: 'freebird',
+            subscription_status: 'active',
+            plan_selected_at: new Date().toISOString()
+          }
+        });
+
+        const { data, error } = await supabase
           .from('user_profiles')
-          .update({ 
+          .update({
             subscription_tier: 'freebird',
             subscription_status: 'active',
             plan_selected_at: new Date().toISOString()
           })
-          .eq('id', userId);
+          .eq('id', userId)
+          .select(); // Add select to see what was updated
+
+        console.log('🔵 FREEBIRD UPDATE RESULT:', {
+          error: error ? error.message : null,
+          data,
+          userId
+        });
 
         if (error) {
-          console.error('Error updating user profile for free plan:', error);
-          return res.status(500).json({ 
+          console.error('🔵 FREEBIRD UPDATE ERROR:', error);
+          return res.status(500).json({
             message: 'Failed to update user profile',
-            error: error.message 
+            error: error.message
           });
         }
+
+        console.log('🔵 FREEBIRD UPDATE SUCCESS:', data);
+      } else {
+        console.log('🔵 FREEBIRD ERROR: No userId provided');
+        return res.status(400).json({
+          message: 'User ID is required for plan update',
+          error: 'Missing userId'
+        });
       }
 
-      return res.status(200).json({ 
+      console.log('🔵 FREEBIRD API SUCCESS: Returning success response');
+      return res.status(200).json({
         message: 'Successfully updated to freebird plan',
         plan: 'freebird'
       });
