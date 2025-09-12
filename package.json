@@ -27,6 +27,7 @@
     "react-icons": "^5.5.0",
     "react-youtube": "^10.1.0",
     "stripe": "^18.4.0",
+    "svguitar": "^2.4.1",
     "two.js": "^0.8.19"
   },
   "devDependencies": {
