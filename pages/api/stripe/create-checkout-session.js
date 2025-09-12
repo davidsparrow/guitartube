@@ -61,24 +61,44 @@ export default async function handler(req, res) {
       // Update user profile to freebird plan
       if (userId) {
         console.log('🔍 CHECKOUT SESSION API: Updating user profile for userId:', userId)
-        const { error } = await supabase
+
+        // First, let's verify the user exists
+        const { data: existingUser, error: fetchError } = await supabase
+          .from('user_profiles')
+          .select('id, email, subscription_tier, subscription_status')
+          .eq('id', userId)
+          .single();
+
+        if (fetchError) {
+          console.error('❌ CHECKOUT SESSION API: User fetch error:', fetchError);
+          return res.status(500).json({
+            message: 'Failed to find user profile',
+            error: fetchError.message
+          });
+        }
+
+        console.log('🔍 CHECKOUT SESSION API: Found existing user:', existingUser);
+
+        // Now update the user profile
+        const { data: updateData, error: updateError } = await supabase
           .from('user_profiles')
           .update({
             subscription_tier: 'freebird',
             subscription_status: 'active',
             plan_selected_at: new Date().toISOString()
           })
-          .eq('id', userId);
+          .eq('id', userId)
+          .select(); // Return the updated data
 
-        if (error) {
-          console.error('❌ CHECKOUT SESSION API: Database update error:', error);
+        if (updateError) {
+          console.error('❌ CHECKOUT SESSION API: Database update error:', updateError);
           return res.status(500).json({
             message: 'Failed to update user profile',
-            error: error.message
+            error: updateError.message
           });
         }
 
-        console.log('✅ CHECKOUT SESSION API: Database update successful')
+        console.log('✅ CHECKOUT SESSION API: Database update successful, updated data:', updateData);
       } else {
         console.log('❌ CHECKOUT SESSION API: No userId provided, skipping database update')
       }

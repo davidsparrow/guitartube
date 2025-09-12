@@ -1,6 +1,7 @@
 // pages/pricing.js - Dynamic Pricing Page with Feature Gates Integration
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { useUser } from '../contexts/UserContext'
 import AuthModal from '../components/AuthModal'
 import MenuModal from '../components/MenuModal'
 import Header from '../components/Header'
@@ -12,6 +13,7 @@ import { loadStripe } from '@stripe/stripe-js'
 import { supabase } from '../lib/supabase/client'
 export default function Home() {
   const { isAuthenticated, user, profile, loading, signOut } = useAuth()
+  const { refreshProfile } = useUser()
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [isAnnualBilling, setIsAnnualBilling] = useState(true) // Default to annual billing
   const [searchQuery, setSearchQuery] = useState('')
@@ -296,7 +298,9 @@ export default function Home() {
       console.log('🔍 FREEBIRD API RESPONSE: Data:', data)
 
       if (response.ok) {
-        console.log('✅ FREEBIRD SELECTION: Success, redirecting to search')
+        console.log('✅ FREEBIRD SELECTION: Success, refreshing profile and redirecting to search')
+        // Refresh the user profile to get updated subscription data
+        refreshProfile()
         // Successfully updated to free plan
         alert('Welcome to the Freebird plan! You can now enjoy basic features.')
         // Optionally redirect to search page or refresh the page
