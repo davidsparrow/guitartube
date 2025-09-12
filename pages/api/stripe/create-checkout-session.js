@@ -1,6 +1,12 @@
 // pages/api/stripe/create-checkout-session.js
 import Stripe from 'stripe';
-import { supabase, updateUserProfile } from '../../../lib/supabase';
+import { supabase } from '../../../lib/supabase';
+import { createClient } from '@supabase/supabase-js';
+
+// Create admin client with service role key for database updates
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const adminSupabase = createClient(supabaseUrl, serviceRoleKey);
 
 // Initialize Stripe with your secret key
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -70,7 +76,12 @@ export default async function handler(req, res) {
 
         console.log('🔍 CHECKOUT SESSION API: Update data:', updateData)
 
-        const { data, error } = await updateUserProfile(userId, updateData);
+        // Use admin client with service role key to bypass RLS
+        const { data, error } = await adminSupabase
+          .from('user_profiles')
+          .update(updateData)
+          .eq('id', userId)
+          .select();
 
         console.log('🔍 CHECKOUT SESSION API: Raw database response:', { data, error })
 
@@ -88,7 +99,7 @@ export default async function handler(req, res) {
 
         // Verify the update actually worked by reading it back
         console.log('🔍 CHECKOUT SESSION API: Verifying update by reading back...')
-        const { data: verifyData, error: verifyError } = await supabase
+        const { data: verifyData, error: verifyError } = await adminSupabase
           .from('user_profiles')
           .select('subscription_tier, subscription_status, plan_selected_at')
           .eq('id', userId)
