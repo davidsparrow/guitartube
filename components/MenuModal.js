@@ -258,16 +258,15 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
                   COMMUNITY GUIDELINES
                 </a>
 
-                {/* Cancel Subscription Button - Simple test */}
+                {/* Cancel Subscription Button - Real functionality */}
                 {profile?.subscription_tier === 'roadie' && (
                   <button
-                    onClick={() => {
-                      console.log('🔴 CANCEL BUTTON CLICKED!');
-                      alert('Cancel button works! Subscription: ' + profile?.subscription_tier);
-                    }}
-                    className="w-full bg-transparent border-2 border-red-500 text-red-500 py-2 px-4 rounded-[33px] text-sm font-medium hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
+                    onClick={handleCancelSubscription}
+                    disabled={isCancelingSubscription}
+                    className="w-full bg-transparent border-2 border-red-500 text-red-500 py-2 px-4 rounded-[33px] text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
-                    Cancel Subscription <PiWarning className="w-4 h-4" />
+                    {isCancelingSubscription ? 'Canceling...' : 'Cancel Subscription'}
+                    <PiWarning className="w-4 h-4" />
                   </button>
                 )}
               </div>
