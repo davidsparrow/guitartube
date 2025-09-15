@@ -202,12 +202,24 @@ async function handleSubscriptionUpdated(subscription) {
       await handleTrialEnded(subscription);
     }
     
+    // Get the actual user ID from user_profiles using stripe_customer_id
+    const { data: userProfile } = await adminSupabase
+      .from('user_profiles')
+      .select('id')
+      .eq('stripe_customer_id', customerId)
+      .single();
+
+    if (!userProfile) {
+      console.error('No user found for Stripe customer:', customerId);
+      return;
+    }
+
     // Update subscription in Supabase
     const { error } = await adminSupabase
       .from('subscriptions')
       .upsert({
         stripe_subscription_id: subscription.id,
-        user_id: customerId, // You'll need to map this to your user ID
+        user_id: userProfile.id, // Use the actual UUID from user_profiles
         status: subscription.status,
         tier: planType,
         trial_start: subscription.trial_start ? new Date(subscription.trial_start * 1000) : null,

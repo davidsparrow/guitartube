@@ -77,19 +77,29 @@ export default async function handler(req, res) {
       cancel_at_period_end: true
     });
 
+    // Handle potential null/invalid current_period_end
+    const periodEndTimestamp = canceledSubscription.current_period_end;
+    const periodEndDate = periodEndTimestamp ? new Date(periodEndTimestamp * 1000) : null;
+
     console.log('✅ CANCEL SUBSCRIPTION API: Subscription marked for cancellation:', {
       subscriptionId: canceledSubscription.id,
       cancelAtPeriodEnd: canceledSubscription.cancel_at_period_end,
-      currentPeriodEnd: new Date(canceledSubscription.current_period_end * 1000)
+      currentPeriodEndTimestamp: periodEndTimestamp,
+      currentPeriodEnd: periodEndDate
     });
 
-    // Update user profile to reflect cancellation status
+    // Update user profile to reflect cancellation status (only if we have a valid date)
+    const updateData = {
+      updated_at: new Date().toISOString()
+    };
+
+    if (periodEndDate && !isNaN(periodEndDate.getTime())) {
+      updateData.subscription_ends_at = periodEndDate.toISOString();
+    }
+
     const { error: updateError } = await adminSupabase
       .from('user_profiles')
-      .update({
-        subscription_ends_at: new Date(canceledSubscription.current_period_end * 1000).toISOString(),
-        updated_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('id', userId);
 
     if (updateError) {
