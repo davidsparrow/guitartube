@@ -424,8 +424,20 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
                 )}
 
                 {/* Cancel Subscription Button - Only show for paid tiers */}
-                {profile?.subscription_tier && ['roadie', 'hero'].includes(profile.subscription_tier) &&
-                 profile?.subscription_status && ['active', 'trialing'].includes(profile.subscription_status) && (
+                {(() => {
+                  const shouldShow = profile?.subscription_tier && ['roadie', 'hero'].includes(profile.subscription_tier) &&
+                                   profile?.subscription_status && ['active', 'trialing'].includes(profile.subscription_status);
+
+                  console.log('🔍 Cancel Button Debug:', {
+                    subscription_tier: profile?.subscription_tier,
+                    subscription_status: profile?.subscription_status,
+                    tierCheck: profile?.subscription_tier && ['roadie', 'hero'].includes(profile.subscription_tier),
+                    statusCheck: profile?.subscription_status && ['active', 'trialing'].includes(profile.subscription_status),
+                    shouldShow: shouldShow
+                  });
+
+                  return shouldShow;
+                })() && (
                   <button
                     onClick={handleCancelSubscription}
                     disabled={isCancelingSubscription}
@@ -435,6 +447,11 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
                     {!isCancelingSubscription && <PiWarning className="w-4 h-4" />}
                   </button>
                 )}
+
+                {/* DEBUG: Test button that always shows */}
+                <button className="w-full bg-transparent border-2 border-yellow-500 text-yellow-500 py-2 px-4 rounded-[33px] text-sm font-medium hover:bg-gray-800 transition-colors flex items-center justify-center gap-2">
+                  DEBUG: Test Button <PiWarning className="w-4 h-4" />
+                </button>
               </div>
             </div>
           </div>
