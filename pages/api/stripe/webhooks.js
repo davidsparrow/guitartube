@@ -126,24 +126,35 @@ async function handleSubscriptionCreated(subscription) {
 
   try {
     // Get customer email from Stripe
+    console.log('🔍 WEBHOOK: Retrieving customer:', customerId);
     const customer = await stripe.customers.retrieve(customerId);
-    
+    console.log('🔍 WEBHOOK: Customer email:', customer.email);
+
+    const updateData = {
+      subscription_tier: planType,
+      plan_selected_at: new Date().toISOString(),
+      trial_started_at: subscription.trial_start ? new Date(subscription.trial_start * 1000) : null,
+      trial_ends_at: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
+      stripe_customer_id: customerId
+    };
+
+    console.log('🔍 WEBHOOK: Update data:', updateData);
+
     // Update user profile in Supabase
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('user_profiles')
-      .update({
-        subscription_tier: planType,
-        plan_selected_at: new Date().toISOString(),
-        trial_started_at: subscription.trial_start ? new Date(subscription.trial_start * 1000) : null,
-        trial_ends_at: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
-        stripe_customer_id: customerId
-      })
-      .eq('email', customer.email);
+      .update(updateData)
+      .eq('email', customer.email)
+      .select();
+
+    console.log('🔍 WEBHOOK: Database response:', { data, error });
 
     if (error) {
-      console.error('Error updating user profile:', error);
+      console.error('❌ WEBHOOK: Error updating user profile:', error);
     } else {
-      console.log('User profile updated for subscription:', subscription.id);
+      console.log('✅ WEBHOOK: User profile updated for subscription:', subscription.id);
+      console.log('✅ WEBHOOK: Updated records count:', data?.length || 0);
+      console.log('✅ WEBHOOK: Updated record data:', data?.[0] || 'No data returned');
     }
   } catch (error) {
     console.error('Error handling subscription created:', error);

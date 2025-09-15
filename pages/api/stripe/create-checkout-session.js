@@ -239,21 +239,31 @@ export default async function handler(req, res) {
 
       // Update user profile to mark plan selection
       if (userId) {
-        console.log('🔍 CHECKOUT SESSION API: Updating user profile with trial status')
-        const { error: trialUpdateError } = await supabase
+        console.log('🔍 CHECKOUT SESSION API: Updating user profile with trial status for userId:', userId)
+
+        const trialUpdateData = {
+          subscription_tier: plan,
+          subscription_status: 'trialing',
+          trial_ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days from now
+        };
+
+        console.log('🔍 CHECKOUT SESSION API: Trial update data:', trialUpdateData);
+
+        const { data: trialData, error: trialUpdateError } = await supabase
           .from('user_profiles')
-          .update({
-            subscription_tier: plan,
-            subscription_status: 'trialing',
-            trial_ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days from now
-          })
-          .eq('id', userId);
+          .update(trialUpdateData)
+          .eq('id', userId)
+          .select();
+
+        console.log('🔍 CHECKOUT SESSION API: Trial update response:', { trialData, trialUpdateError });
 
         if (trialUpdateError) {
           console.error('❌ CHECKOUT SESSION API: Failed to update trial status:', trialUpdateError);
           // Don't fail the whole process for this
         } else {
           console.log('✅ CHECKOUT SESSION API: Updated user profile with trial status')
+          console.log('✅ CHECKOUT SESSION API: Updated records count:', trialData?.length || 0);
+          console.log('✅ CHECKOUT SESSION API: Updated record:', trialData?.[0] || 'No data returned');
         }
       }
 
