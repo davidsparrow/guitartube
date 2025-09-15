@@ -214,6 +214,13 @@ async function handleSubscriptionUpdated(subscription) {
       return;
     }
 
+    console.log('🔍 WEBHOOK DEBUG: About to upsert subscription:', {
+      productId: productId,
+      planType: planType,
+      subscriptionStatus: subscription.status,
+      userId: userProfile.id
+    });
+
     // Update subscription in Supabase
     const { error } = await adminSupabase
       .from('subscriptions')

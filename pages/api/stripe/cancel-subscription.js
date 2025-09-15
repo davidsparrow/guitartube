@@ -114,7 +114,7 @@ export default async function handler(req, res) {
         id: canceledSubscription.id,
         cancel_at_period_end: canceledSubscription.cancel_at_period_end,
         current_period_end: canceledSubscription.current_period_end,
-        access_until: new Date(canceledSubscription.current_period_end * 1000).toISOString()
+        access_until: periodEndDate ? periodEndDate.toISOString() : null
       }
     });
 
