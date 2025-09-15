@@ -264,17 +264,15 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
       </div>
 
       {/* Profile Modal */}
-      {showProfileModal && (() => {
-        console.log('🔍 PROFILE MODAL RENDERING:', { showProfileModal, profile });
-        return (
-          <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={(e) => {
-              if (e.target === e.currentTarget) {
-                setShowProfileModal(false)
-              }
-            }}
-          >
+      {showProfileModal && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowProfileModal(false)
+            }
+          }}
+        >
           <div className="bg-black rounded-2xl shadow-2xl max-w-md w-full relative text-white p-8">
             {/* Close Button */}
             <button
@@ -285,6 +283,7 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
             </button>
             
             {/* Profile Content */}
+            {console.log('🔍 PROFILE MODAL RENDERING:', { showProfileModal, profile })}
             <div className="text-center mb-6">
               <h2 className="text-3xl font-bold mb-4">Profile</h2>
               <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mx-auto mb-4 flex items-center justify-center">
@@ -461,8 +460,7 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
             </div>
           </div>
         </div>
-        );
-      })()}
+      )}
     </>
   )
 }
