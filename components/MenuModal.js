@@ -194,7 +194,10 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
               {/* TOP OF MENU */}
               <div className="space-y-4">
                 <button
-                  onClick={() => setShowProfileModal(true)}
+                  onClick={() => {
+                    console.log('🔍 PROFILE BUTTON CLICKED');
+                    setShowProfileModal(true);
+                  }}
                   className="block w-full text-white hover:text-yellow-400 transition-colors text-lg font-semibold"
                 >
                   PROFILE
@@ -261,15 +264,17 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
       </div>
 
       {/* Profile Modal */}
-      {showProfileModal && (
-        <div 
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setShowProfileModal(false)
-            }
-          }}
-        >
+      {showProfileModal && (() => {
+        console.log('🔍 PROFILE MODAL RENDERING:', { showProfileModal, profile });
+        return (
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowProfileModal(false)
+              }
+            }}
+          >
           <div className="bg-black rounded-2xl shadow-2xl max-w-md w-full relative text-white p-8">
             {/* Close Button */}
             <button
@@ -456,7 +461,8 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
     </>
   )
 }
