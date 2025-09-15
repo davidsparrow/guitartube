@@ -1,6 +1,12 @@
 // /api/stripe/webhooks.js
 import Stripe from 'stripe';
 import { supabase } from '../../../lib/supabase';
+import { createClient } from '@supabase/supabase-js';
+
+// Create admin client with service role key for database updates
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const adminSupabase = createClient(supabaseUrl, serviceRoleKey);
 
 // Disable body parsing for webhook signature verification
 export const config = {
@@ -141,7 +147,7 @@ async function handleSubscriptionCreated(subscription) {
     console.log('🔍 WEBHOOK: Update data:', updateData);
 
     // Update user profile in Supabase
-    const { data, error } = await supabase
+    const { data, error } = await adminSupabase
       .from('user_profiles')
       .update(updateData)
       .eq('email', customer.email)
@@ -197,7 +203,7 @@ async function handleSubscriptionUpdated(subscription) {
     }
     
     // Update subscription in Supabase
-    const { error } = await supabase
+    const { error } = await adminSupabase
       .from('subscriptions')
       .upsert({
         stripe_subscription_id: subscription.id,
@@ -227,7 +233,7 @@ async function handleSubscriptionPaused(subscription) {
     const customer = await stripe.customers.retrieve(subscription.customer);
     
     // Convert user to free tier
-    const { error } = await supabase
+    const { error } = await adminSupabase
       .from('user_profiles')
       .update({
         subscription_tier: 'freebird',
@@ -257,7 +263,7 @@ async function handleSubscriptionResumed(subscription) {
     const planType = PLAN_MAPPING[productId];
     
     // Restore user to their paid tier
-    const { error } = await supabase
+    const { error } = await adminSupabase
       .from('user_profiles')
       .update({
         subscription_tier: planType,
@@ -283,7 +289,7 @@ async function handleSubscriptionDeleted(subscription) {
     const customer = await stripe.customers.retrieve(subscription.customer);
     
     // Convert user to free tier
-    const { error } = await supabase
+    const { error } = await adminSupabase
       .from('user_profiles')
       .update({
         subscription_tier: 'freebird',
