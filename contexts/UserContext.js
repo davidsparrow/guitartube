@@ -226,12 +226,12 @@ export const UserProvider = ({ children }) => {
 
     // Computed values
     isPremium: profile?.subscription_tier === 'premium',
-    hasPlanAccess: !!(profile?.subscription_tier && profile?.subscription_status === 'active'),
+    hasPlanAccess: !!(profile?.subscription_tier && ['active', 'trialing'].includes(profile?.subscription_status)),
     planType: profile?.subscription_tier || 'freebird',
     planStatus: profile?.subscription_status || null,
 
     // Feature access - Now uses dynamic search limits from feature gates
-    canSearch: checkDailySearchLimit() && profile?.subscription_status === 'active',
+    canSearch: checkDailySearchLimit() && ['active', 'trialing'].includes(profile?.subscription_status),
 
     // User data helpers
     userName: profile?.full_name || profile?.email?.split('@')[0] || 'User',

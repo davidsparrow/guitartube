@@ -248,30 +248,32 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
                 <p className="font-medium capitalize">{profile?.subscription_tier || 'Freebird'}</p>
               </div>
 
-              {/* Resume Toggle Switch */}
-              <div className="bg-gray-800/50 p-4 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-400 mb-1">Login: Resume Last Video</p>
-                    <p className="text-xs text-gray-500">Auto-resume your last video when you log in</p>
+              {/* Resume Toggle Switch - Only show for roadie/hero users */}
+              {profile?.subscription_tier && ['roadie', 'hero'].includes(profile.subscription_tier) && (
+                <div className="bg-gray-800/50 p-4 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-400 mb-1">Login: Resume Last Video</p>
+                      <p className="text-xs text-gray-500">Auto-resume your last video when you log in</p>
+                    </div>
+                    <button
+                      onClick={handleResumeToggle}
+                      disabled={isUpdatingResume}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 focus:ring-offset-gray-800 ${
+                        profile?.resume_enabled
+                          ? 'bg-yellow-400'
+                          : 'bg-gray-600'
+                      } ${isUpdatingResume ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          profile?.resume_enabled ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
                   </div>
-                  <button
-                    onClick={handleResumeToggle}
-                    disabled={isUpdatingResume}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 focus:ring-offset-gray-800 ${
-                      profile?.resume_enabled
-                        ? 'bg-yellow-400'
-                        : 'bg-gray-600'
-                    } ${isUpdatingResume ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        profile?.resume_enabled ? 'translate-x-6' : 'translate-x-1'
-                      }`}
-                    />
-                  </button>
                 </div>
-              </div>
+              )}
 
               <div className="pt-4">
                 <button className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors">
