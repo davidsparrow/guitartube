@@ -26,16 +26,15 @@ const PRICE_IDS = {
 };
 
 export default async function handler(req, res) {
-  console.log('🔍 CHECKOUT SESSION API: Request received')
-  console.log('🔍 CHECKOUT SESSION API: Method:', req.method)
-  console.log('🔍 CHECKOUT SESSION API: Body:', req.body)
-
-  if (req.method !== 'POST') {
-    console.log('❌ CHECKOUT SESSION API: Invalid method')
-    return res.status(405).json({ message: 'Method not allowed' });
-  }
-
   try {
+    console.log('🔍 CHECKOUT SESSION API: Request received')
+    console.log('🔍 CHECKOUT SESSION API: Method:', req.method)
+    console.log('🔍 CHECKOUT SESSION API: Body:', req.body)
+
+    if (req.method !== 'POST') {
+      console.log('❌ CHECKOUT SESSION API: Invalid method')
+      return res.status(405).json({ message: 'Method not allowed' });
+    }
     const { plan, billingCycle, userEmail, userId } = req.body;
 
     console.log('🔍 CHECKOUT SESSION API: Extracted data:', {
@@ -124,11 +123,19 @@ export default async function handler(req, res) {
     }
 
     // Check if user already has a paid subscription
-    const { data: existingProfile } = await supabase
+    console.log('🔍 CHECKOUT SESSION API: Looking up existing profile for email:', userEmail)
+    const { data: existingProfile, error: profileError } = await supabase
       .from('user_profiles')
       .select('subscription_tier, subscription_status, stripe_customer_id')
       .eq('email', userEmail)
       .single();
+
+    if (profileError && profileError.code !== 'PGRST116') { // PGRST116 = no rows found, which is OK
+      console.error('❌ CHECKOUT SESSION API: Profile lookup error:', profileError);
+      throw new Error(`Profile lookup failed: ${profileError.message}`);
+    }
+
+    console.log('🔍 CHECKOUT SESSION API: Found existing profile:', existingProfile ? 'Yes' : 'No');
 
     if (existingProfile) {
       // If user already has a paid plan, prevent duplicate signup
@@ -143,84 +150,131 @@ export default async function handler(req, res) {
     }
 
     // Get the appropriate price ID based on plan and billing cycle
+    console.log('🔍 CHECKOUT SESSION API: Looking up price ID for:', `${plan}_${billingCycle}`)
     const priceId = PRICE_IDS[`${plan}_${billingCycle}`];
     if (!priceId) {
+      console.error('❌ CHECKOUT SESSION API: Invalid price configuration for:', `${plan}_${billingCycle}`);
+      console.error('❌ CHECKOUT SESSION API: Available price IDs:', Object.keys(PRICE_IDS));
       return res.status(400).json({ message: 'Invalid price configuration' });
     }
+    console.log('✅ CHECKOUT SESSION API: Found price ID:', priceId);
 
     // Create or retrieve Stripe customer
     let customerId = existingProfile?.stripe_customer_id;
-    
-    if (!customerId) {
-      const customer = await stripe.customers.create({
-        email: userEmail,
-        metadata: {
-          user_id: userId || 'unknown'
-        }
-      });
-      customerId = customer.id;
+    console.log('🔍 CHECKOUT SESSION API: Existing customer ID:', customerId ? 'Found' : 'None')
 
-      // Update user profile with Stripe customer ID
-      if (userId) {
-        await supabase
-          .from('user_profiles')
-          .update({ stripe_customer_id: customerId })
-          .eq('id', userId);
+    if (!customerId) {
+      console.log('🔍 CHECKOUT SESSION API: Creating new Stripe customer for:', userEmail)
+      try {
+        const customer = await stripe.customers.create({
+          email: userEmail,
+          metadata: {
+            user_id: userId || 'unknown'
+          }
+        });
+        customerId = customer.id;
+        console.log('✅ CHECKOUT SESSION API: Created Stripe customer:', customerId)
+
+        // Update user profile with Stripe customer ID
+        if (userId) {
+          console.log('🔍 CHECKOUT SESSION API: Updating user profile with customer ID')
+          const { error: updateError } = await supabase
+            .from('user_profiles')
+            .update({ stripe_customer_id: customerId })
+            .eq('id', userId);
+
+          if (updateError) {
+            console.error('❌ CHECKOUT SESSION API: Failed to update customer ID:', updateError);
+            // Don't fail the whole process for this
+          } else {
+            console.log('✅ CHECKOUT SESSION API: Updated user profile with customer ID')
+          }
+        }
+      } catch (stripeError) {
+        console.error('❌ CHECKOUT SESSION API: Stripe customer creation failed:', stripeError);
+        throw new Error(`Stripe customer creation failed: ${stripeError.message}`);
       }
     }
 
     // Create checkout session with 30-day trial
-    const session = await stripe.checkout.sessions.create({
+    console.log('🔍 CHECKOUT SESSION API: Creating checkout session with params:', {
       customer: customerId,
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
+      priceId: priceId,
+      plan: plan,
+      billingCycle: billingCycle,
+      baseUrl: process.env.NEXT_PUBLIC_BASE_URL
+    })
+
+    try {
+      const session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price: priceId,
+            quantity: 1,
+          },
+        ],
+        mode: 'subscription',
+        success_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/search?success=true&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/pricing?canceled=true`,
+        subscription_data: {
+          trial_period_days: 30, // 30-day trial
+          metadata: {
+            plan: plan,
+            billing_cycle: billingCycle,
+            user_id: userId || 'unknown'
+          }
         },
-      ],
-      mode: 'subscription',
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/search?success=true&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/pricing?canceled=true`,
-      subscription_data: {
-        trial_period_days: 30, // 30-day trial
         metadata: {
           plan: plan,
           billing_cycle: billingCycle,
           user_id: userId || 'unknown'
-        }
-      },
-      metadata: {
-        plan: plan,
-        billing_cycle: billingCycle,
-        user_id: userId || 'unknown'
-      },
-      allow_promotion_codes: true,
-      billing_address_collection: 'required',
-    });
+        },
+        allow_promotion_codes: true,
+        billing_address_collection: 'required',
+      });
 
-    // Update user profile to mark plan selection
-    if (userId) {
-      await supabase
-        .from('user_profiles')
-        .update({ 
-          subscription_tier: plan,
-          subscription_status: 'trialing',
-          trial_ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days from now
-        })
-        .eq('id', userId);
+      console.log('✅ CHECKOUT SESSION API: Checkout session created successfully:', session.id);
+
+      // Update user profile to mark plan selection
+      if (userId) {
+        console.log('🔍 CHECKOUT SESSION API: Updating user profile with trial status')
+        const { error: trialUpdateError } = await supabase
+          .from('user_profiles')
+          .update({
+            subscription_tier: plan,
+            subscription_status: 'trialing',
+            trial_ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days from now
+          })
+          .eq('id', userId);
+
+        if (trialUpdateError) {
+          console.error('❌ CHECKOUT SESSION API: Failed to update trial status:', trialUpdateError);
+          // Don't fail the whole process for this
+        } else {
+          console.log('✅ CHECKOUT SESSION API: Updated user profile with trial status')
+        }
+      }
+
+      console.log('✅ CHECKOUT SESSION API: Returning session data:', { sessionId: session.id, url: session.url })
+      res.status(200).json({
+        sessionId: session.id,
+        url: session.url
+      });
+
+    } catch (stripeSessionError) {
+      console.error('❌ CHECKOUT SESSION API: Stripe session creation failed:', stripeSessionError);
+      console.error('❌ CHECKOUT SESSION API: Stripe error details:', JSON.stringify(stripeSessionError, null, 2));
+      throw new Error(`Stripe session creation failed: ${stripeSessionError.message}`);
     }
 
-    res.status(200).json({ 
-      sessionId: session.id,
-      url: session.url 
-    });
-
   } catch (error) {
-    console.error('Error creating checkout session:', error);
-    res.status(500).json({ 
+    console.error('❌ CHECKOUT SESSION API: FATAL ERROR:', error);
+    console.error('❌ CHECKOUT SESSION API: Error stack:', error.stack);
+    res.status(500).json({
       message: 'Failed to create checkout session',
-      error: error.message 
+      error: error.message
     });
   }
 }
