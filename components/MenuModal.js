@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useUser } from '../contexts/UserContext'
 import { useAuth } from '../contexts/AuthContext'
 import { updateUserProfile } from '../lib/supabase'
+import { PiWarning } from "react-icons/pi"
 
 export default function MenuModal({ isOpen, onClose, onSupportClick }) {
   const { profile, userEmail, refreshProfile } = useUser()
@@ -11,6 +12,7 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
   const [showPlanModal, setShowPlanModal] = useState(false)
   const [showBackstageAlert, setShowBackstageAlert] = useState(false)
   const [isUpdatingResume, setIsUpdatingResume] = useState(false)
+  const [isCancelingSubscription, setIsCancelingSubscription] = useState(false)
 
   // Handle logout functionality
   const handleLogout = async () => {
@@ -57,6 +59,61 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
       alert('Failed to update resume setting. Please try again.')
     } finally {
       setIsUpdatingResume(false)
+    }
+  }
+
+  // Handle cancel subscription
+  const handleCancelSubscription = async () => {
+    if (!profile?.id || isCancelingSubscription) return
+
+    // Confirm cancellation
+    const confirmed = window.confirm(
+      'Are you sure you want to cancel your subscription?\n\n' +
+      'You will keep access until the end of your current billing period, ' +
+      'then your account will be converted to the free Freebird plan.'
+    )
+
+    if (!confirmed) return
+
+    setIsCancelingSubscription(true)
+
+    try {
+      console.log('🔄 Canceling subscription for user:', profile.id)
+
+      const response = await fetch('/api/stripe/cancel-subscription', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: profile.id,
+          userEmail: userEmail
+        })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to cancel subscription')
+      }
+
+      console.log('✅ Subscription canceled successfully:', result)
+
+      // Show success message
+      alert(
+        'Subscription canceled successfully!\n\n' +
+        `You will keep access until ${new Date(result.subscription.access_until).toLocaleDateString()}.\n` +
+        'After that, your account will be converted to the free Freebird plan.'
+      )
+
+      // Refresh profile to get updated data
+      refreshProfile()
+
+    } catch (error) {
+      console.error('❌ Error canceling subscription:', error)
+      alert(`Failed to cancel subscription: ${error.message}`)
+    } finally {
+      setIsCancelingSubscription(false)
     }
   }
 
@@ -359,10 +416,23 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
                 <button className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors">
                   Change Credit Card
                 </button>
-                
+
                 {profile?.subscription_tier !== 'hero' && (
                   <button className="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-green-700 transition-colors">
                     UPGRADE
+                  </button>
+                )}
+
+                {/* Cancel Subscription Button - Only show for paid tiers */}
+                {profile?.subscription_tier && ['roadie', 'hero'].includes(profile.subscription_tier) &&
+                 profile?.subscription_status && ['active', 'trialing'].includes(profile.subscription_status) && (
+                  <button
+                    onClick={handleCancelSubscription}
+                    disabled={isCancelingSubscription}
+                    className="w-full bg-transparent border-2 border-red-500 text-red-500 py-2 px-4 rounded-[33px] text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {isCancelingSubscription ? 'Canceling...' : 'Cancel Subscription'}
+                    {!isCancelingSubscription && <PiWarning className="w-4 h-4" />}
                   </button>
                 )}
               </div>
