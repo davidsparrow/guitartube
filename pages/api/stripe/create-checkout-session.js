@@ -7,6 +7,12 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const adminSupabase = createClient(supabaseUrl, serviceRoleKey);
+import { createClient } from '@supabase/supabase-js';
+
+// Create admin client with service role key for database updates
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const adminSupabase = createClient(supabaseUrl, serviceRoleKey);
 
 // Initialize Stripe with your secret key
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -124,7 +130,7 @@ export default async function handler(req, res) {
 
     // Check if user already has a paid subscription
     console.log('🔍 CHECKOUT SESSION API: Looking up existing profile for email:', userEmail)
-    const { data: existingProfile, error: profileError } = await supabase
+    const { data: existingProfile, error: profileError } = await adminSupabase
       .from('user_profiles')
       .select('subscription_tier, subscription_status, stripe_customer_id')
       .eq('email', userEmail)
@@ -178,7 +184,7 @@ export default async function handler(req, res) {
         // Update user profile with Stripe customer ID
         if (userId) {
           console.log('🔍 CHECKOUT SESSION API: Updating user profile with customer ID')
-          const { error: updateError } = await supabase
+          const { error: updateError } = await adminSupabase
             .from('user_profiles')
             .update({ stripe_customer_id: customerId })
             .eq('id', userId);
@@ -249,7 +255,7 @@ export default async function handler(req, res) {
 
         console.log('🔍 CHECKOUT SESSION API: Trial update data:', trialUpdateData);
 
-        const { data: trialData, error: trialUpdateError } = await supabase
+        const { data: trialData, error: trialUpdateError } = await adminSupabase
           .from('user_profiles')
           .update(trialUpdateData)
           .eq('id', userId)
