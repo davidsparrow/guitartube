@@ -135,7 +135,7 @@ export default function Home() {
       
       {/* Top Banner - Admin controlled */}
       <TopBanner />
-      
+
       {/* Header Component */}
       <Header 
         showBrainIcon={true}
