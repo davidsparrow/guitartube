@@ -30,6 +30,20 @@ export default function Home() {
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // Check for support modal URL parameter
+  useEffect(() => {
+    if (mounted && router.isReady) {
+      const urlParams = new URLSearchParams(window.location.search)
+      if (urlParams.get('support') === 'true') {
+        setShowSupportModal(true)
+        // Clean up URL without page reload
+        const newUrl = window.location.pathname
+        window.history.replaceState({}, '', newUrl)
+      }
+    }
+  }, [mounted, router.isReady])
+
   // Smart redirect logic for authenticated users
   useEffect(() => {
     if (mounted && isAuthenticated && !loading && router.isReady) {
