@@ -1,6 +1,6 @@
 // pages/api/user/create-profile.js
 // Create missing user profile for authenticated users
-import { supabase } from '../../../lib/supabase';
+import { adminSupabase } from '../../../lib/supabase';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -19,7 +19,7 @@ export default async function handler(req, res) {
     console.log('🔧 Creating user profile for:', userId);
 
     // Check if profile already exists
-    const { data: existingProfile, error: checkError } = await supabase
+    const { data: existingProfile, error: checkError } = await adminSupabase
       .from('user_profiles')
       .select('id')
       .eq('id', userId)
@@ -42,7 +42,7 @@ export default async function handler(req, res) {
     }
 
     // Create new profile
-    const { data: newProfile, error: createError } = await supabase
+    const { data: newProfile, error: createError } = await adminSupabase
       .from('user_profiles')
       .insert([
         {
