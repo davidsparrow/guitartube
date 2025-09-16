@@ -78,18 +78,8 @@ export default async function handler(req, res) {
     });
 
     // Handle potential null/invalid current_period_end
-    // For trialing subscriptions, use trial_end instead of current_period_end
-    let periodEndTimestamp = canceledSubscription.current_period_end;
-    let accessEndDate = null;
-
-    if (canceledSubscription.status === 'trialing' && canceledSubscription.trial_end) {
-      periodEndTimestamp = canceledSubscription.trial_end;
-      accessEndDate = new Date(periodEndTimestamp * 1000);
-    } else if (periodEndTimestamp && periodEndTimestamp > 0) {
-      accessEndDate = new Date(periodEndTimestamp * 1000);
-    }
-
-    const periodEndDate = accessEndDate;
+    const periodEndTimestamp = canceledSubscription.current_period_end;
+    const periodEndDate = periodEndTimestamp ? new Date(periodEndTimestamp * 1000) : null;
 
     console.log('✅ CANCEL SUBSCRIPTION API: Subscription marked for cancellation:', {
       subscriptionId: canceledSubscription.id,
@@ -117,26 +107,12 @@ export default async function handler(req, res) {
       // Don't fail the request - Stripe cancellation succeeded
     }
 
-    // Create user-friendly message
-    let userMessage = 'Subscription canceled successfully';
-    if (canceledSubscription.status === 'trialing') {
-      userMessage = periodEndDate
-        ? `Trial canceled. Access continues until ${periodEndDate.toLocaleDateString()}`
-        : 'Trial canceled. Access continues until trial period ends';
-    } else {
-      userMessage = periodEndDate
-        ? `Subscription canceled. Access continues until ${periodEndDate.toLocaleDateString()}`
-        : 'Subscription canceled. Access continues until billing period ends';
-    }
-
     return res.status(200).json({
       success: true,
-      message: userMessage,
+      message: 'Subscription canceled successfully',
       subscription: {
         id: canceledSubscription.id,
         cancel_at_period_end: canceledSubscription.cancel_at_period_end,
-        status: canceledSubscription.status,
-        trial_end: canceledSubscription.trial_end,
         current_period_end: canceledSubscription.current_period_end,
         access_until: periodEndDate ? periodEndDate.toISOString() : null
       }
