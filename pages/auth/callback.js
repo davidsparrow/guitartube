@@ -22,13 +22,50 @@ export default function AuthCallback() {
         }
 
         if (data.session) {
-          // Successfully authenticated
+          // Successfully authenticated - now ensure user profile exists
+          const user = data.session.user
+
+          // Check if user profile exists
+          const { data: existingProfile, error: profileError } = await supabase
+            .from('user_profiles')
+            .select('id')
+            .eq('id', user.id)
+            .single()
+
+          if (profileError && profileError.code !== 'PGRST116') {
+            console.error('Error checking user profile:', profileError)
+          }
+
+          // Create user profile if it doesn't exist
+          if (!existingProfile) {
+            console.log('Creating user profile for:', user.email)
+            const { error: createError } = await supabase
+              .from('user_profiles')
+              .insert({
+                id: user.id,
+                email: user.email,
+                full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+                avatar_url: user.user_metadata?.avatar_url || null,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              })
+
+            if (createError) {
+              console.error('Error creating user profile:', createError)
+              setStatus('error')
+              setMessage('Failed to create user profile. Please try again.')
+              return
+            }
+
+            console.log('✅ User profile created successfully')
+          }
+
           setStatus('success')
           setMessage('Authentication successful! Redirecting to your dashboard...')
 
-          // Redirect to search page after a short delay
+          // Redirect to welcome page after a short delay
           setTimeout(() => {
-            router.push('/search')
+            router.push('/welcome')
           }, 2000)
         } else {
           // No session found
