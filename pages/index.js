@@ -199,6 +199,11 @@ export default function Home() {
 
         </div>
 
+        {/* TEST: Red TESTING word to verify changes are deploying */}
+        <div className="mt-4">
+          <p className="text-red-500 font-bold text-2xl text-center">TESTING</p>
+        </div>
+
         {/* Stay Free Button - Mobile Optimized */}
         <div className="flex-1 flex items-end justify-center pb-4 md:pb-8 mt-8 md:mt-auto">
           <button
