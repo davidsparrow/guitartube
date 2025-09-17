@@ -83,7 +83,7 @@ export default function MobileHome() {
   return (
     <>
       <div
-        className="min-h-screen pb-32"
+        className="min-h-screen pt-20 pb-32"
         style={{
           backgroundImage: `url('/images/gt_splashBG_dark.png')`,
           backgroundSize: 'cover',
@@ -93,12 +93,11 @@ export default function MobileHome() {
         }}
       >
 
-      
       {/* Top Banner - Admin controlled */}
       <TopBanner />
-      
-      {/* Header - Mobile & Tablet Responsive */}
-      <header className="relative z-10 px-4 py-3 md:px-6 md:py-4" style={{ backgroundColor: 'transparent' }}>
+
+      {/* Header - STICKY AT TOP */}
+      <header className="fixed top-0 left-0 right-0 z-20 px-4 py-3 md:px-6 md:py-4" style={{ backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)' }}>
         <div className="flex justify-between items-center">
           {/* Logo - Upper Left - Mobile Optimized Size */}
           <a 
@@ -148,8 +147,8 @@ export default function MobileHome() {
         </div>
       </header>
 
-      {/* Main Content - Normal Layout (Mobile & Tablet) */}
-      <main className="relative z-10 flex flex-col items-center px-4 md:px-6 pt-8 md:pt-12" style={{
+      {/* Main Content - Compact Layout (Mobile & Tablet) */}
+      <main className="relative z-10 flex flex-col items-center px-4 md:px-6 pt-4 md:pt-6" style={{
         backgroundColor: 'transparent'
       }}>
         {/* Logo and Subtitle Section - Mobile & Tablet Responsive */}
