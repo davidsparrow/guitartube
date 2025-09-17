@@ -91,8 +91,7 @@ export default function MobileHome() {
         backgroundColor: '#1a1a1a' // Fallback color
       }}
     >
-      {/* 75% Black Overlay */}
-      <div className="absolute inset-0 bg-black/75 z-0" />
+
       
       {/* Top Banner - Admin controlled */}
       <TopBanner />
@@ -148,13 +147,13 @@ export default function MobileHome() {
         </div>
       </header>
 
-      {/* Main Content - Mobile Optimized Layout */}
-      <div className="relative z-10 flex flex-col items-center justify-center px-4" style={{ 
-        height: 'calc(100vh - 120px)', // Adjusted for mobile header
+      {/* Main Content - iPhone 15 Pro Optimized (393x852px) */}
+      <div className="relative z-10 flex flex-col items-center px-4" style={{
+        height: 'calc(100vh - 160px)', // Reduced height to fit iPhone 15 Pro + footer
         backgroundColor: 'transparent'
       }}>
-        {/* Logo and Subtitle Section - Mobile Optimized */}
-        <div className="text-center mb-8 mt-14"> {/* Reduced to 56px top margin for spacing from header */}
+        {/* Logo and Subtitle Section - Compact for iPhone 15 Pro */}
+        <div className="text-center mb-6 mt-8"> {/* Reduced margins: 32px top, 24px bottom */}
           <img 
             src="/images/gt_logo_wide_on_black_450x90.png" 
             alt="GuitarTube" 
@@ -171,8 +170,8 @@ export default function MobileHome() {
           </p>
         </div>
 
-        {/* Search and Sort Fields - Mobile Optimized */}
-        <div className="flex flex-col items-center space-y-3 w-full max-w-sm"> {/* Mobile layout */}
+        {/* Search and Sort Fields - Compact for iPhone 15 Pro */}
+        <div className="flex flex-col items-center space-y-2 w-full max-w-sm"> {/* Reduced spacing */}
           {/* Search Bar - Mobile Optimized */}
           <div className="relative w-4/5">
             <input
@@ -209,8 +208,8 @@ export default function MobileHome() {
 
         </div>
 
-        {/* Stay Free Button - Mobile Optimized */}
-        <div className="mt-auto mb-6"> {/* Adjusted positioning for mobile */}
+        {/* Stay Free Button - Positioned near footer for iPhone 15 Pro */}
+        <div className="mt-auto mb-2"> {/* Minimal bottom margin to stay near footer */}
           <button
             onClick={() => router.push('/pricing')}
             className="relative text-green-400 font-bold text-xl hover:text-green-300 transition-all duration-500 transform hover:scale-105 overflow-hidden group px-6 py-3 rounded-full" // Mobile sizing
