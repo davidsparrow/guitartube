@@ -165,12 +165,7 @@ export default function MobileHome() {
           />
         </div>
 
-        {/* SEARCH FIELD REMOVED - EXPOSING THE MYSTERIOUS EMPTY SPACE */}
-        <div className="text-center text-red-500 font-bold text-xl p-4 border-2 border-red-500">
-          🚨 SEARCH FIELD REMOVED 🚨<br/>
-          BEHOLD THE AMAZING EMPTY SPACE!<br/>
-          YOUR USERS WILL LOVE SCROLLING THROUGH NOTHING!
-        </div>
+
       </main>
 
       {/* Footer with Stay Free Button - FIXED AT BOTTOM */}
