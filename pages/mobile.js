@@ -81,16 +81,23 @@ export default function MobileHome() {
   }
 
   return (
-    <div
-      className="flex flex-col min-h-screen overflow-hidden"
-      style={{
-        backgroundImage: `url('/images/gt_splashBG_dark.png')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundColor: '#1a1a1a' // Fallback color
-      }}
-    >
+    <>
+      <style jsx global>{`
+        html {
+          height: 100%;
+        }
+        body {
+          min-height: 100%;
+          display: flex;
+          flex-direction: column;
+          background-image: url('/images/gt_splashBG_dark.png');
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
+          background-color: #1a1a1a;
+          background-attachment: fixed;
+        }
+      `}</style>
 
       
       {/* Top Banner - Admin controlled */}
@@ -148,7 +155,7 @@ export default function MobileHome() {
       </header>
 
       {/* Main Content - Flexbox Layout (Mobile & Tablet) */}
-      <main className="relative z-10 flex-1 flex flex-col items-center px-4 md:px-6 pt-8 md:pt-12" style={{
+      <main className="relative z-10 grow flex flex-col items-center px-4 md:px-6 pt-8 md:pt-12" style={{
         backgroundColor: 'transparent'
       }}>
         {/* Logo and Subtitle Section - Mobile & Tablet Responsive */}
@@ -435,6 +442,6 @@ export default function MobileHome() {
           </div>
         </div>
       )}
-    </div>
+    </>
   )
 }
