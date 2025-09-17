@@ -136,8 +136,7 @@ export default function Home() {
       {/* Top Banner - Admin controlled */}
       <TopBanner />
 
-      {/* TEST: Add visible padding to see if header moves */}
-      <div style={{ height: '4px', backgroundColor: 'red', opacity: 0.3 }} />
+
       
       {/* Header Component */}
       <Header 
@@ -205,8 +204,8 @@ export default function Home() {
 
         {/* Main Feature Graphic with Hotspots */}
         
-        {/* 2. Stay Free Button - Mobile Moved Up, Desktop at Bottom */}
-        <div className="flex justify-center mt-12 md:flex-1 md:flex md:items-end md:pb-8 md:mt-auto">
+        {/* 2. Stay Free Button - FORCED POSITIONING for Mobile */}
+        <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 md:relative md:bottom-auto md:left-auto md:transform-none md:flex-1 md:flex md:items-end md:pb-8 md:mt-auto">
           {/* Stay Free - Now Clickable Button with Shiny Effect */}
           <button
             onClick={() => router.push('/pricing')}
