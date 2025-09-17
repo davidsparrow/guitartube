@@ -136,6 +136,9 @@ export default function Home() {
       {/* Top Banner - Admin controlled */}
       <TopBanner />
 
+      {/* TEST: Add visible padding to see if header moves */}
+      <div style={{ height: '4px', backgroundColor: 'red', opacity: 0.3 }} />
+      
       {/* Header Component */}
       <Header 
         showBrainIcon={true}
@@ -145,32 +148,33 @@ export default function Home() {
         onMenuClick={() => setShowMenuModal(true)}
         isAuthenticated={isAuthenticated}
       />
-      {/* Main Content - Mobile Optimized */}
-      <div className="relative z-10 flex flex-col items-center justify-center px-4 md:px-6" style={{
-        minHeight: 'calc(100vh - 80px)',
+      {/* Main Content - Mobile & Desktop Responsive */}
+      <div className="relative z-10 flex flex-col items-center px-4 md:px-6" style={{
+        minHeight: 'calc(100vh - 80px)', // Mobile optimized
         backgroundColor: 'transparent'
       }}>
-        {/* 1. Centered Logo - Mobile Optimized */}
+        {/* 1. Large Centered Logo - Mobile & Desktop Responsive */}
         <div className="mt-16 md:mt-32 mb-4 md:mb-8">
-          <img
-            src="/images/gt_logo_wide_on_black_450x90.png"
-            alt="GuitarTube"
-            className="mx-auto mb-2 md:mb-3 h-16 md:h-28 w-auto"
-          />
-          <p className="text-center text-white font-bold text-sm md:text-xl drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)] px-2" style={{ fontFamily: 'Futura, sans-serif' }}>
+                      <img 
+              src="/images/gt_logo_wide_on_black_450x90.png" 
+              alt="GuitarTube" 
+              className="mx-auto mb-2 md:mb-3 h-16 md:h-28 w-auto"
+            />
+          <p className="text-center text-white font-bold text-sm md:text-xl drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]" style={{ fontFamily: 'Futura, sans-serif' }}>
             Press fast forward on your Video Guitar Learning journey
           </p>
         </div>
 
-        {/* Search Bar - Mobile Optimized */}
-        <div className="flex items-center justify-center w-full max-w-md md:max-w-lg mt-4 md:mt-11 px-2">
-          <div className="relative w-full">
+        {/* Search and Sort Fields - Mobile & Desktop Responsive */}
+        <div className="flex items-center justify-center space-x-2 md:space-x-4 mt-4 md:mt-11">
+          {/* Search Bar */}
+          <div className="relative">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="How to learn guitar faster"
-              className="w-full px-4 md:px-6 py-2 md:py-3 bg-white/35 backdrop-blur-sm text-white placeholder-white border border-white/20 focus:bg-white/10 focus:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400/20 transition-all text-sm md:text-lg"
+              className="w-full max-w-[300px] md:max-w-[500px] px-4 md:px-6 py-2 md:py-3 bg-white/35 backdrop-blur-sm text-white placeholder-white border border-white/20 focus:bg-white/10 focus:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400/20 transition-all text-sm md:text-lg"
               style={{ borderRadius: '77px' }}
               ref={searchInputRef}
               onKeyPress={handleKeyPress}
@@ -179,33 +183,31 @@ export default function Home() {
             {/* Clear button */}
             <button
               onClick={handleClearSearch}
-              className="absolute right-8 md:right-11 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white hover:scale-110 transition-all duration-200 p-1 rounded-full hover:bg-white/10"
+              className="absolute right-11 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white hover:scale-110 transition-all duration-200 p-1 rounded-full hover:bg-white/10"
             >
-              <FaTimes className="w-3 h-3 md:w-5 md:h-5" />
+              <FaTimes className="w-5 h-5" />
             </button>
-
+            
             {/* Vertical separator line */}
-            <div className="absolute right-7 md:right-10 top-1/2 transform -translate-y-1/2 w-px h-3 md:h-4 bg-white/30"></div>
-
+            <div className="absolute right-10 top-1/2 transform -translate-y-1/2 w-px h-4 bg-white/30"></div>
+            
             {/* Search button */}
             <button
               onClick={handleSearchClick}
-              className="absolute right-1 md:right-2 top-1/2 transform -translate-y-1/2 text-white p-1 md:p-2 hover:bg-white/10 rounded-lg transition-all duration-200 hover:scale-105"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white p-2 hover:bg-white/10 rounded-lg transition-all duration-200 hover:scale-105"
             >
-              <FaSearch className="w-3 h-3 md:w-4 md:h-4" />
+              <FaSearch className="w-4 h-4" />
             </button>
           </div>
 
 
         </div>
 
-        {/* TEST: Red TESTING word to verify changes are deploying */}
-        <div className="mt-4">
-          <p className="text-red-500 font-bold text-2xl text-center">TESTING</p>
-        </div>
-
-        {/* Stay Free Button - Mobile Optimized */}
+        {/* Main Feature Graphic with Hotspots */}
+        
+        {/* 2. Stay Free Button - Mobile & Desktop Responsive */}
         <div className="flex-1 flex items-end justify-center pb-4 md:pb-8 mt-8 md:mt-auto">
+          {/* Stay Free - Now Clickable Button with Shiny Effect */}
           <button
             onClick={() => router.push('/pricing')}
             className="relative text-green-400 font-bold text-xl md:text-3xl hover:text-green-300 transition-all duration-500 transform hover:scale-105 overflow-hidden group px-4 md:px-8 py-2 md:py-3 rounded-full"
@@ -215,9 +217,9 @@ export default function Home() {
             <span className="relative z-10 bg-gradient-to-r from-green-400 via-emerald-300 to-green-400 bg-clip-text text-transparent animate-shine">
               STAY FREE
             </span>
-            <img
-              src="/images/no_credit_card2.png"
-              alt="No Credit Card"
+            <img 
+              src="/images/no_credit_card2.png" 
+              alt="No Credit Card" 
               className="inline-block ml-2 md:ml-3 -mt-1 md:-mt-2 w-5 h-5 md:w-7 md:h-7"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 via-emerald-300/40 to-green-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm rounded-full"></div>
