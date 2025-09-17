@@ -82,22 +82,16 @@ export default function MobileHome() {
 
   return (
     <>
-      <style jsx global>{`
-        html {
-          height: 100%;
-        }
-        body {
-          min-height: 100%;
-          display: flex;
-          flex-direction: column;
-          background-image: url('/images/gt_splashBG_dark.png');
-          background-size: cover;
-          background-position: center;
-          background-repeat: no-repeat;
-          background-color: #1a1a1a;
-          background-attachment: fixed;
-        }
-      `}</style>
+      <div
+        className="min-h-screen pb-32"
+        style={{
+          backgroundImage: `url('/images/gt_splashBG_dark.png')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundColor: '#1a1a1a'
+        }}
+      >
 
       
       {/* Top Banner - Admin controlled */}
@@ -154,8 +148,8 @@ export default function MobileHome() {
         </div>
       </header>
 
-      {/* Main Content - Flexbox Layout (Mobile & Tablet) */}
-      <main className="relative z-10 grow flex flex-col items-center px-4 md:px-6 pt-8 md:pt-12" style={{
+      {/* Main Content - Normal Layout (Mobile & Tablet) */}
+      <main className="relative z-10 flex flex-col items-center px-4 md:px-6 pt-8 md:pt-12" style={{
         backgroundColor: 'transparent'
       }}>
         {/* Logo and Subtitle Section - Mobile & Tablet Responsive */}
@@ -213,8 +207,8 @@ export default function MobileHome() {
         </div>
       </main>
 
-      {/* Footer with Stay Free Button - Compact for Mobile */}
-      <footer className="relative z-10 px-4 py-3 md:py-6" style={{ backgroundColor: 'transparent' }}>
+      {/* Footer with Stay Free Button - FIXED AT BOTTOM */}
+      <footer className="fixed bottom-0 left-0 right-0 z-20 px-4 py-3 md:py-6" style={{ backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)' }}>
         {/* Stay Free Button - Compact Spacing */}
         <div className="flex justify-center mb-3 md:mb-4">
           <button
@@ -442,6 +436,7 @@ export default function MobileHome() {
           </div>
         </div>
       )}
+      </div>
     </>
   )
 }
