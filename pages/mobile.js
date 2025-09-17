@@ -165,40 +165,11 @@ export default function MobileHome() {
           />
         </div>
 
-        {/* Search Section - Mobile & Tablet Responsive */}
-        <div className="flex flex-col items-center space-y-3 w-full max-w-sm md:max-w-md">
-          {/* Search Bar - Mobile & Tablet Responsive */}
-          <div className="relative w-4/5 md:w-full">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="How to learn guitar faster"
-              className="w-full px-4 py-3 md:px-6 md:py-4 bg-white/35 backdrop-blur-sm text-white placeholder-white border border-white/20 focus:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400/20 transition-all text-base md:text-lg"
-              style={{ borderRadius: '77px' }}
-              ref={searchInputRef}
-              onKeyPress={handleKeyPress}
-            />
-            
-            {/* Clear button - Mobile Optimized */}
-            <button
-              onClick={handleClearSearch}
-              className="absolute right-12 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white hover:scale-110 transition-all duration-200 p-1 rounded-full hover:bg-white/10"
-            >
-              <FaTimes className="w-4 h-4" /> {/* Smaller icon */}
-            </button>
-            
-            {/* Vertical separator line */}
-            <div className="absolute right-11 top-1/2 transform -translate-y-1/2 w-px h-4 bg-white/30"></div>
-            
-            {/* Search button - Mobile Optimized */}
-            <button
-              onClick={handleSearchClick}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white p-2 hover:bg-white/10 rounded-lg transition-all duration-200 hover:scale-105"
-            >
-              <FaSearch className="w-4 h-4" />
-            </button>
-          </div>
+        {/* SEARCH FIELD REMOVED - EXPOSING THE MYSTERIOUS EMPTY SPACE */}
+        <div className="text-center text-red-500 font-bold text-xl p-4 border-2 border-red-500">
+          🚨 SEARCH FIELD REMOVED 🚨<br/>
+          BEHOLD THE AMAZING EMPTY SPACE!<br/>
+          YOUR USERS WILL LOVE SCROLLING THROUGH NOTHING!
         </div>
       </main>
 
