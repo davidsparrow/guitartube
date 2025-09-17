@@ -205,8 +205,8 @@ export default function Home() {
 
         {/* Main Feature Graphic with Hotspots */}
         
-        {/* 2. Stay Free Button - Mobile & Desktop Responsive */}
-        <div className="flex-1 flex items-end justify-center pb-4 md:pb-8 mt-8 md:mt-auto">
+        {/* 2. Stay Free Button - Mobile Moved Up, Desktop at Bottom */}
+        <div className="flex justify-center mt-12 md:flex-1 md:flex md:items-end md:pb-8 md:mt-auto">
           {/* Stay Free - Now Clickable Button with Shiny Effect */}
           <button
             onClick={() => router.push('/pricing')}
