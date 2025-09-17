@@ -204,8 +204,8 @@ export default function Home() {
 
         {/* Main Feature Graphic with Hotspots */}
         
-        {/* 2. Stay Free Button - FORCED POSITIONING for Mobile */}
-        <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 md:relative md:bottom-auto md:left-auto md:transform-none md:flex-1 md:flex md:items-end md:pb-8 md:mt-auto">
+        {/* 2. Stay Free Button - HIDDEN ON MOBILE, VISIBLE ON DESKTOP */}
+        <div className="hidden md:flex md:flex-1 md:items-end md:pb-8 md:mt-auto md:justify-center">
           {/* Stay Free - Now Clickable Button with Shiny Effect */}
           <button
             onClick={() => router.push('/pricing')}
