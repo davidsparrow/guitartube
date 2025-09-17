@@ -209,13 +209,13 @@ export default function MobileHome() {
 
       </main>
 
-      {/* Footer with Stay Free Button - Mobile & Tablet Responsive */}
-      <footer className="relative z-10 px-4 py-6 md:py-8" style={{ backgroundColor: 'transparent' }}>
-        {/* Stay Free Button - Now in Footer */}
-        <div className="flex justify-center mb-6 md:mb-8">
+      {/* Footer with Stay Free Button - Compact for Mobile */}
+      <footer className="relative z-10 px-4 py-3 md:py-6" style={{ backgroundColor: 'transparent' }}>
+        {/* Stay Free Button - Compact Spacing */}
+        <div className="flex justify-center mb-3 md:mb-4">
           <button
             onClick={() => router.push('/pricing')}
-            className="relative text-green-400 font-bold text-xl md:text-2xl hover:text-green-300 transition-all duration-500 transform hover:scale-105 overflow-hidden group px-6 py-3 md:px-8 md:py-4 rounded-full"
+            className="relative text-green-400 font-bold text-lg md:text-xl hover:text-green-300 transition-all duration-500 transform hover:scale-105 overflow-hidden group px-4 py-2 md:px-6 md:py-3 rounded-full"
             title="No credit card required to Join"
           >
             <span className="relative z-10 bg-gradient-to-r from-green-400 via-emerald-300 to-green-400 bg-clip-text text-transparent animate-shine">
@@ -224,14 +224,14 @@ export default function MobileHome() {
             <img
               src="/images/no_credit_card2.png"
               alt="No Credit Card"
-              className="inline-block ml-2 -mt-0.5 w-6 h-6 md:w-7 md:h-7"
+              className="inline-block ml-2 -mt-0.5 w-5 h-5 md:w-6 md:h-6"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 via-emerald-300/40 to-green-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm rounded-full"></div>
           </button>
         </div>
 
-        {/* Footer Links */}
-        <div className="flex justify-center items-center space-x-3 text-white/60 text-xs md:text-sm" style={{ fontFamily: 'Poppins, sans-serif' }}>
+        {/* Footer Links - Compact */}
+        <div className="flex justify-center items-center space-x-3 text-white/60 text-xs" style={{ fontFamily: 'Poppins, sans-serif' }}>
           <span>© 2025 GuitarTube</span>
           <a href="/terms" className="hover:text-white transition-colors underline">terms</a>
           <a href="/privacy" className="hover:text-white transition-colors underline">privacy</a>
