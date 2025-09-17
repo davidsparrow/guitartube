@@ -203,10 +203,7 @@ export default function MobileHome() {
               <FaSearch className="w-4 h-4" />
             </button>
           </div>
-
-
         </div>
-
       </main>
 
       {/* Footer with Stay Free Button - Compact for Mobile */}
