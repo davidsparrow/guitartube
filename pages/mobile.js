@@ -81,9 +81,9 @@ export default function MobileHome() {
   }
 
   return (
-    <div 
-      className="relative h-screen overflow-hidden"
-      style={{ 
+    <div
+      className="flex flex-col min-h-screen overflow-hidden"
+      style={{
         backgroundImage: `url('/images/gt_splashBG_dark.png')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
@@ -96,8 +96,8 @@ export default function MobileHome() {
       {/* Top Banner - Admin controlled */}
       <TopBanner />
       
-      {/* Transparent Header - Mobile Optimized */}
-      <header className="relative z-10 px-4 py-3" style={{ backgroundColor: 'transparent' }}>
+      {/* Header - Mobile & Tablet Responsive */}
+      <header className="relative z-10 px-4 py-3 md:px-6 md:py-4" style={{ backgroundColor: 'transparent' }}>
         <div className="flex justify-between items-center">
           {/* Logo - Upper Left - Mobile Optimized Size */}
           <a 
@@ -147,39 +147,38 @@ export default function MobileHome() {
         </div>
       </header>
 
-      {/* Main Content - iPhone 15 Pro Optimized (393x852px) */}
-      <div className="relative z-10 flex flex-col items-center px-4" style={{
-        height: 'calc(100vh - 160px)', // Reduced height to fit iPhone 15 Pro + footer
+      {/* Main Content - Flexbox Layout (Mobile & Tablet) */}
+      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 md:px-6" style={{
         backgroundColor: 'transparent'
       }}>
-        {/* Logo and Subtitle Section - Compact for iPhone 15 Pro */}
-        <div className="text-center mb-6 mt-8"> {/* Reduced margins: 32px top, 24px bottom */}
-          <img 
-            src="/images/gt_logo_wide_on_black_450x90.png" 
-            alt="GuitarTube" 
-            className="mx-auto mb-3" 
-            style={{ 
-              width: '75%', 
+        {/* Logo and Subtitle Section - Mobile & Tablet Responsive */}
+        <div className="text-center mb-6 md:mb-8">
+          <img
+            src="/images/gt_logo_wide_on_black_450x90.png"
+            alt="GuitarTube"
+            className="mx-auto mb-3 md:mb-4"
+            style={{
+              width: '75%',
               height: 'auto',
               maxWidth: '100%'
             }}
           />
-          <p className="text-center text-white font-bold text-base px-4" style={{ fontFamily: 'Poppins, sans-serif' }}> {/* Mobile text size */}
+          <p className="text-center text-white font-bold text-base md:text-lg px-4" style={{ fontFamily: 'Poppins, sans-serif' }}>
             Press fast forward on your <br />
             Video Guitar Learning journey
           </p>
         </div>
 
-        {/* Search and Sort Fields - Compact for iPhone 15 Pro */}
-        <div className="flex flex-col items-center space-y-2 w-full max-w-sm"> {/* Reduced spacing */}
-          {/* Search Bar - Mobile Optimized */}
-          <div className="relative w-4/5">
+        {/* Search Section - Mobile & Tablet Responsive */}
+        <div className="flex flex-col items-center space-y-3 w-full max-w-sm md:max-w-md">
+          {/* Search Bar - Mobile & Tablet Responsive */}
+          <div className="relative w-4/5 md:w-full">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="How to learn guitar faster"
-              className="w-full px-4 py-3 bg-white/35 backdrop-blur-sm text-white placeholder-white border border-white/20 focus:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400/20 transition-all text-base" // Mobile sizing
+              className="w-full px-4 py-3 md:px-6 md:py-4 bg-white/35 backdrop-blur-sm text-white placeholder-white border border-white/20 focus:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400/20 transition-all text-base md:text-lg"
               style={{ borderRadius: '77px' }}
               ref={searchInputRef}
               onKeyPress={handleKeyPress}
@@ -208,29 +207,31 @@ export default function MobileHome() {
 
         </div>
 
-        {/* Stay Free Button - Positioned near footer for iPhone 15 Pro */}
-        <div className="mt-auto mb-2"> {/* Minimal bottom margin to stay near footer */}
+      </main>
+
+      {/* Footer with Stay Free Button - Mobile & Tablet Responsive */}
+      <footer className="relative z-10 px-4 py-6 md:py-8" style={{ backgroundColor: 'transparent' }}>
+        {/* Stay Free Button - Now in Footer */}
+        <div className="flex justify-center mb-6 md:mb-8">
           <button
             onClick={() => router.push('/pricing')}
-            className="relative text-green-400 font-bold text-xl hover:text-green-300 transition-all duration-500 transform hover:scale-105 overflow-hidden group px-6 py-3 rounded-full" // Mobile sizing
+            className="relative text-green-400 font-bold text-xl md:text-2xl hover:text-green-300 transition-all duration-500 transform hover:scale-105 overflow-hidden group px-6 py-3 md:px-8 md:py-4 rounded-full"
             title="No credit card required to Join"
           >
             <span className="relative z-10 bg-gradient-to-r from-green-400 via-emerald-300 to-green-400 bg-clip-text text-transparent animate-shine">
               STAY FREE
             </span>
-            <img 
-              src="/images/no_credit_card2.png" 
-              alt="No Credit Card" 
-              className="inline-block ml-2 -mt-0.5 w-6 h-6" // Smaller icon for mobile
+            <img
+              src="/images/no_credit_card2.png"
+              alt="No Credit Card"
+              className="inline-block ml-2 -mt-0.5 w-6 h-6 md:w-7 md:h-7"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 via-emerald-300/40 to-green-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm rounded-full"></div>
           </button>
         </div>
-      </div>
 
-      {/* Footer - Mobile Optimized */}
-      <footer className="relative z-10 px-4 py-4" style={{ backgroundColor: 'transparent' }}>
-        <div className="flex justify-center items-center space-x-3 text-white/60 text-xs" style={{ fontFamily: 'Poppins, sans-serif' }}> {/* Mobile sizing */}
+        {/* Footer Links */}
+        <div className="flex justify-center items-center space-x-3 text-white/60 text-xs md:text-sm" style={{ fontFamily: 'Poppins, sans-serif' }}>
           <span>© 2025 GuitarTube</span>
           <a href="/terms" className="hover:text-white transition-colors underline">terms</a>
           <a href="/privacy" className="hover:text-white transition-colors underline">privacy</a>
