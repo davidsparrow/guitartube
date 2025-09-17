@@ -151,22 +151,18 @@ export default function MobileHome() {
       <main className="relative z-10 flex flex-col items-center px-4 md:px-6 pt-4 md:pt-6" style={{
         backgroundColor: 'transparent'
       }}>
-        {/* Logo and Subtitle Section - Mobile & Tablet Responsive */}
-        <div className="text-center mb-6 md:mb-8">
+        {/* Logo Section - Mobile & Tablet Responsive */}
+        <div className="text-center mb-4 md:mb-6">
           <img
             src="/images/gt_logo_wide_on_black_450x90.png"
             alt="GuitarTube"
-            className="mx-auto mb-3 md:mb-4"
+            className="mx-auto"
             style={{
               width: '75%',
               height: 'auto',
               maxWidth: '100%'
             }}
           />
-          <p className="text-center text-white font-bold text-base md:text-lg px-4" style={{ fontFamily: 'Poppins, sans-serif' }}>
-            Press fast forward on your <br />
-            Video Guitar Learning journey
-          </p>
         </div>
 
         {/* Search Section - Mobile & Tablet Responsive */}
@@ -207,9 +203,19 @@ export default function MobileHome() {
       </main>
 
       {/* Footer with Stay Free Button - FIXED AT BOTTOM */}
-      <footer className="fixed bottom-0 left-0 right-0 z-20 px-4 py-3 md:py-6" style={{ backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)' }}>
-        {/* Stay Free Button - Compact Spacing */}
-        <div className="flex justify-center mb-3 md:mb-4">
+      <footer className="fixed bottom-0 left-0 right-0 bg-black/55 backdrop-blur-sm z-20">
+        {/* Escher Geometric Pattern Background - Much Dimmer */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-35"
+          style={{
+            backgroundImage: `url('/images/escher_geometric_pattern_GRN.png')`,
+            width: '100%',
+            height: '100%'
+          }}
+        />
+        <div className="px-4 py-3 md:py-6 relative z-10">
+          {/* Stay Free Button - Compact Spacing */}
+          <div className="flex justify-center mb-3 md:mb-4">
           <button
             onClick={() => router.push('/pricing')}
             className="relative text-green-400 font-bold text-lg md:text-xl hover:text-green-300 transition-all duration-500 transform hover:scale-105 overflow-hidden group px-4 py-2 md:px-6 md:py-3 rounded-full"
@@ -227,11 +233,12 @@ export default function MobileHome() {
           </button>
         </div>
 
-        {/* Footer Links - Compact */}
-        <div className="flex justify-center items-center space-x-3 text-white/60 text-xs" style={{ fontFamily: 'Poppins, sans-serif' }}>
-          <span>© 2025 GuitarTube</span>
-          <a href="/terms" className="hover:text-white transition-colors underline">terms</a>
-          <a href="/privacy" className="hover:text-white transition-colors underline">privacy</a>
+          {/* Footer Links - Compact */}
+          <div className="flex justify-center items-center space-x-3 text-white/60 text-xs" style={{ fontFamily: 'Poppins, sans-serif' }}>
+            <span>© 2025 GuitarTube</span>
+            <a href="/terms" className="hover:text-white transition-colors underline">terms</a>
+            <a href="/privacy" className="hover:text-white transition-colors underline">privacy</a>
+          </div>
         </div>
       </footer>
 
