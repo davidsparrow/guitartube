@@ -138,25 +138,11 @@ export default function MobileHome() {
         </div>
       </header>
 
-      {/* Main Content - Compact Layout (Mobile & Tablet) */}
-      <main className="relative z-10 flex flex-col items-center px-4 md:px-6 pt-4 md:pt-6" style={{
+      {/* Main Content - EMPTY FOR TESTING */}
+      <main className="relative z-10" style={{
         backgroundColor: 'transparent'
       }}>
-        {/* Logo Section - Mobile & Tablet Responsive */}
-        <div className="text-center mb-4 md:mb-6">
-          <img
-            src="/images/gt_logo_wide_on_black_450x90.png"
-            alt="GuitarTube"
-            className="mx-auto"
-            style={{
-              width: '75%',
-              height: 'auto',
-              maxWidth: '100%'
-            }}
-          />
-        </div>
-
-
+        {/* LOGO REMOVED - BLANK PAGE FOR TESTING */}
       </main>
 
       {/* Footer with Stay Free Button - FIXED AT BOTTOM */}
