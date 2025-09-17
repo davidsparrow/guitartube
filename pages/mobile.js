@@ -148,7 +148,7 @@ export default function MobileHome() {
       </header>
 
       {/* Main Content - Flexbox Layout (Mobile & Tablet) */}
-      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 md:px-6" style={{
+      <main className="relative z-10 flex-1 flex flex-col items-center px-4 md:px-6 pt-8 md:pt-12" style={{
         backgroundColor: 'transparent'
       }}>
         {/* Logo and Subtitle Section - Mobile & Tablet Responsive */}
