@@ -84,8 +84,7 @@ export default function MobileHome() {
     <>
       <div className="bg-gray-900">
 
-      {/* Top Banner - Admin controlled */}
-      <TopBanner />
+      {/* TopBanner REMOVED FOR TESTING */}
 
       {/* Header - STICKY AT TOP */}
       <header className="fixed top-0 left-0 right-0 z-20 px-4 py-3 md:px-6 md:py-4" style={{ backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)' }}>
@@ -138,11 +137,20 @@ export default function MobileHome() {
         </div>
       </header>
 
-      {/* Main Content - EMPTY FOR TESTING */}
+      {/* Main Content - LOGO ONLY FOR TESTING */}
       <main className="relative z-10" style={{
         backgroundColor: 'transparent'
       }}>
-        {/* LOGO REMOVED - BLANK PAGE FOR TESTING */}
+        {/* Logo - NO padding/margins */}
+        <img
+          src="/images/gt_logo_wide_on_black_450x90.png"
+          alt="GuitarTube"
+          style={{
+            width: '75%',
+            height: 'auto',
+            maxWidth: '100%'
+          }}
+        />
       </main>
 
       {/* Footer with Stay Free Button - FIXED AT BOTTOM */}
