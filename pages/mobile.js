@@ -82,16 +82,7 @@ export default function MobileHome() {
 
   return (
     <>
-      <div
-        className="min-h-screen pt-20 pb-32"
-        style={{
-          backgroundImage: `url('/images/gt_splashBG_dark.png')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          backgroundColor: '#1a1a1a'
-        }}
-      >
+      <div className="bg-gray-900">
 
       {/* Top Banner - Admin controlled */}
       <TopBanner />
