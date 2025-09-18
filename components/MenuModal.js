@@ -125,10 +125,10 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
       // Close modal first, then redirect to Stripe Customer Portal
       onClose()
 
-      // Small delay to ensure modal closes, then force redirect
+      // Small delay to ensure modal closes, then open in new tab
       setTimeout(() => {
-        console.log('🔄 Attempting redirect to:', result.url)
-        window.location.replace(result.url)
+        console.log('🔄 Opening Stripe Customer Portal in new tab:', result.url)
+        window.open(result.url, '_blank')
       }, 200)
 
     } catch (error) {
