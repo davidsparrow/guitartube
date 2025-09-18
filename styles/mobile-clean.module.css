@@ -18,8 +18,8 @@
   left: 0;
   right: 0;
   z-index: 20;
-  backdrop-filter: blur(10px);
-  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: none;
+  background: transparent; /* transparent like /index */
 }
 
 .headerInner {
@@ -47,9 +47,9 @@
   left: 0;
   right: 0;
   z-index: 20;
-  backdrop-filter: blur(10px);
-  background: linear-gradient(135deg, rgba(0,0,0,0.85), rgba(0,0,0,0.65) 50%, rgba(0,0,0,0.85));
-  padding: 14px 16px;
+  backdrop-filter: blur(8px);
+  background: linear-gradient(135deg, rgba(0,0,0,0.8), rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.8));
+  padding: 10px 12px; /* reduced height */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -79,6 +79,31 @@
   padding: 0 16px;
   /* Nudge content toward upper third across devices */
   padding-top: min(20vh, 96px);
+}
+
+/* CTA block (Stay Free) positioned in lower portion of main, above footer */
+.ctaBlock {
+  /* Anchor CTA just above the footer within the main area */
+  position: absolute;
+  left: 0;
+  right: 0;
+  /* Footer height (100px) + small gap (16px) to sit in bottom region */
+  bottom: calc(100px + 16px);
+  display: flex;
+  justify-content: center;
+  pointer-events: auto;
+  z-index: 5;
+}
+
+.stayFreeButton {
+  font-size: 24px; /* ~50% larger than previous 16px base */
+  padding: 18px 36px;
+  border-radius: 9999px;
+}
+
+.stayFreeButton img {
+  width: 32px;
+  height: 32px;
 }
 
 .logoBlock {
