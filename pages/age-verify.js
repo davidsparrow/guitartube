@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
+import { adminSupabase } from '../lib/adminSupabase'
 
 export default function AgeVerifyPage() {
   const router = useRouter()
@@ -27,8 +28,23 @@ export default function AgeVerifyPage() {
     setShowTermsModal(true)
   }
 
-  const handleTermsAccept = () => {
+  const handleTermsAccept = async () => {
     setLoading(true)
+    
+    try {
+      // Save initials to Supabase if user is authenticated
+      const { data: { user } } = await adminSupabase.auth.getUser()
+      if (user) {
+        await adminSupabase
+          .from('user_profiles')
+          .update({ initials: initials.trim() })
+          .eq('id', user.id)
+        console.log('✅ Initials saved to Supabase:', initials.trim())
+      }
+    } catch (error) {
+      console.error('❌ Error saving initials:', error)
+      // Continue anyway - don't block the user
+    }
     
     // Set age verification cookie
     document.cookie = 'ageVerified=true; path=/; max-age=2592000; samesite=lax' // 30 days
@@ -53,11 +69,11 @@ export default function AgeVerifyPage() {
         <meta name="description" content="Please verify your age to access GuitarTube" />
       </Head>
 
-      {/* Background with guitar image */}
+      {/* Background with baby on guitar image */}
       <div 
         className="min-h-screen bg-cover bg-center bg-no-repeat bg-fixed flex items-center justify-center p-4"
         style={{
-          backgroundImage: 'url("/images/gt_splashBG6_1200_dark1.png")',
+          backgroundImage: 'url("/images/gt_splash_baby_on_guitar_1092.png")',
         }}
       >
         {/* Dark overlay */}
@@ -73,6 +89,10 @@ export default function AgeVerifyPage() {
                 src="/images/gt_logoM_PlayButton.png" 
                 alt="GuitarTube Logo" 
                 className="h-16 w-auto mx-auto mb-4"
+                onError={(e) => {
+                  console.error('Logo image failed to load:', e.target.src)
+                  e.target.style.display = 'none'
+                }}
               />
               <h1 className="text-2xl font-bold text-white mb-2">Age Verification</h1>
               <p className="text-gray-300 text-sm">Please verify your age to access our platform</p>
@@ -143,16 +163,10 @@ export default function AgeVerifyPage() {
                 Terms of Service
               </h2>
               <p className="text-gray-600 mb-6">
-                Click OK to accept our Terms of Service. Visit our{' '}
-                <a 
-                  href="/terms" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-blue-600 underline hover:text-blue-800"
-                >
-                  Terms page
-                </a>{' '}
-                for all details about being a User on our platform.
+                Click OK to accept our Terms of Service. Visit our Terms page for all details about being a User on our platform.
+              </p>
+              <p className="text-gray-500 text-sm mb-4">
+                Terms URL: https://guitartube.net/terms
               </p>
               
               <div className="flex space-x-4">
