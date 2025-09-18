@@ -32,9 +32,20 @@ export default function AgeVerifyPage() {
   const handleTermsAccept = async () => {
     setLoading(true)
     
+    console.log('🔄 Starting terms acceptance process...')
+    console.log('👤 User object:', user)
+    console.log('📝 Initials to save:', initials.trim())
+    
     try {
       // Save initials to Supabase if user is authenticated
       if (user) {
+        console.log('✅ User is authenticated, attempting to save initials...')
+        console.log('🔗 Calling API endpoint: /api/user/save-initials')
+        console.log('📤 Request payload:', {
+          initials: initials.trim(),
+          userId: user.id
+        })
+        
         const response = await fetch('/api/user/save-initials', {
           method: 'POST',
           headers: {
@@ -46,22 +57,32 @@ export default function AgeVerifyPage() {
           })
         })
 
+        console.log('📥 API Response status:', response.status)
+        console.log('📥 API Response ok:', response.ok)
+        
         if (response.ok) {
-          console.log('✅ Initials saved to Supabase:', initials.trim())
+          const result = await response.json()
+          console.log('✅ Initials saved successfully:', result)
         } else {
-          console.error('❌ Error saving initials:', await response.text())
+          const errorText = await response.text()
+          console.error('❌ API Error response:', errorText)
         }
+      } else {
+        console.log('❌ No user authenticated, skipping initials save')
+        console.log('ℹ️ User will need to authenticate first to save initials')
       }
     } catch (error) {
-      console.error('❌ Error saving initials:', error)
+      console.error('💥 Error in initials save process:', error)
       // Continue anyway - don't block the user
     }
     
     // Set age verification cookie
+    console.log('🍪 Setting age verification cookie...')
     document.cookie = 'ageVerified=true; path=/; max-age=2592000; samesite=lax' // 30 days
     
     // Get the intended destination from query params or default to home
     const redirectTo = router.query.redirect || '/'
+    console.log('🎯 Redirecting to:', redirectTo)
     
     // Redirect to intended destination
     router.push(redirectTo)
