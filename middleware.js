@@ -6,6 +6,21 @@ export async function middleware(request) {
   // Create a response object that we can modify
   const response = NextResponse.next()
 
+  // AGE VERIFICATION CHECK - Run BEFORE Supabase auth
+  const ageVerified = request.cookies.get('ageVerified')?.value === 'true'
+  const isAgeVerifyPage = request.nextUrl.pathname === '/age-verify'
+  
+  // If user hasn't verified age and isn't on age-verify page, redirect them
+  if (!ageVerified && !isAgeVerifyPage) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/age-verify'
+    // Preserve the original destination for redirect after verification
+    if (request.nextUrl.pathname !== '/') {
+      url.searchParams.set('redirect', request.nextUrl.pathname)
+    }
+    return NextResponse.redirect(url)
+  }
+
   // Create Supabase server client for middleware
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
