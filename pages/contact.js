@@ -6,10 +6,15 @@ import { LuBrain } from 'react-icons/lu'
 import { IoMdPower } from 'react-icons/io'
 import { PiHamburger, PiCurrencyCircleDollar } from 'react-icons/pi'
 import styles from '../styles/mobile-clean.module.css'
+import AuthModal from '../components/AuthModal'
+import MenuModal from '../components/MenuModal'
+import SupportModal from '../components/SupportModal'
 
 export default function ContactPage() {
   const router = useRouter()
   const [showAuthModal, setShowAuthModal] = useState(false)
+  const [showMenuModal, setShowMenuModal] = useState(false)
+  const [showSupportModal, setShowSupportModal] = useState(false)
 
   // Local contact form state
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' })
@@ -25,20 +30,32 @@ export default function ContactPage() {
     e.preventDefault()
     setSubmitting(true)
     setStatus(null)
+    
+    console.log('Submitting contact form:', form)
+    
     try {
       const res = await fetch('/api/support/contact-support', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       })
+      
+      console.log('Contact API response:', { status: res.status, ok: res.ok })
+      
       const json = await res.json()
+      console.log('Contact API response data:', json)
+      
       if (res.ok && json.success) {
         setStatus('success')
         setForm({ name: '', email: '', subject: '', message: '' })
+        // Auto-hide success message after 5 seconds
+        setTimeout(() => setStatus(null), 5000)
       } else {
         setStatus('error')
+        console.error('Contact form error:', json)
       }
     } catch (err) {
+      console.error('Contact form fetch error:', err)
       setStatus('error')
     } finally {
       setSubmitting(false)
@@ -65,7 +82,7 @@ export default function ContactPage() {
             <button onClick={() => setShowAuthModal(true)} className="p-2 rounded-lg text-white hover:bg-white/10 transition-colors" title="Auth">
               <IoMdPower className="w-5 h-5" />
             </button>
-            <button onClick={() => router.push('/mobile-clean')} className="p-2 rounded-lg text-white hover:bg-white/10 transition-colors" title="Menu">
+            <button onClick={() => setShowMenuModal(true)} className="p-2 rounded-lg text-white hover:bg-white/10 transition-colors" title="Menu">
               <PiHamburger className="w-5 h-5" />
             </button>
           </div>
@@ -73,7 +90,7 @@ export default function ContactPage() {
       </header>
 
       {/* Main content area with contact form */}
-      <main className={styles.main}>
+      <main className={`${styles.main} ${styles.scrollMain}`}>
         <div className={styles.logoBlock}>
           <h1 className={styles.subtitle} style={{ marginBottom: 16 }}>Contact Us</h1>
         </div>
@@ -148,6 +165,20 @@ export default function ContactPage() {
         </div>
         <div className="text-white text-xs">Made with 🎸 in Millhatten, CA</div>
       </footer>
+
+      {/* Modals */}
+      <AuthModal 
+        isOpen={showAuthModal} 
+        onClose={() => setShowAuthModal(false)} 
+      />
+      <MenuModal 
+        isOpen={showMenuModal} 
+        onClose={() => setShowMenuModal(false)} 
+      />
+      <SupportModal 
+        isOpen={showSupportModal} 
+        onClose={() => setShowSupportModal(false)} 
+      />
     </div>
   )
 }
