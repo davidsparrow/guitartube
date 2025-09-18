@@ -84,16 +84,40 @@ const AuthModal = ({ isOpen, onClose, initialTab = 'signin' }) => {
     }
 
     try {
+      console.log('🔄 Checking if email already exists:', email)
+      
+      // First check if email already exists
+      const { data: existingUser, error: checkError } = await supabase
+        .rpc('get_user_id_by_email', { email })
+      
+      if (checkError) {
+        console.error('❌ Error checking email existence:', checkError)
+        setError('Unable to verify email. Please try again.')
+        setLoading(false)
+        return
+      }
+
+      if (existingUser && existingUser.length > 0) {
+        console.log('❌ Email already exists:', email)
+        setError('This email address has already been registered with us. Please use the "I don\'t Remember, I don\'t Recall" link on Sign in screen to recover access to your account.')
+        setLoading(false)
+        return
+      }
+
+      console.log('✅ Email is available, proceeding with signup:', email)
       const { data, error } = await signUp(email, password, fullName.trim())
       
       if (error) {
+        console.error('❌ Signup error:', error)
         setError(error.message)
       } else {
+        console.log('✅ Signup successful, user created:', data?.user?.email)
         setSuccess('Check your email to confirm your account!')
         setIsSignUp(false) // Switch back to signin
       }
     } catch (err) {
-      setError('An unexpected error occurred')
+      console.error('💥 Unexpected signup error:', err)
+      setError('An unexpected error occurred. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -181,8 +205,11 @@ const AuthModal = ({ isOpen, onClose, initialTab = 'signin' }) => {
 
           {/* Error/Success Messages */}
           {error && (
-            <div className="mb-6 p-4 bg-red-900 bg-opacity-50 border border-red-400 border-opacity-50 rounded-lg text-red-200 text-sm">
-              {error}
+            <div className="mb-6 p-4 bg-red-900 bg-opacity-70 border border-red-400 border-opacity-70 rounded-lg text-red-100 text-sm font-medium">
+              <div className="flex items-start space-x-2">
+                <span className="text-red-300 text-lg">⚠️</span>
+                <span>{error}</span>
+              </div>
             </div>
           )}
 

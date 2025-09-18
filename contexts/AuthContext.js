@@ -148,6 +148,8 @@ export const AuthProvider = ({ children }) => {
 
   const signUp = async (email, password, fullName) => {
     try {
+      console.log('🔐 AuthContext: Starting signup process for:', email)
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -158,15 +160,34 @@ export const AuthProvider = ({ children }) => {
         }
       })
 
+      console.log('🔐 AuthContext: Supabase signup response:', {
+        hasData: !!data,
+        hasError: !!error,
+        userEmail: data?.user?.email,
+        userConfirmed: data?.user?.email_confirmed_at,
+        errorMessage: error?.message,
+        errorCode: error?.code,
+        errorStatus: error?.status
+      })
+
       if (error) {
-        console.error('Sign up error:', error)
+        console.error('❌ AuthContext: Sign up error details:', {
+          message: error.message,
+          code: error.code,
+          status: error.status,
+          name: error.name
+        })
         return { data: null, error }
       }
 
-      console.log('Sign up successful:', data.user?.email)
+      console.log('✅ AuthContext: Sign up successful:', {
+        email: data.user?.email,
+        confirmed: data.user?.email_confirmed_at,
+        userId: data.user?.id
+      })
       return { data, error: null }
     } catch (error) {
-      console.error('Sign up failed:', error)
+      console.error('💥 AuthContext: Sign up failed with exception:', error)
       return { data: null, error }
     }
   }
