@@ -63,9 +63,9 @@ export default function AuthCallback() {
           setStatus('success')
           setMessage('Authentication successful! Redirecting to your dashboard...')
 
-          // Redirect to welcome page after a short delay
+          // Redirect to search page after a short delay
           setTimeout(() => {
-            router.push('/welcome')
+            router.push('/search')
           }, 2000)
         } else {
           // No session found

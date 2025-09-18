@@ -135,8 +135,6 @@ export default function Home() {
       
       {/* Top Banner - Admin controlled */}
       <TopBanner />
-
-
       
       {/* Header Component */}
       <Header 
@@ -147,25 +145,25 @@ export default function Home() {
         onMenuClick={() => setShowMenuModal(true)}
         isAuthenticated={isAuthenticated}
       />
-      {/* Main Content - Mobile & Desktop Responsive */}
-      <div className="relative z-10 flex flex-col items-center px-4 md:px-6" style={{
-        minHeight: 'calc(100vh - 80px)', // Mobile optimized
+      {/* Main Content - Desktop Optimized */}
+      <div className="relative z-10 flex flex-col items-center px-6" style={{ 
+        height: 'calc(100vh - 140px)',
         backgroundColor: 'transparent'
       }}>
-        {/* 1. Large Centered Logo - Mobile & Desktop Responsive */}
-        <div className="mt-16 md:mt-32 mb-4 md:mb-8">
+        {/* 1. Large Centered Logo - Desktop Optimized */}
+        <div className="mt-32 mb-8">
                       <img 
               src="/images/gt_logo_wide_on_black_450x90.png" 
               alt="GuitarTube" 
-              className="mx-auto mb-2 md:mb-3 h-16 md:h-28 w-auto"
+              className="mx-auto mb-3 h-28 w-auto"
             />
-          <p className="text-center text-white font-bold text-sm md:text-xl drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]" style={{ fontFamily: 'Futura, sans-serif' }}>
+          <p className="text-center text-white font-bold text-xl drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]" style={{ fontFamily: 'Futura, sans-serif' }}>
             Press fast forward on your Video Guitar Learning journey
           </p>
         </div>
 
-        {/* Search and Sort Fields - Mobile & Desktop Responsive */}
-        <div className="flex items-center justify-center space-x-2 md:space-x-4 mt-4 md:mt-11">
+        {/* Search and Sort Fields - Desktop Optimized */}
+        <div className="flex items-center justify-center space-x-4 mt-11">
           {/* Search Bar */}
           <div className="relative">
             <input
@@ -173,7 +171,7 @@ export default function Home() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="How to learn guitar faster"
-              className="w-full max-w-[300px] md:max-w-[500px] px-4 md:px-6 py-2 md:py-3 bg-white/35 backdrop-blur-sm text-white placeholder-white border border-white/20 focus:bg-white/10 focus:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400/20 transition-all text-sm md:text-lg"
+              className="w-[500px] px-6 py-3 bg-white/35 backdrop-blur-sm text-white placeholder-white border border-white/20 focus:bg-white/10 focus:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400/20 transition-all text-lg"
               style={{ borderRadius: '77px' }}
               ref={searchInputRef}
               onKeyPress={handleKeyPress}
@@ -204,12 +202,12 @@ export default function Home() {
 
         {/* Main Feature Graphic with Hotspots */}
         
-        {/* 2. Stay Free Button - HIDDEN ON MOBILE, VISIBLE ON DESKTOP */}
-        <div className="hidden md:flex md:flex-1 md:items-end md:pb-8 md:mt-auto md:justify-center">
+        {/* 2. Stay Free Button - Desktop Optimized */}
+        <div className="mt-auto mb-4">
           {/* Stay Free - Now Clickable Button with Shiny Effect */}
           <button
             onClick={() => router.push('/pricing')}
-            className="relative text-green-400 font-bold text-xl md:text-3xl hover:text-green-300 transition-all duration-500 transform hover:scale-105 overflow-hidden group px-4 md:px-8 py-2 md:py-3 rounded-full"
+            className="relative text-green-400 font-bold text-3xl hover:text-green-300 transition-all duration-500 transform hover:scale-105 overflow-hidden group px-8 py-3 rounded-full"
             style={{ fontFamily: 'Futura, sans-serif' }}
             title="No credit card required to Join"
           >
@@ -219,7 +217,7 @@ export default function Home() {
             <img 
               src="/images/no_credit_card2.png" 
               alt="No Credit Card" 
-              className="inline-block ml-2 md:ml-3 -mt-1 md:-mt-2 w-5 h-5 md:w-7 md:h-7"
+              className="inline-block ml-3 -mt-2 w-7 h-7"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 via-emerald-300/40 to-green-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm rounded-full"></div>
           </button>

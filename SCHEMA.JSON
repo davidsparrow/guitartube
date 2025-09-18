@@ -1,3 +1,4 @@
+
 [
   {
     "table_name": "admin_settings",
@@ -1093,6 +1094,153 @@
   },
   {
     "table_name": "feature_gates",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "klangio_jobs",
+    "column_name": "id",
+    "data_type": "uuid",
+    "is_nullable": "NO",
+    "column_default": "gen_random_uuid()"
+  },
+  {
+    "table_name": "klangio_jobs",
+    "column_name": "klangio_job_id",
+    "data_type": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "klangio_jobs",
+    "column_name": "internal_request_id",
+    "data_type": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "klangio_jobs",
+    "column_name": "favorite_id",
+    "data_type": "uuid",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "klangio_jobs",
+    "column_name": "video_id",
+    "data_type": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "klangio_jobs",
+    "column_name": "youtube_url",
+    "data_type": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "klangio_jobs",
+    "column_name": "video_title",
+    "data_type": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "klangio_jobs",
+    "column_name": "video_channel",
+    "data_type": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "klangio_jobs",
+    "column_name": "status",
+    "data_type": "text",
+    "is_nullable": "NO",
+    "column_default": "'pending'::text"
+  },
+  {
+    "table_name": "klangio_jobs",
+    "column_name": "vocabulary",
+    "data_type": "text",
+    "is_nullable": "NO",
+    "column_default": "'major-minor'::text"
+  },
+  {
+    "table_name": "klangio_jobs",
+    "column_name": "audio_url",
+    "data_type": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "klangio_jobs",
+    "column_name": "audio_duration",
+    "data_type": "integer",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "klangio_jobs",
+    "column_name": "result_url",
+    "data_type": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "klangio_jobs",
+    "column_name": "status_url",
+    "data_type": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "klangio_jobs",
+    "column_name": "chord_triplets",
+    "data_type": "jsonb",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "klangio_jobs",
+    "column_name": "processing_started_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "klangio_jobs",
+    "column_name": "processing_completed_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "klangio_jobs",
+    "column_name": "error_message",
+    "data_type": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "klangio_jobs",
+    "column_name": "retry_count",
+    "data_type": "integer",
+    "is_nullable": "YES",
+    "column_default": "0"
+  },
+  {
+    "table_name": "klangio_jobs",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": "now()"
+  },
+  {
+    "table_name": "klangio_jobs",
     "column_name": "updated_at",
     "data_type": "timestamp with time zone",
     "is_nullable": "YES",
@@ -2727,7 +2875,7 @@
     "column_name": "resume_enabled",
     "data_type": "boolean",
     "is_nullable": "YES",
-    "column_default": "true"
+    "column_default": "false"
   },
   {
     "table_name": "user_profiles",

@@ -298,13 +298,13 @@ export default function Home() {
       console.log('🔍 FREEBIRD API RESPONSE: Data:', data)
 
       if (response.ok) {
-        console.log('✅ FREEBIRD SELECTION: Success, refreshing profile and redirecting to welcome')
+        console.log('✅ FREEBIRD SELECTION: Success, refreshing profile and redirecting to search')
         // Refresh the user profile to get updated subscription data
         refreshProfile()
         // Successfully updated to free plan
         alert('Welcome to the Freebird plan! You can now enjoy basic features.')
-        // Redirect to welcome page
-        router.push('/welcome')
+        // Optionally redirect to search page or refresh the page
+        router.push('/search')
       } else {
         console.log('❌ FREEBIRD SELECTION: API returned error:', data)
         alert('Failed to update plan. Please try again.')

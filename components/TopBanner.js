@@ -97,13 +97,12 @@ const TopBanner = () => {
     return <span dangerouslySetInnerHTML={{ __html: result }} />
   }
 
-  // If banner is not visible, return empty div with zero height
   if (!isVisible || !bannerConfig || isDismissed) {
-    return <div className="relative w-full z-50" style={{ height: 0 }} />
+    return null
   }
 
   return (
-    <div
+    <div 
       className="relative w-full z-50"
       style={{
         backgroundColor: bannerConfig.backgroundColor,

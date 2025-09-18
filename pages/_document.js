@@ -32,6 +32,9 @@ export default function Document() {
         
         {/* Preload critical favicon for performance */}
         <link rel="preload" href="/images/favicons/icon-192.png" as="image" />
+        
+        {/* Stripe Buy Button Script */}
+        <script async src="https://js.stripe.com/v3/buy-button.js"></script>
       </Head>
       <body>
         <Main />

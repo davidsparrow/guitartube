@@ -216,7 +216,7 @@ export default async function handler(req, res) {
           },
         ],
         mode: 'subscription',
-        success_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/welcome?success=true&session_id={CHECKOUT_SESSION_ID}`,
+        success_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/search?success=true&session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/pricing?canceled=true`,
         subscription_data: {
           trial_period_days: 30, // 30-day trial

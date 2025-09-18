@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useUser } from '../contexts/UserContext'
 import { useAuth } from '../contexts/AuthContext'
 import { updateUserProfile } from '../lib/supabase'
-import { PiWarning } from "react-icons/pi"
+
 
 export default function MenuModal({ isOpen, onClose, onSupportClick }) {
   const { profile, userEmail, refreshProfile } = useUser()
@@ -12,7 +12,6 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
   const [showPlanModal, setShowPlanModal] = useState(false)
   const [showBackstageAlert, setShowBackstageAlert] = useState(false)
   const [isUpdatingResume, setIsUpdatingResume] = useState(false)
-  const [isCancelingSubscription, setIsCancelingSubscription] = useState(false)
   const [isManagingSubscription, setIsManagingSubscription] = useState(false)
 
   // Handle logout functionality
@@ -63,71 +62,7 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
     }
   }
 
-  // Handle cancel subscription
-  const handleCancelSubscription = async () => {
-    if (!profile?.id || isCancelingSubscription) return
 
-    // Confirm cancellation
-    const confirmed = window.confirm(
-      'Are you sure you want to cancel your subscription?\n\n' +
-      'You will keep access until the end of your current billing period, ' +
-      'then your account will be converted to the free Freebird plan.'
-    )
-
-    if (!confirmed) return
-
-    setIsCancelingSubscription(true)
-
-    try {
-      console.log('🔄 Canceling subscription for user:', profile.id)
-
-      const response = await fetch('/api/stripe/cancel-subscription', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: profile.id,
-          userEmail: userEmail
-        })
-      })
-
-      const result = await response.json()
-
-      console.log('🔍 Cancel API Response:', {
-        status: response.status,
-        ok: response.ok,
-        result: result
-      });
-
-      if (!response.ok) {
-        console.error('❌ API returned error but check if Stripe succeeded:', result);
-        throw new Error(result.message || 'Failed to cancel subscription')
-      }
-
-      console.log('✅ Subscription canceled successfully:', result)
-
-      // Show success message
-      const accessUntil = result.subscription?.access_until
-        ? new Date(result.subscription.access_until).toLocaleDateString()
-        : 'the end of your current billing period';
-
-      alert(
-        'Subscription canceled successfully!\n\n' +
-        `You will keep access until ${accessUntil}.\n` +
-        'After that, your account will be converted to the free Freebird plan.'
-      )
-
-      // Refresh profile to get updated data
-      refreshProfile()
-
-    } catch (error) {
-      console.error('❌ Error canceling subscription:', error)
-      alert(`Failed to cancel subscription: ${error.message}`)
-    } finally {
-      setIsCancelingSubscription(false)
-    }
-  }
 
   // Handle manage subscription (Stripe Customer Portal)
   const handleManageSubscription = async () => {
@@ -355,17 +290,7 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
                   COMMUNITY GUIDELINES
                 </a>
 
-                {/* Cancel Subscription Button - Real functionality */}
-                {profile?.subscription_tier === 'roadie' && (
-                  <button
-                    onClick={handleCancelSubscription}
-                    disabled={isCancelingSubscription}
-                    className="w-full bg-transparent border-2 border-red-500 text-red-500 py-2 px-4 rounded-[33px] text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  >
-                    {isCancelingSubscription ? 'Canceling...' : 'Cancel Subscription'}
-                    <PiWarning className="w-4 h-4" />
-                  </button>
-                )}
+
               </div>
             </div>
           </div>

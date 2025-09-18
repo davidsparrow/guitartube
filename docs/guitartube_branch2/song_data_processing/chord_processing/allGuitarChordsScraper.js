@@ -187,7 +187,7 @@ class AllGuitarChordsScraper {
         const chordType = shortName.replace(rootNote, '').trim() || 'Major';
 
         return {
-          chord_name: shortName,
+          chord_name: shortName.replace(/\//g, '-'), // KLANGIO: 2025-09-17 - Normalize chord names: replace "/" with "-" for URL safety (e.g., "C#/Db5" → "C#-Db5")
           display_name: longName,
           root_note: rootNote,
           chord_type: chordType

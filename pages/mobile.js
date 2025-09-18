@@ -81,13 +81,24 @@ export default function MobileHome() {
   }
 
   return (
-    <>
-      <div className="bg-gray-900">
-
-      {/* TopBanner REMOVED FOR TESTING */}
-
-      {/* Header - STICKY AT TOP */}
-      <header className="fixed top-0 left-0 right-0 z-20 px-4 py-3 md:px-6 md:py-4" style={{ backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)' }}>
+    <div 
+      className="relative h-screen overflow-hidden"
+      style={{ 
+        backgroundImage: `url('/images/gt_splashBG_dark.png')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundColor: '#1a1a1a' // Fallback color
+      }}
+    >
+      {/* 75% Black Overlay */}
+      <div className="absolute inset-0 bg-black/75 z-0" />
+      
+      {/* Top Banner - Admin controlled */}
+      <TopBanner />
+      
+      {/* Transparent Header - Mobile Optimized */}
+      <header className="relative z-10 px-4 py-3" style={{ backgroundColor: 'transparent' }}>
         <div className="flex justify-between items-center">
           {/* Logo - Upper Left - Mobile Optimized Size */}
           <a 
@@ -137,59 +148,93 @@ export default function MobileHome() {
         </div>
       </header>
 
-      {/* Main Content - LOGO ONLY FOR TESTING */}
-      <main className="relative z-10" style={{
+      {/* Main Content - Mobile Optimized Layout */}
+      <div className="relative z-10 flex flex-col items-center justify-center px-4" style={{ 
+        height: 'calc(100vh - 120px)', // Adjusted for mobile header
         backgroundColor: 'transparent'
       }}>
-        {/* Logo - NO padding/margins */}
-        <img
-          src="/images/gt_logo_wide_on_black_450x90.png"
-          alt="GuitarTube"
-          style={{
-            width: '75%',
-            height: 'auto',
-            maxWidth: '100%'
-          }}
-        />
-      </main>
+        {/* Logo and Subtitle Section - Mobile Optimized */}
+        <div className="text-center mb-8 mt-14"> {/* Reduced to 56px top margin for spacing from header */}
+          <img 
+            src="/images/gt_logo_wide_on_black_450x90.png" 
+            alt="GuitarTube" 
+            className="mx-auto mb-3" 
+            style={{ 
+              width: '75%', 
+              height: 'auto',
+              maxWidth: '100%'
+            }}
+          />
+          <p className="text-center text-white font-bold text-base px-4" style={{ fontFamily: 'Poppins, sans-serif' }}> {/* Mobile text size */}
+            Press fast forward on your <br />
+            Video Guitar Learning journey
+          </p>
+        </div>
 
-      {/* Footer with Stay Free Button - FIXED AT BOTTOM */}
-      <footer className="fixed bottom-0 left-0 right-0 bg-black/55 backdrop-blur-sm z-20">
-        {/* Escher Geometric Pattern Background - Much Dimmer */}
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-35"
-          style={{
-            backgroundImage: `url('/images/escher_geometric_pattern_GRN.png')`,
-            width: '100%',
-            height: '100%'
-          }}
-        />
-        <div className="px-4 py-3 md:py-6 relative z-10">
-          {/* Stay Free Button - Compact Spacing */}
-          <div className="flex justify-center mb-3 md:mb-4">
+        {/* Search and Sort Fields - Mobile Optimized */}
+        <div className="flex flex-col items-center space-y-3 w-full max-w-sm"> {/* Mobile layout */}
+          {/* Search Bar - Mobile Optimized */}
+          <div className="relative w-4/5">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="How to learn guitar faster"
+              className="w-full px-4 py-3 bg-white/35 backdrop-blur-sm text-white placeholder-white border border-white/20 focus:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400/20 transition-all text-base" // Mobile sizing
+              style={{ borderRadius: '77px' }}
+              ref={searchInputRef}
+              onKeyPress={handleKeyPress}
+            />
+            
+            {/* Clear button - Mobile Optimized */}
+            <button
+              onClick={handleClearSearch}
+              className="absolute right-12 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white hover:scale-110 transition-all duration-200 p-1 rounded-full hover:bg-white/10"
+            >
+              <FaTimes className="w-4 h-4" /> {/* Smaller icon */}
+            </button>
+            
+            {/* Vertical separator line */}
+            <div className="absolute right-11 top-1/2 transform -translate-y-1/2 w-px h-4 bg-white/30"></div>
+            
+            {/* Search button - Mobile Optimized */}
+            <button
+              onClick={handleSearchClick}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white p-2 hover:bg-white/10 rounded-lg transition-all duration-200 hover:scale-105"
+            >
+              <FaSearch className="w-4 h-4" />
+            </button>
+          </div>
+
+
+        </div>
+
+        {/* Stay Free Button - Mobile Optimized */}
+        <div className="mt-auto mb-6"> {/* Adjusted positioning for mobile */}
           <button
             onClick={() => router.push('/pricing')}
-            className="relative text-green-400 font-bold text-lg md:text-xl hover:text-green-300 transition-all duration-500 transform hover:scale-105 overflow-hidden group px-4 py-2 md:px-6 md:py-3 rounded-full"
+            className="relative text-green-400 font-bold text-xl hover:text-green-300 transition-all duration-500 transform hover:scale-105 overflow-hidden group px-6 py-3 rounded-full" // Mobile sizing
             title="No credit card required to Join"
           >
             <span className="relative z-10 bg-gradient-to-r from-green-400 via-emerald-300 to-green-400 bg-clip-text text-transparent animate-shine">
               STAY FREE
             </span>
-            <img
-              src="/images/no_credit_card2.png"
-              alt="No Credit Card"
-              className="inline-block ml-2 -mt-0.5 w-5 h-5 md:w-6 md:h-6"
+            <img 
+              src="/images/no_credit_card2.png" 
+              alt="No Credit Card" 
+              className="inline-block ml-2 -mt-0.5 w-6 h-6" // Smaller icon for mobile
             />
             <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 via-emerald-300/40 to-green-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm rounded-full"></div>
           </button>
         </div>
+      </div>
 
-          {/* Footer Links - Compact */}
-          <div className="flex justify-center items-center space-x-3 text-white/60 text-xs" style={{ fontFamily: 'Poppins, sans-serif' }}>
-            <span>© 2025 GuitarTube</span>
-            <a href="/terms" className="hover:text-white transition-colors underline">terms</a>
-            <a href="/privacy" className="hover:text-white transition-colors underline">privacy</a>
-          </div>
+      {/* Footer - Mobile Optimized */}
+      <footer className="relative z-10 px-4 py-4" style={{ backgroundColor: 'transparent' }}>
+        <div className="flex justify-center items-center space-x-3 text-white/60 text-xs" style={{ fontFamily: 'Poppins, sans-serif' }}> {/* Mobile sizing */}
+          <span>© 2025 GuitarTube</span>
+          <a href="/terms" className="hover:text-white transition-colors underline">terms</a>
+          <a href="/privacy" className="hover:text-white transition-colors underline">privacy</a>
         </div>
       </footer>
 
@@ -393,7 +438,6 @@ export default function MobileHome() {
           </div>
         </div>
       )}
-      </div>
-    </>
+    </div>
   )
 }

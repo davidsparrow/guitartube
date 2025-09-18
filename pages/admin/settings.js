@@ -5,6 +5,7 @@ import { useRouter } from 'next/router'
 import Layout from '../../components/Layout'
 import BannerSettings from '../../components/admin/BannerSettings'
 import FeatureGates from '../../components/admin/FeatureGates'
+import KlangioJobsPanel from '../../components/admin/KlangioJobsPanel'
 import { supabase } from '../../lib/supabase/client'
 
 export default function AdminSettings() {
@@ -70,7 +71,9 @@ export default function AdminSettings() {
     { id: 'banner', name: 'Banner Settings', icon: '📢' },
     { id: 'feature-gates', name: 'Feature Gates', icon: '🚪' },
     { id: 'general', name: 'General Settings', icon: '⚙️' },
-    { id: 'users', name: 'User Management', icon: '👥' }
+    { id: 'users', name: 'User Management', icon: '👥' },
+    // KLANGIO Details – 2025-09-17: New admin tab for Klangio Jobs status
+    { id: 'klangio', name: 'Klangio Jobs', icon: '🎼' }
   ]
 
   return (
@@ -124,6 +127,11 @@ export default function AdminSettings() {
               <h2 className="text-2xl font-bold text-gray-900 mb-4">User Management</h2>
               <p className="text-gray-600">User management features coming soon...</p>
             </div>
+          )}
+
+          {/* KLANGIO Details – 2025-09-17: Klangio Jobs Panel */}
+          {activeTab === 'klangio' && (
+            <KlangioJobsPanel />
           )}
         </div>
 
