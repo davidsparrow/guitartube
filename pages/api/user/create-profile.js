@@ -1,6 +1,6 @@
 // pages/api/user/create-profile.js
 // Create missing user profile for authenticated users
-import { adminSupabase } from '../../../lib/supabase';
+import { adminSupabase } from '../../../lib/adminSupabase';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
