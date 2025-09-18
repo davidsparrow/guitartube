@@ -6,7 +6,7 @@
   height: 100dvh;
   overflow: hidden;
   background-color: #000000;
-  background-image: url('/images/gt_splashBG_dark.png');
+  background-image: url('/images/gt_splashBG6_1200_dark1.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -81,6 +81,12 @@
   padding-top: min(20vh, 96px);
   /* Reserve space for CTA so it won't overlap content in short viewports */
   padding-bottom: 140px;
+}
+
+/* Scrollable variant (used on contact page) */
+.scrollMain {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* CTA block (Stay Free) positioned in lower portion of main, above footer */

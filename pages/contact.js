@@ -1,17 +1,16 @@
 // pages/contact.js - Contact page based on mobile-clean layout
-import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/router'
-import { LuBrain } from 'react-icons/lu'
-import { IoMdPower } from 'react-icons/io'
-import { PiHamburger, PiCurrencyCircleDollar } from 'react-icons/pi'
+import { useAuth } from '../contexts/AuthContext'
 import styles from '../styles/mobile-clean.module.css'
 import AuthModal from '../components/AuthModal'
 import MenuModal from '../components/MenuModal'
 import SupportModal from '../components/SupportModal'
+import Header from '../components/Header'
 
 export default function ContactPage() {
   const router = useRouter()
+  const { isAuthenticated } = useAuth()
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [showMenuModal, setShowMenuModal] = useState(false)
   const [showSupportModal, setShowSupportModal] = useState(false)
@@ -20,6 +19,7 @@ export default function ContactPage() {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' })
   const [submitting, setSubmitting] = useState(false)
   const [status, setStatus] = useState(null)
+  const [showEmail, setShowEmail] = useState(false)
 
   function handleChange(e) {
     const { name, value } = e.target
@@ -64,35 +64,38 @@ export default function ContactPage() {
 
   return (
     <div className={styles.page}>
-      {/* Header */}
-      <header className={styles.header}>
-        <div className={styles.headerInner}>
-          <div className={styles.headerLeft}>
-            <Link href="/?home=true" className="hover:opacity-80 transition-opacity">
-              <img src="/images/gt_logoM_PlayButton.png" alt="VideoFlip Logo" style={{ height: 32, width: 'auto' }} />
-            </Link>
-          </div>
-          <div className={styles.headerRight}>
-            <button onClick={() => router.push('/features')} className="p-2 rounded-lg text-white hover:bg-white/10 transition-colors" title="GuitarTube Features">
-              <LuBrain className="w-5 h-5" />
-            </button>
-            <button onClick={() => router.push('/pricing')} className="p-2 rounded-lg text-white hover:bg-white/10 transition-colors" title="I want my GTV!">
-              <PiCurrencyCircleDollar className="w-6 h-6" />
-            </button>
-            <button onClick={() => setShowAuthModal(true)} className="p-2 rounded-lg text-white hover:bg-white/10 transition-colors" title="Auth">
-              <IoMdPower className="w-5 h-5" />
-            </button>
-            <button onClick={() => setShowMenuModal(true)} className="p-2 rounded-lg text-white hover:bg-white/10 transition-colors" title="Menu">
-              <PiHamburger className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      </header>
+      {/* Header Component */}
+      <Header 
+        showBrainIcon={true}
+        showSearchIcon={false}
+        onAuthClick={() => setShowAuthModal(true)}
+        onMenuClick={() => setShowMenuModal(true)}
+        isAuthenticated={isAuthenticated}
+      />
 
       {/* Main content area with contact form */}
-      <main className={`${styles.main} ${styles.scrollMain}`}>
-        <div className={styles.logoBlock}>
-          <h1 className={styles.subtitle} style={{ marginBottom: 16 }}>Contact Us</h1>
+      <main className={`${styles.main} ${styles.scrollMain} md:pt-16`}>
+        <div className={`${styles.logoBlock} md:pt-16`}>
+          <h1 className="text-3xl font-bold text-yellow-400 mb-2" style={{ fontFamily: 'Futura, sans-serif' }}>Contact Us Today!</h1>
+          <h2 className={styles.subtitle} style={{ marginBottom: 16 }}>Or...tomorrow could be better.</h2>
+        </div>
+
+        <div className="text-gray-300 text-xs leading-relaxed mb-6 max-w-md px-5 md:px-0" style={{ fontFamily: 'Futura, sans-serif' }}>
+          <p className="mb-3 font-normal">
+            Trouble tuning up? Looking for fatter Tone?* Wondering how we do what we do like a wild voodoo child? Don't go smashing your{' '}
+            <a href="https://www.youtube.com/watch?v=_diKw9F6t3U" target="_blank" rel="noopener noreferrer" className="text-yellow-400 hover:text-yellow-300 underline">
+              perfectly good guitar
+            </a>
+            . Just press Send on a message here. Then go smash your guitar in a good way.
+          </p>
+          
+          <p className="mb-3 font-normal">
+            We will get back to guit, err, back to You during normal chord sha, err, normal business days and hours. Early mornings are not good, so don't expect much of that. Fridays are right out.
+          </p>
+          
+          <p className="text-xs text-gray-400 italic font-normal">
+            *Jimi/Stevie method: HEAVY-ass strings, downtune 1/2 step, play really LOUD (natural distortion), AND add 2 lifetimes of practice.
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4" style={{ zIndex: 10 }}>
@@ -151,7 +154,17 @@ export default function ContactPage() {
         </form>
 
         <div style={{ marginTop: 16, color: '#ccc', fontSize: 12 }}>
-          You can also <a href="mailto:support@guitartube.net" className="underline hover:text-white">Email Us</a>
+          <button 
+            onClick={() => setShowEmail(!showEmail)}
+            className="underline hover:text-white bg-transparent border-none p-0 cursor-pointer"
+          >
+            Hate forms?
+          </button>
+          {showEmail && (
+            <div style={{ marginTop: 8, color: '#fff', fontSize: 14, fontFamily: 'monospace' }}>
+              support@guitartube.net
+            </div>
+          )}
         </div>
       </main>
 
