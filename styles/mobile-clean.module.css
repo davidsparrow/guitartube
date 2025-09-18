@@ -79,6 +79,8 @@
   padding: 0 16px;
   /* Nudge content toward upper third across devices */
   padding-top: min(20vh, 96px);
+  /* Reserve space for CTA so it won't overlap content in short viewports */
+  padding-bottom: 140px;
 }
 
 /* CTA block (Stay Free) positioned in lower portion of main, above footer */
@@ -178,7 +180,32 @@
 /* Optional: responsive adjustments for very short viewports */
 @media (max-height: 520px) {
   .footer { padding: 10px 12px; }
-  .main { bottom: 86px; }
+  .main { bottom: 86px; padding-bottom: 160px; padding-top: 12px; }
+}
+
+/* Landscape tweaks to avoid CTA overlapping subtitle */
+@media (orientation: landscape) {
+  /* Compact layout to free vertical space */
+  .main { padding-top: 8px; padding-bottom: 140px; }
+
+  .logoImage { width: 58%; margin-bottom: 10px; }
+  .subtitle { font-size: 14px; margin-bottom: 12px; line-height: 1.25; }
+
+  .searchFieldContainer { width: 70%; }
+  .searchInput { font-size: 14px; padding: 10px 38px 10px 14px; }
+  .clearBtn { right: 38px; }
+  .searchBtn { right: 6px; }
+
+  /* Re-enable CTA with compact sizing */
+  /* Keep CTA clearly above the footer in landscape */
+  .ctaBlock { display: flex; bottom: 70px; z-index: 15; }
+  .stayFreeButton { font-size: 18px; padding: 12px 22px; }
+  .stayFreeButton img { width: 22px; height: 22px; }
+
+  /* Make footer elements more compact in landscape */
+  .footer { padding: 8px 10px; }
+  .footerLinks { gap: 10px; font-size: 11px; }
+  .footer + div { font-size: 11px; }
 }
 
 
