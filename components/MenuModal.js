@@ -13,6 +13,7 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
   const [showBackstageAlert, setShowBackstageAlert] = useState(false)
   const [isUpdatingResume, setIsUpdatingResume] = useState(false)
   const [isCancelingSubscription, setIsCancelingSubscription] = useState(false)
+  const [isManagingSubscription, setIsManagingSubscription] = useState(false)
 
   // Handle logout functionality
   const handleLogout = async () => {
@@ -93,16 +94,27 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
 
       const result = await response.json()
 
+      console.log('🔍 Cancel API Response:', {
+        status: response.status,
+        ok: response.ok,
+        result: result
+      });
+
       if (!response.ok) {
+        console.error('❌ API returned error but check if Stripe succeeded:', result);
         throw new Error(result.message || 'Failed to cancel subscription')
       }
 
       console.log('✅ Subscription canceled successfully:', result)
 
       // Show success message
+      const accessUntil = result.subscription?.access_until
+        ? new Date(result.subscription.access_until).toLocaleDateString()
+        : 'the end of your current billing period';
+
       alert(
         'Subscription canceled successfully!\n\n' +
-        `You will keep access until ${new Date(result.subscription.access_until).toLocaleDateString()}.\n` +
+        `You will keep access until ${accessUntil}.\n` +
         'After that, your account will be converted to the free Freebird plan.'
       )
 
@@ -114,6 +126,84 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
       alert(`Failed to cancel subscription: ${error.message}`)
     } finally {
       setIsCancelingSubscription(false)
+    }
+  }
+
+  // Handle manage subscription (Stripe Customer Portal)
+  const handleManageSubscription = async () => {
+    if (!profile?.id || isManagingSubscription) return
+
+    // Validate user has paid subscription
+    if (!profile.subscription_tier || profile.subscription_tier === 'freebird') {
+      alert('Subscription management is only available for paid subscribers (Roadie and Hero plans).')
+      return
+    }
+
+    setIsManagingSubscription(true)
+
+    try {
+      console.log('🔄 Opening subscription management portal for user:', profile.id)
+
+      // Get current page URL for return
+      const returnUrl = window.location.href
+
+      const response = await fetch('/api/stripe/create-portal-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: profile.id,
+          userEmail: userEmail,
+          returnUrl: returnUrl
+        })
+      })
+
+      const result = await response.json()
+
+      console.log('🔍 Portal API Response:', {
+        status: response.status,
+        ok: response.ok,
+        result: result
+      });
+
+      if (!response.ok || !result.success) {
+        console.error('❌ Portal API returned error:', result);
+
+        // DEBUG: Add detailed frontend logging
+        console.log('🔍 FRONTEND DEBUG: Full error result:', JSON.stringify(result, null, 2))
+        console.log('🔍 FRONTEND DEBUG: Support info string:', result.supportInfo)
+
+        // Show detailed error message for support
+        const errorMessage = result.supportInfo
+          ? `${result.message}\n\nFor support, please copy this information:\n${result.supportInfo}`
+          : result.message || 'Failed to open subscription management'
+
+        console.log('🔍 FRONTEND DEBUG: Message we will show:', errorMessage)
+
+        alert(errorMessage)
+        return
+      }
+
+      console.log('✅ Portal session created successfully, redirecting to:', result.url)
+
+      // Close modal first, then redirect to Stripe Customer Portal
+      onClose()
+
+      // Small delay to ensure modal closes, then force redirect
+      setTimeout(() => {
+        console.log('🔄 Attempting redirect to:', result.url)
+        window.location.replace(result.url)
+      }, 200)
+
+    } catch (error) {
+      console.error('❌ Error opening subscription management:', error)
+
+      const errorMessage = `Failed to open subscription management: ${error.message}\n\nFor support, please copy this information:\nError: ${error.message}\nUser: ${userEmail}\nError code: CLIENT_SIDE_ERROR`
+
+      alert(errorMessage)
+    } finally {
+      setIsManagingSubscription(false)
     }
   }
 
@@ -236,6 +326,13 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
                 >
                   SUPPORT
                 </button>
+                
+                <a 
+                  href="/schwag"
+                  className="block w-full text-white hover:text-yellow-400 transition-colors text-lg font-semibold"
+                >
+                  SCHWAG
+                </a>
                 
                 <a 
                   href="/terms"
@@ -429,8 +526,12 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
               </div>
               
               <div className="pt-4 space-y-3">
-                <button className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors">
-                  Change Credit Card
+                <button
+                  onClick={handleManageSubscription}
+                  disabled={isManagingSubscription}
+                  className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isManagingSubscription ? 'Opening...' : 'Manage Your Subscription'}
                 </button>
 
                 {profile?.subscription_tier !== 'hero' && (
