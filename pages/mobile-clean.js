@@ -1,17 +1,22 @@
 // pages/mobile-clean.js - Clean mobile page: Header + Footer only
 import Link from 'next/link'
 import { useRouter } from 'next/router'
+import { useState } from 'react'
 import { LuBrain } from 'react-icons/lu'
+import { PiCurrencyCircleDollar } from 'react-icons/pi'
 import { IoMdPower } from 'react-icons/io'
 import { RiLogoutCircleRLine } from 'react-icons/ri'
-import { FaHamburger } from 'react-icons/fa'
+import { PiHamburger } from 'react-icons/pi'
+import AuthModal from '../components/AuthModal'
 import styles from '../styles/mobile-clean.module.css'
 import { FaTimes, FaSearch } from 'react-icons/fa'
 
 export default function MobileClean() {
   const router = useRouter()
+  const [showAuthModal, setShowAuthModal] = useState(false)
 
   return (
+    <>
     <div className={styles.page}>
       {/* Header fixed */}
       <header className={styles.header}>
@@ -30,18 +35,25 @@ export default function MobileClean() {
               <LuBrain className="w-5 h-5" />
             </button>
             <button
-              onClick={() => router.push('/auth')}
+              onClick={() => router.push('/pricing')}
+              className="p-2 rounded-lg text-white hover:bg-white/10 transition-colors"
+              title="I want my GTV!"
+            >
+              <PiCurrencyCircleDollar className="w-6 h-6" />
+            </button>
+            <button
+              onClick={() => setShowAuthModal(true)}
               className="p-2 rounded-lg text-white hover:bg-white/10 transition-colors"
               title="Auth"
             >
               <IoMdPower className="w-5 h-5" />
             </button>
             <button
-              onClick={() => router.push('/features')}
+              onClick={() => { /* menu modal intentionally not wired yet */ }}
               className="p-2 rounded-lg text-white hover:bg-white/10 transition-colors"
               title="Menu"
             >
-              <FaHamburger className="w-5 h-5" />
+              <PiHamburger className="w-5 h-5" />
             </button>
           </div>
         </div>
@@ -108,6 +120,10 @@ export default function MobileClean() {
         <div className="text-white text-xs">Made with 🎸 in Millhatten, CA</div>
       </footer>
     </div>
+
+    {/* Auth Modal */}
+    <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
+    </>
   )
 }
 
