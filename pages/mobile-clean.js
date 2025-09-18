@@ -6,6 +6,7 @@ import { IoMdPower } from 'react-icons/io'
 import { RiLogoutCircleRLine } from 'react-icons/ri'
 import { FaHamburger } from 'react-icons/fa'
 import styles from '../styles/mobile-clean.module.css'
+import { FaTimes, FaSearch } from 'react-icons/fa'
 
 export default function MobileClean() {
   const router = useRouter()
@@ -46,8 +47,37 @@ export default function MobileClean() {
         </div>
       </header>
 
-      {/* Spacer for where main content will go next step */}
-      <div className={styles.mainSpacer} />
+      {/* Main content: Row 1 - Text Logo + Subtitle */}
+      <main className={styles.main}>
+        <div className={styles.logoBlock}>
+          <img
+            src="/images/gt_logo_wide_on_black_450x90.png"
+            alt="GuitarTube"
+            className={styles.logoImage}
+          />
+          <p className={styles.subtitle}>
+            Press fast forward on your <br />
+            Video Guitar Learning journey
+          </p>
+        </div>
+
+        {/* Row 2 - Search */}
+        <div className={styles.searchBlock}>
+          <div className={styles.searchFieldContainer}>
+            <input
+              type="text"
+              placeholder="How to learn guitar faster"
+              className={styles.searchInput}
+            />
+            <button className={styles.clearBtn} aria-label="Clear">
+              <FaTimes className="w-4 h-4" />
+            </button>
+            <button className={styles.searchBtn} aria-label="Search">
+              <FaSearch className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </main>
 
       {/* Footer fixed */}
       <footer className={styles.footer}>
