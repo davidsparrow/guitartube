@@ -2,10 +2,11 @@
 import { useState } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
-import { adminSupabase } from '../lib/adminSupabase'
+import { useAuth } from '../contexts/AuthContext'
 
 export default function AgeVerifyPage() {
   const router = useRouter()
+  const { user } = useAuth()
   const [initials, setInitials] = useState('')
   const [ageConfirmed, setAgeConfirmed] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -33,13 +34,23 @@ export default function AgeVerifyPage() {
     
     try {
       // Save initials to Supabase if user is authenticated
-      const { data: { user } } = await adminSupabase.auth.getUser()
       if (user) {
-        await adminSupabase
-          .from('user_profiles')
-          .update({ initials: initials.trim() })
-          .eq('id', user.id)
-        console.log('✅ Initials saved to Supabase:', initials.trim())
+        const response = await fetch('/api/user/save-initials', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            initials: initials.trim(),
+            userId: user.id
+          })
+        })
+
+        if (response.ok) {
+          console.log('✅ Initials saved to Supabase:', initials.trim())
+        } else {
+          console.error('❌ Error saving initials:', await response.text())
+        }
       }
     } catch (error) {
       console.error('❌ Error saving initials:', error)
