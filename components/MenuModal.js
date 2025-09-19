@@ -15,6 +15,9 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
   const [showBackstageAlert, setShowBackstageAlert] = useState(false)
   const [isUpdatingResume, setIsUpdatingResume] = useState(false)
   const [isManagingSubscription, setIsManagingSubscription] = useState(false)
+  const [handleValue, setHandleValue] = useState('')
+  const [originalHandleValue, setOriginalHandleValue] = useState('')
+  const [isSavingHandle, setIsSavingHandle] = useState(false)
 
   // Trigger password reset using same flow as AuthModal
   const handlePasswordReset = async () => {
@@ -29,6 +32,59 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
       console.error('Password reset failed:', err)
       alert('Failed to send password reset email. Please try again.')
     }
+  }
+
+  // Handle save handle function
+  const handleSaveHandle = async () => {
+    if (!profile?.id) {
+      alert('Profile not found. Please try again.');
+      return;
+    }
+
+    const trimmedHandle = handleValue.trim();
+    
+    // Validate handle format
+    if (trimmedHandle && !/^[a-z0-9_]+$/.test(trimmedHandle)) {
+      alert('Handle can only contain lowercase letters, numbers, and underscores.');
+      return;
+    }
+    
+    if (trimmedHandle && (trimmedHandle.length < 3 || trimmedHandle.length > 30)) {
+      alert('Handle must be between 3 and 30 characters.');
+      return;
+    }
+
+    setIsSavingHandle(true);
+    try {
+      const { data, error } = await updateUserProfile(profile.id, {
+        handle: trimmedHandle || null
+      });
+
+      if (error) throw error;
+
+      console.log('✅ Handle updated successfully:', data);
+      setOriginalHandleValue(trimmedHandle);
+      alert('Handle updated successfully!');
+    } catch (error) {
+      console.error('❌ Error updating handle:', error);
+      alert('Failed to update handle. Please try again.');
+    } finally {
+      setIsSavingHandle(false);
+    }
+  }
+
+  // Handle profile modal open - initialize handle values
+  const handleProfileModalOpen = () => {
+    const currentHandle = profile?.handle || '';
+    setHandleValue(currentHandle);
+    setOriginalHandleValue(currentHandle);
+    setShowProfileModal(true);
+  }
+
+  // Handle profile modal close - revert changes if not saved
+  const handleProfileModalClose = () => {
+    setHandleValue(originalHandleValue);
+    setShowProfileModal(false);
   }
 
   // Handle logout functionality
@@ -243,7 +299,7 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
                 <button
                   onClick={() => {
                     console.log('🔍 PROFILE BUTTON CLICKED');
-                    setShowProfileModal(true);
+                    handleProfileModalOpen();
                   }}
                   className="flex items-center gap-3 w-full text-white hover:text-yellow-400 transition-colors text-lg font-semibold bg-transparent border-none cursor-pointer"
                 >
@@ -320,7 +376,7 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
           <div 
             className="bg-black rounded-2xl shadow-2xl max-w-md w-full relative text-white p-6 max-h-[80vh] overflow-y-auto border border-white"
             style={{
-              backgroundImage: 'url("/images/turquoise%20guitar.jpg")',
+              backgroundImage: 'url("/images/blue_live_edge_electric_guitar.jpg")',
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat'
@@ -331,7 +387,7 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
             
             {/* Close Button */}
             <button
-              onClick={() => setShowProfileModal(false)}
+              onClick={handleProfileModalClose}
               className="absolute top-3 right-3 text-gray-300 hover:text-white transition-colors text-xl font-bold z-10"
             >
               ×
@@ -345,7 +401,7 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
                   <PiButterflyFill className="text-white text-xl" />
                   <h2 className="text-xl font-bold text-white">Profile</h2>
                 </div>
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center" style={{ marginLeft: 'calc(8rem - 53px)' }}>
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center" style={{ marginLeft: 'calc(8rem - 82px)' }}>
                   <span className="text-white text-lg font-bold">
                     {userEmail?.charAt(0).toUpperCase() || 'U'}
                   </span>
@@ -356,33 +412,70 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
               <div className="space-y-3 text-sm mb-6">
                 <div className="flex">
                   <span className="text-gray-400 w-32">Name:</span>
-                  <span className="text-white" style={{ marginLeft: '10px' }}>{profile?.full_name || userEmail?.split('@')[0] || 'User'}</span>
+                  <span className="text-white" style={{ marginLeft: '-50px' }}>{profile?.full_name || userEmail?.split('@')[0] || 'User'}</span>
                 </div>
                 
                 <div className="flex">
                   <span className="text-gray-400 w-32">Email:</span>
-                  <span className="text-white" style={{ marginLeft: '10px' }}>{userEmail || 'No email'}</span>
+                  <span className="text-white" style={{ marginLeft: '-50px' }}>{userEmail || 'No email'}</span>
+                </div>
+
+                {/* Handle Field */}
+                <div className="flex items-center">
+                  <span className="text-gray-400 w-32">Handle:</span>
+                  <div className="flex items-center gap-2" style={{ marginLeft: '-50px' }}>
+                    <input
+                      type="text"
+                      value={handleValue}
+                      onChange={(e) => {
+                        // Only allow lowercase letters, numbers, and underscores
+                        const value = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+                        setHandleValue(value);
+                      }}
+                      placeholder="Enter your handle..."
+                      className="bg-transparent border border-gray-500 rounded px-1 py-0.5 text-white text-xs placeholder-gray-400 focus:border-blue-400 focus:outline-none"
+                      style={{ minWidth: '60px' }}
+                      maxLength={30}
+                    />
+                    {handleValue !== originalHandleValue && (
+                      <button
+                        onClick={handleSaveHandle}
+                        disabled={isSavingHandle}
+                        className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isSavingHandle ? 'Saving...' : 'Save'}
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Resume Toggle - Only show for roadie/hero users */}
                 {profile?.subscription_tier && ['roadie', 'hero'].includes(profile.subscription_tier) && (
-                  <div className="flex items-center">
-                    <span className="text-gray-400 w-32">Resume Last Video:</span>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <span className="text-gray-400 w-32">Resume Last Video:</span>
+                      <button
+                        onClick={handleResumeToggle}
+                        disabled={isUpdatingResume}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${
+                          profile?.resume_enabled
+                            ? 'bg-yellow-400'
+                            : 'bg-gray-600'
+                        } ${isUpdatingResume ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                        style={{ marginLeft: '10px' }}
+                      >
+                        <span
+                          className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                            profile?.resume_enabled ? 'translate-x-5' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
                     <button
-                      onClick={handleResumeToggle}
-                      disabled={isUpdatingResume}
-                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${
-                        profile?.resume_enabled
-                          ? 'bg-yellow-400'
-                          : 'bg-gray-600'
-                      } ${isUpdatingResume ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                      style={{ marginLeft: '10px' }}
+                      onClick={handlePasswordReset}
+                      className="text-blue-400 hover:text-blue-300 text-sm underline transition-colors"
                     >
-                      <span
-                        className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-                          profile?.resume_enabled ? 'translate-x-5' : 'translate-x-1'
-                        }`}
-                      />
+                      Reset Password
                     </button>
                   </div>
                 )}
@@ -391,12 +484,6 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
                 <div className="space-y-2 mt-4">
                   <button className="w-full bg-blue-600/20 border border-blue-600 text-blue-300 hover:bg-blue-600/30 rounded-[60px] px-3 py-2 text-sm transition-all duration-200">
                     Settings
-                  </button>
-                  <button
-                    onClick={handlePasswordReset}
-                    className="w-full bg-orange-500/20 border border-orange-500 text-orange-300 hover:bg-orange-500/30 rounded-[60px] px-3 py-2 text-sm transition-all duration-200"
-                  >
-                    Update Password
                   </button>
                 </div>
 

@@ -10,11 +10,13 @@ import { PiHamburger } from 'react-icons/pi'
 import AuthModal from '../components/AuthModal'
 import MenuModal from '../components/MenuModal'
 import SupportModal from '../components/SupportModal'
+import { useAuth } from '../contexts/AuthContext'
 import styles from '../styles/mobile-clean.module.css'
 import { FaTimes, FaSearch } from 'react-icons/fa'
 
 export default function MobileClean() {
   const router = useRouter()
+  const { isAuthenticated, signOut } = useAuth()
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [showMenuModal, setShowMenuModal] = useState(false)
   const [showSupportModal, setShowSupportModal] = useState(false)
@@ -45,13 +47,23 @@ export default function MobileClean() {
             >
               <PiCurrencyCircleDollar className="w-6 h-6" />
             </button>
-            <button
-              onClick={() => setShowAuthModal(true)}
-              className="p-2 rounded-lg text-white hover:bg-white/10 transition-colors"
-              title="Auth"
-            >
-              <IoMdPower className="w-5 h-5" />
-            </button>
+            {isAuthenticated ? (
+              <button
+                onClick={signOut}
+                className="p-2 rounded-lg text-white hover:bg-white/10 transition-colors"
+                title="Logout"
+              >
+                <RiLogoutCircleRLine className="w-5 h-5" />
+              </button>
+            ) : (
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className="p-2 rounded-lg text-white hover:bg-white/10 transition-colors"
+                title="Sign In"
+              >
+                <IoMdPower className="w-5 h-5" />
+              </button>
+            )}
             <button
               onClick={() => setShowMenuModal(true)}
               className="p-2 rounded-lg text-white hover:bg-white/10 transition-colors"
