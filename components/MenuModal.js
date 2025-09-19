@@ -3,6 +3,8 @@ import { useState } from 'react'
 import { useUser } from '../contexts/UserContext'
 import { useAuth } from '../contexts/AuthContext'
 import { updateUserProfile } from '../lib/supabase'
+import { PiButterflyFill, PiSuitcaseSimpleFill, PiToolboxFill, PiSealQuestionFill, PiShirtFoldedFill, PiScalesBold } from "react-icons/pi"
+import { FiLogOut } from "react-icons/fi"
 
 
 export default function MenuModal({ isOpen, onClose, onSupportClick }) {
@@ -202,54 +204,52 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
           className="w-[300px] h-full relative"
           style={{
             marginTop: '5px', // Position just below hamburger
-            backgroundColor: 'rgba(255, 255, 255, 0.08)' // Ghost-white with 8% transparency
+            backgroundImage: 'url("/images/mexican%20giant%20guitar_dark.jpg")',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat'
           }}
         >
+          {/* Grey overlay to darken background image */}
+          <div className="absolute inset-0 bg-gray-800 bg-opacity-50 z-0"></div>
           {/* Close Button - Same style as other modals */}
           <button
             onClick={onClose}
-            className="absolute top-3 right-9 text-white hover:text-yellow-400 transition-colors text-2xl font-bold"
+            className="absolute top-3 right-9 text-white hover:text-yellow-400 transition-colors text-2xl font-bold z-20"
           >
             ×
           </button>
           
           {/* Menu Content */}
-          <div className="p-6 pt-16">
-            <div className="text-white text-center space-y-8">
-              {/* TOP OF MENU */}
-              <div className="space-y-4">
+          <div className="pt-16 relative z-10 flex flex-col justify-start h-full">
+            <div className="text-white space-y-6">
+              {/* All Menu Links - Left Justified with Icons */}
+              <div className="space-y-4" style={{ marginLeft: '25px', marginTop: '60px' }}>
                 <button
                   onClick={() => {
                     console.log('🔍 PROFILE BUTTON CLICKED');
                     setShowProfileModal(true);
                   }}
-                  className="block w-full text-white hover:text-yellow-400 transition-colors text-lg font-semibold"
+                  className="flex items-center gap-3 w-full text-white hover:text-yellow-400 transition-colors text-lg font-semibold bg-transparent border-none cursor-pointer"
                 >
-                  PROFILE
+                  <PiButterflyFill className="text-xl" />
+                  <span>PROFILE</span>
                 </button>
 
                 <button
                   onClick={() => setShowPlanModal(true)}
-                  className="block w-full text-white hover:text-yellow-400 transition-colors text-lg font-semibold"
+                  className="flex items-center gap-3 w-full text-white hover:text-yellow-400 transition-colors text-lg font-semibold bg-transparent border-none cursor-pointer"
                 >
-                  PLAN DEETS
+                  <PiSuitcaseSimpleFill className="text-xl" />
+                  <span>PLAN DEETS</span>
                 </button>
 
-                <button
-                  onClick={handleLogout}
-                  className="block w-full text-white hover:text-yellow-400 transition-colors text-lg font-semibold"
-                >
-                  LOGOUT
-                </button>
-              </div>
-              
-              {/* BOTTOM OF MENU */}
-              <div className="space-y-4 mt-auto">
                 <a 
                   href="/how-to-faqs"
-                  className="block w-full text-white hover:text-yellow-400 transition-colors text-lg font-semibold"
+                  className="flex items-center gap-3 w-full text-white hover:text-yellow-400 transition-colors text-lg font-semibold"
                 >
-                  HOW-TO & FAQS
+                  <PiToolboxFill className="text-xl" />
+                  <span>HOW-TO & FAQS</span>
                 </a>
                 
                 <button
@@ -257,40 +257,35 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
                     onClose() // Close menu modal first
                     if (onSupportClick) onSupportClick() // Then open support modal
                   }}
-                  className="block w-full text-white hover:text-yellow-400 transition-colors text-lg font-semibold bg-transparent border-none cursor-pointer"
+                  className="flex items-center gap-3 w-full text-white hover:text-yellow-400 transition-colors text-lg font-semibold bg-transparent border-none cursor-pointer"
                 >
-                  SUPPORT
+                  <PiSealQuestionFill className="text-xl" />
+                  <span>SUPPORT</span>
                 </button>
                 
                 <a 
                   href="/schwag"
-                  className="block w-full text-white hover:text-yellow-400 transition-colors text-lg font-semibold"
+                  className="flex items-center gap-3 w-full text-white hover:text-yellow-400 transition-colors text-lg font-semibold"
                 >
-                  SCHWAG
-                </a>
-                
-                <a 
-                  href="/terms"
-                  className="block w-full text-white hover:text-yellow-400 transition-colors text-lg font-semibold"
-                >
-                  TERMS
-                </a>
-                
-                <a 
-                  href="/privacy"
-                  className="block w-full text-white hover:text-yellow-400 transition-colors text-lg font-semibold"
-                >
-                  PRIVACY
+                  <PiShirtFoldedFill className="text-xl" />
+                  <span>SCHWAG</span>
                 </a>
                 
                 <a
                   href="/community_guidelines"
-                  className="block w-full text-white hover:text-yellow-400 transition-colors text-lg font-semibold"
+                  className="flex items-center gap-3 w-full text-white hover:text-yellow-400 transition-colors text-lg font-semibold"
                 >
-                  COMMUNITY GUIDELINES
+                  <PiScalesBold className="text-xl" />
+                  <span>COMMUNITY</span>
                 </a>
-
-
+                
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-3 w-full text-white hover:text-red-400 transition-colors text-lg font-semibold bg-transparent border-none cursor-pointer"
+                >
+                  <FiLogOut className="text-xl" />
+                  <span>LOGOUT</span>
+                </button>
               </div>
             </div>
           </div>
