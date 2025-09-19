@@ -1,9 +1,9 @@
 // components/MenuModal.js - Standalone Menu Modal Component
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { useUser } from '../contexts/UserContext'
 import { useAuth } from '../contexts/AuthContext'
-import { updateUserProfile } from '../lib/supabase'
+import { updateUserProfile, getFeatureGates } from '../lib/supabase'
 import { PiButterflyFill, PiGuitarFill, PiSealQuestionFill, PiRabbitFill, PiMailboxFill } from "react-icons/pi"
 import { FiLogOut } from "react-icons/fi"
 
@@ -20,6 +20,9 @@ export default function MenuModal({ isOpen, onClose }) {
   const [handleValue, setHandleValue] = useState('')
   const [originalHandleValue, setOriginalHandleValue] = useState('')
   const [isSavingHandle, setIsSavingHandle] = useState(false)
+  const [featureGates, setFeatureGates] = useState(null)
+  const [featureGatesLoading, setFeatureGatesLoading] = useState(false)
+  const [featureGatesError, setFeatureGatesError] = useState(null)
 
   // Trigger password reset using same flow as AuthModal
   const handlePasswordReset = async () => {
@@ -81,6 +84,11 @@ export default function MenuModal({ isOpen, onClose }) {
     setHandleValue(currentHandle);
     setOriginalHandleValue(currentHandle);
     setShowProfileModal(true);
+    
+    // Load feature gates when profile modal opens
+    if (!featureGates && !featureGatesLoading && !featureGatesError) {
+      loadFeatureGates();
+    }
   }
 
   // Handle profile modal close - revert changes if not saved
@@ -190,6 +198,58 @@ export default function MenuModal({ isOpen, onClose }) {
     } finally {
       setIsManagingSubscription(false)
     }
+  }
+
+  // Load feature gates from admin_settings
+  const loadFeatureGates = async () => {
+    try {
+      setFeatureGatesLoading(true)
+      setFeatureGatesError(null)
+      
+      console.log('🔄 Loading feature gates for MenuModal...')
+      
+      const data = await getFeatureGates()
+      
+      if (data && data.setting_value) {
+        setFeatureGates(data.setting_value)
+        console.log('✅ Feature gates loaded successfully:', data.setting_value)
+      } else {
+        console.error('❌ No feature gates data returned')
+        setFeatureGatesError('No feature gates data available')
+      }
+    } catch (error) {
+      console.error('❌ Error loading feature gates:', error)
+      setFeatureGatesError('Failed to load feature gates')
+    } finally {
+      setFeatureGatesLoading(false)
+    }
+  }
+
+  // Helper function to get plan limits from feature gates
+  const getPlanLimit = (limitType, tier) => {
+    if (!featureGates || !featureGates[limitType]) {
+      return null
+    }
+    return featureGates[limitType][tier] || 0
+  }
+
+  // Helper function to format time display (minutes to HH:MM format)
+  const formatTimeDisplay = (usedMinutes, limitMinutes) => {
+    if (limitMinutes === -1) return 'Unlimited'
+    
+    const usedHours = Math.floor(usedMinutes / 60)
+    const usedMins = usedMinutes % 60
+    const limitHours = Math.floor(limitMinutes / 60)
+    const limitMins = limitMinutes % 60
+    
+    return `${usedHours}:${String(usedMins).padStart(2, '0')} / ${limitHours}:${String(limitMins).padStart(2, '0')}`
+  }
+
+  // Helper function to get error display for limits
+  const getErrorDisplay = () => {
+    if (featureGatesLoading) return 'Loading...'
+    if (featureGatesError) return 'ERROR'
+    return null
   }
 
   if (!isOpen) return null
@@ -414,8 +474,8 @@ export default function MenuModal({ isOpen, onClose }) {
               {/* Title left-justified with labels; avatar right-aligned with Settings button */}
               <div className="flex items-end justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <PiButterflyFill className="text-white text-xl" />
-                  <h2 className="text-xl font-bold text-white">Profile</h2>
+                  <PiButterflyFill className="text-white text-3xl" />
+                  <h2 className="text-3xl font-bold text-white">Profile</h2>
                 </div>
                 <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                   <span className="text-white text-lg font-bold">
@@ -511,54 +571,84 @@ export default function MenuModal({ isOpen, onClose }) {
                 {/* Plan Details Section */}
                 <div className="mt-6 pt-4 border-t border-white/20">
                   <div className="flex items-center gap-2 mb-4">
-                    <PiGuitarFill className="text-white text-xl" />
-                    <h3 className="text-lg font-bold text-white">Plan Details</h3>
+                    <PiGuitarFill className="text-white text-3xl" />
+                    <h3 className="text-2xl font-bold text-white">Plan Details</h3>
                   </div>
                   
                   <div className="space-y-3">
                     <div className="flex">
                       <span className="text-gray-400 w-32">Current Plan:</span>
-                      <span className="text-white capitalize" style={{ marginLeft: '-13px' }}>
+                      <span className="text-white capitalize" style={{ marginLeft: '-3px' }}>
                         {profile?.subscription_tier || 'Freebird'}
                         {profile?.subscription_status && ` (${profile.subscription_status})`}
                       </span>
                     </div>
                     
                     <div className="flex">
-                      <span className="text-gray-400 w-32">Daily Watch Min:</span>
-                      <span className="text-white" style={{ marginLeft: '-13px' }}>
-                        {profile?.subscription_tier === 'hero' ? `${Math.floor((profile?.total_watch_time_minutes || 0) / 60)}:${String((profile?.total_watch_time_minutes || 0) % 60).padStart(2, '0')} / 480` : 
-                         profile?.subscription_tier === 'roadie' ? `${Math.floor((profile?.total_watch_time_minutes || 0) / 60)}:${String((profile?.total_watch_time_minutes || 0) % 60).padStart(2, '0')} / 180` : 
-                         `${Math.floor((profile?.total_watch_time_minutes || 0) / 60)}:${String((profile?.total_watch_time_minutes || 0) % 60).padStart(2, '0')} / 60`}
+                      <span className="text-gray-400 w-32">Daily Watch Time:</span>
+                      <span className="text-white" style={{ marginLeft: '-3px' }}>
+                        {(() => {
+                          const errorDisplay = getErrorDisplay()
+                          if (errorDisplay) return errorDisplay
+                          
+                          const tier = profile?.subscription_tier || 'freebird'
+                          const watchLimit = getPlanLimit('daily_watch_time_limits', tier)
+                          
+                          if (watchLimit === null) return 'ERROR'
+                          
+                          return formatTimeDisplay(profile?.total_watch_time_minutes || 0, watchLimit)
+                        })()}
                       </span>
                     </div>
                     
                     <div className="flex">
                       <span className="text-gray-400 w-32">Daily Searches:</span>
-                      <span className="text-white" style={{ marginLeft: '-13px' }}>
-                        {profile?.subscription_tier === 'hero' ? 'Unlimited' : 
-                         profile?.subscription_tier === 'roadie' ? `${profile?.daily_searches_used || 0} / 20` : 
-                         `${profile?.daily_searches_used || 0} / 3`}
+                      <span className="text-white" style={{ marginLeft: '-3px' }}>
+                        {(() => {
+                          const errorDisplay = getErrorDisplay()
+                          if (errorDisplay) return errorDisplay
+                          
+                          const tier = profile?.subscription_tier || 'freebird'
+                          const searchLimit = getPlanLimit('daily_search_limits', tier)
+                          
+                          if (searchLimit === null) return 'ERROR'
+                          
+                          if (searchLimit === -1) return 'Unlimited'
+                          
+                          return `${profile?.daily_searches_used || 0} / ${searchLimit}`
+                        })()}
                       </span>
                     </div>
                     
                     <div className="flex">
                       <span className="text-gray-400 w-32">Faves:</span>
-                      <span className="text-white" style={{ marginLeft: '-13px' }}>
-                        {profile?.subscription_tier === 'hero' ? 'Unlimited' : 
-                         profile?.subscription_tier === 'roadie' ? `${profile?.favorites_count || 0} / 12` : 
-                         `${profile?.favorites_count || 0} / 3`}
+                      <span className="text-white" style={{ marginLeft: '-3px' }}>
+                        {(() => {
+                          const errorDisplay = getErrorDisplay()
+                          if (errorDisplay) return errorDisplay
+                          
+                          const tier = profile?.subscription_tier || 'freebird'
+                          const limit = getPlanLimit('favorite_limits', tier)
+                          
+                          if (limit === -1) {
+                            return 'Unlimited'
+                          } else if (limit === 0) {
+                            return `${profile?.favorites_count || 0} / 0`
+                          } else {
+                            return `${profile?.favorites_count || 0} / ${limit}`
+                          }
+                        })()}
                       </span>
                     </div>
                     
                     <div className="flex">
                       <span className="text-gray-400 w-32">Billing Cycle:</span>
-                      <span className="text-white" style={{ marginLeft: '-13px' }}>Monthly</span>
+                      <span className="text-white" style={{ marginLeft: '-3px' }}>Monthly</span>
                     </div>
                     
                     <div className="flex">
                       <span className="text-gray-400 w-32">Amount:</span>
-                      <span className="text-white" style={{ marginLeft: '-13px' }}>
+                      <span className="text-white" style={{ marginLeft: '-3px' }}>
                         ${profile?.subscription_tier === 'hero' ? '19' : 
                           profile?.subscription_tier === 'roadie' ? '10' : '0'}/mo
                       </span>

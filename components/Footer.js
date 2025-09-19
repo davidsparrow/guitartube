@@ -27,9 +27,7 @@ const Footer = forwardRef((props, ref) => {
           <div className="flex flex-col items-center space-y-2" style={{ fontFamily: 'Futura, sans-serif' }}>
             <div className="flex justify-center items-center space-x-4 text-white/60 text-xs">
               <span>© 2025 bendersaas.ai</span>
-              <a href="/how-to-faqs" className="hover:text-white transition-colors underline">faq</a>
-              <a href="/community_guidelines" className="hover:text-white transition-colors underline">community</a>
-              <button onClick={() => setShowSupportModal(true)} className="hover:text-white transition-colors underline bg-transparent border-none text-white/60 cursor-pointer">support</button>
+              <a href="/contact" className="hover:text-white transition-colors underline">contact</a>
               <a href="/terms" className="hover:text-white transition-colors underline">terms</a>
               <a href="/privacy" className="hover:text-white transition-colors underline">privacy</a>
             </div>

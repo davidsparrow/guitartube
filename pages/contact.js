@@ -1,11 +1,11 @@
 // pages/contact.js - Contact page based on mobile-clean layout
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/router'
 import { useAuth } from '../contexts/AuthContext'
 import styles from '../styles/mobile-clean.module.css'
 import AuthModal from '../components/AuthModal'
 import MenuModal from '../components/MenuModal'
-import SupportModal from '../components/SupportModal'
+import Footer from '../components/Footer'
 import Header from '../components/Header'
 
 export default function ContactPage() {
@@ -13,7 +13,7 @@ export default function ContactPage() {
   const { isAuthenticated } = useAuth()
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [showMenuModal, setShowMenuModal] = useState(false)
-  const [showSupportModal, setShowSupportModal] = useState(false)
+  const footerRef = useRef()
 
   // Local contact form state
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' })
@@ -168,16 +168,8 @@ export default function ContactPage() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className={styles.footer}>
-        <div className={`${styles.footerLinks} flex justify-center items-center space-x-3 text-white/60 text-xs`} style={{ fontFamily: 'Futura, sans-serif' }}>
-          <span>© 2025 GuitarTube</span>
-          <a href="/contact" className="hover:text-white transition-colors underline">contact</a>
-          <a href="/terms" className="hover:text-white transition-colors underline">terms</a>
-          <a href="/privacy" className="hover:text-white transition-colors underline">privacy</a>
-        </div>
-        <div className="text-white text-xs">Made with 🎸 in Millhatten, CA</div>
-      </footer>
+      {/* Footer Component */}
+      <Footer ref={footerRef} />
 
       {/* Modals */}
       <AuthModal 
@@ -186,11 +178,8 @@ export default function ContactPage() {
       />
       <MenuModal 
         isOpen={showMenuModal} 
-        onClose={() => setShowMenuModal(false)} 
-      />
-      <SupportModal 
-        isOpen={showSupportModal} 
-        onClose={() => setShowSupportModal(false)} 
+        onClose={() => setShowMenuModal(false)}
+        onSupportClick={() => footerRef.current?.openSupportModal()}
       />
     </div>
   )
