@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useUser } from '../contexts/UserContext'
 import { useAuth } from '../contexts/AuthContext'
 import { updateUserProfile } from '../lib/supabase'
-import { PiButterflyFill, PiSuitcaseSimpleFill, PiToolboxFill, PiSealQuestionFill, PiShirtFoldedFill, PiScalesBold } from "react-icons/pi"
+import { PiButterflyFill, PiSuitcaseSimpleFill, PiGuitarFill, PiSealQuestionFill, PiShirtFoldedFill, PiRabbitFill } from "react-icons/pi"
 import { FiLogOut } from "react-icons/fi"
 
 
@@ -204,7 +204,7 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
           className="w-[300px] h-full relative"
           style={{
             marginTop: '5px', // Position just below hamburger
-            backgroundImage: 'url("/images/mexican%20giant%20guitar_dark.jpg")',
+            backgroundImage: 'url("/images/mexican%20giant%20guitar_dark3.jpg")',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat'
@@ -224,7 +224,7 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
           <div className="pt-16 relative z-10 flex flex-col justify-start h-full">
             <div className="text-white space-y-6">
               {/* All Menu Links - Left Justified with Icons */}
-              <div className="space-y-4" style={{ marginLeft: '25px', marginTop: '60px' }}>
+              <div className="space-y-4" style={{ marginLeft: '25px', marginTop: '33px' }}>
                 <button
                   onClick={() => {
                     console.log('🔍 PROFILE BUTTON CLICKED');
@@ -248,7 +248,7 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
                   href="/how-to-faqs"
                   className="flex items-center gap-3 w-full text-white hover:text-yellow-400 transition-colors text-lg font-semibold"
                 >
-                  <PiToolboxFill className="text-xl" />
+                  <PiGuitarFill className="text-xl" />
                   <span>HOW-TO & FAQS</span>
                 </a>
                 
@@ -275,7 +275,7 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
                   href="/community_guidelines"
                   className="flex items-center gap-3 w-full text-white hover:text-yellow-400 transition-colors text-lg font-semibold"
                 >
-                  <PiScalesBold className="text-xl" />
+                  <PiRabbitFill className="text-xl" />
                   <span>COMMUNITY</span>
                 </a>
                 
