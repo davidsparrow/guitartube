@@ -36,8 +36,18 @@ export default function Home() {
 
   // Age verification helper function
   const isAgeVerified = () => {
-    if (typeof document === 'undefined') return false
-    return document.cookie.includes('ageVerified=true')
+    if (typeof document === 'undefined') {
+      console.log('🔍 isAgeVerified: document undefined (SSR)')
+      return false
+    }
+    
+    const hasCookie = document.cookie.includes('ageVerified=true')
+    console.log('🔍 isAgeVerified check:', {
+      allCookies: document.cookie,
+      hasAgeVerifiedCookie: hasCookie,
+      result: hasCookie
+    })
+    return hasCookie
   }
   
   // Load feature gates for dynamic pricing limits
@@ -199,18 +209,33 @@ export default function Home() {
 
   // Handle Stripe checkout
   const handleCheckout = async (plan) => {
+    console.log('🔍 HANDLE CHECKOUT STARTED:', {
+      plan,
+      isAuthenticated,
+      userEmail: user?.email,
+      userId: user?.id
+    })
+
     if (!isAuthenticated) {
+      console.log('❌ HANDLE CHECKOUT: User not authenticated, showing auth modal')
       setShowAuthModal(true)
       return
     }
 
     // Check age verification AFTER auth check
-    if (!isAgeVerified()) {
-      console.log('🔍 Age verification required for plan:', plan)
+    const ageVerified = isAgeVerified()
+    console.log('🔍 HANDLE CHECKOUT: Age verification check result:', ageVerified)
+    
+    if (!ageVerified) {
+      console.log('🔍 HANDLE CHECKOUT: Age verification required for plan:', plan)
       const billingCycle = isAnnualBilling ? 'annual' : 'monthly'
-      router.push(`/age-verify?plan=${plan}&billing=${billingCycle}&redirect=/pricing`)
+      const redirectUrl = `/age-verify?plan=${plan}&billing=${billingCycle}&redirect=/pricing`
+      console.log('🔍 HANDLE CHECKOUT: Redirecting to:', redirectUrl)
+      router.push(redirectUrl)
       return
     }
+
+    console.log('✅ HANDLE CHECKOUT: Age verified, proceeding with Stripe checkout')
 
     if (!stripe) {
       console.error('Stripe not initialized')
@@ -270,11 +295,18 @@ export default function Home() {
     }
 
     // Check age verification AFTER auth check
-    if (!isAgeVerified()) {
-      console.log('🔍 Age verification required for Freebird plan')
-      router.push(`/age-verify?plan=freebird&billing=none&redirect=/pricing`)
+    const ageVerified = isAgeVerified()
+    console.log('🔍 FREEBIRD SELECTION: Age verification check result:', ageVerified)
+    
+    if (!ageVerified) {
+      console.log('🔍 FREEBIRD SELECTION: Age verification required for Freebird plan')
+      const redirectUrl = `/age-verify?plan=freebird&billing=none&redirect=/pricing`
+      console.log('🔍 FREEBIRD SELECTION: Redirecting to:', redirectUrl)
+      router.push(redirectUrl)
       return
     }
+
+    console.log('✅ FREEBIRD SELECTION: Age verified, proceeding with Freebird selection')
 
     // ✅ Use AuthContext to check existing subscription (no API call needed)
     if (profile?.subscription_tier && profile?.subscription_tier !== 'freebird') {
