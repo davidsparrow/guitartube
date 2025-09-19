@@ -126,6 +126,43 @@ export default function Home() {
     }
   }, [])
 
+  // Handle auto-selection after age verification
+  useEffect(() => {
+    if (!mounted || !router.isReady) return
+
+    const { autoSelect, billing } = router.query
+    console.log('🔍 PRICING PAGE AUTO-SELECT CHECK:', {
+      autoSelect,
+      billing,
+      isAuthenticated,
+      user: user?.email
+    })
+
+    if (autoSelect && isAuthenticated) {
+      console.log('🚀 Auto-selecting plan after age verification:', autoSelect)
+      
+      // Small delay to ensure everything is loaded
+      setTimeout(() => {
+        if (autoSelect === 'freebird') {
+          console.log('🆓 Auto-triggering Freebird selection')
+          handleFreePlanSelection()
+        } else if (autoSelect === 'roadie' || autoSelect === 'hero') {
+          console.log('💳 Auto-triggering Stripe checkout for:', autoSelect)
+          // Update billing cycle if needed
+          if (billing === 'annual') {
+            setIsAnnualBilling(true)
+          } else if (billing === 'monthly') {
+            setIsAnnualBilling(false)
+          }
+          handleCheckout(autoSelect)
+        }
+        
+        // Clean up URL
+        router.replace('/pricing', undefined, { shallow: true })
+      }, 1000)
+    }
+  }, [mounted, router.isReady, router.query, isAuthenticated, user])
+
   // Auto-advance carousel every 20 seconds
   useEffect(() => {
     if (!mounted) return
@@ -217,7 +254,10 @@ export default function Home() {
     })
 
     if (!isAuthenticated) {
-      console.log('❌ HANDLE CHECKOUT: User not authenticated, showing auth modal')
+      console.log('❌ HANDLE CHECKOUT: User not authenticated, preserving plan selection')
+      // Preserve plan selection in URL
+      const billingCycle = isAnnualBilling ? 'annual' : 'monthly'
+      router.push(`/pricing?plan=${plan}&billing=${billingCycle}`)
       setShowAuthModal(true)
       return
     }
@@ -289,7 +329,9 @@ export default function Home() {
     })
 
     if (!isAuthenticated) {
-      console.log('❌ FREEBIRD SELECTION: User not authenticated')
+      console.log('❌ FREEBIRD SELECTION: User not authenticated, preserving plan selection')
+      // Preserve plan selection in URL
+      router.push('/pricing?plan=freebird&billing=none')
       setShowAuthModal(true)
       return
     }

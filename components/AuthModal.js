@@ -50,7 +50,21 @@ const AuthModal = ({ isOpen, onClose, initialTab = 'signin' }) => {
       } else {
         // Keep loading state active for the green button and delay
         setTimeout(() => {
-          handleClose()
+          // Check if user came from plan selection
+          const urlParams = new URLSearchParams(window.location.search)
+          const plan = urlParams.get('plan')
+          const billing = urlParams.get('billing')
+          
+          console.log('🔍 AUTH SUCCESS - Plan selection check:', { plan, billing })
+          
+          if (plan) {
+            console.log('🚀 AUTH SUCCESS - User was selecting plan, redirecting to age-verify')
+            // User was trying to select a plan, redirect to age-verify
+            window.location.href = `/age-verify?plan=${plan}&billing=${billing}&redirect=/pricing`
+          } else {
+            console.log('✅ AUTH SUCCESS - Normal auth flow, closing modal')
+            handleClose()
+          }
         }, 1500)
       }
     } catch (err) {

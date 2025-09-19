@@ -11,6 +11,17 @@ export default function AgeVerifyPage() {
   const [ageConfirmed, setAgeConfirmed] = useState(false)
   const [loading, setLoading] = useState(false)
   const [showTermsModal, setShowTermsModal] = useState(false)
+  
+  // Get plan selection from URL params
+  const { plan, billing, redirect } = router.query
+  
+  console.log('🔍 AGE-VERIFY PAGE LOADED:', {
+    plan,
+    billing,
+    redirect,
+    user: user?.email,
+    isAuthenticated: !!user
+  })
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -35,6 +46,7 @@ export default function AgeVerifyPage() {
     console.log('🔄 Starting terms acceptance process...')
     console.log('👤 User object:', user)
     console.log('📝 Initials to save:', initials.trim())
+    console.log('🎯 Plan selection:', { plan, billing, redirect })
     
     try {
       // Save initials to Supabase if user is authenticated
@@ -66,6 +78,10 @@ export default function AgeVerifyPage() {
         } else {
           const errorText = await response.text()
           console.error('❌ API Error response:', errorText)
+          // Show error to user
+          alert(`Age verification failed: ${errorText}\n\nPlease contact support at our Contact Us page for assistance.`)
+          setLoading(false)
+          return
         }
       } else {
         console.log('❌ No user authenticated, skipping initials save')
@@ -73,19 +89,30 @@ export default function AgeVerifyPage() {
       }
     } catch (error) {
       console.error('💥 Error in initials save process:', error)
-      // Continue anyway - don't block the user
+      alert('Age verification failed due to a technical error.\n\nPlease contact support at our Contact Us page for assistance.')
+      setLoading(false)
+      return
     }
     
     // Set age verification cookie
     console.log('🍪 Setting age verification cookie...')
     document.cookie = 'ageVerified=true; path=/; max-age=2592000; samesite=lax' // 30 days
     
-    // Get the intended destination from query params or default to home
-    const redirectTo = router.query.redirect || '/'
-    console.log('🎯 Redirecting to:', redirectTo)
+    // Auto-continue to plan selection based on plan type
+    console.log('🚀 Auto-continuing to plan selection...')
     
-    // Redirect to intended destination
-    router.push(redirectTo)
+    if (plan === 'freebird') {
+      console.log('🆓 Auto-continuing to Freebird plan selection')
+      // Redirect to pricing with special flag to auto-trigger Freebird
+      router.push('/pricing?autoSelect=freebird')
+    } else if (plan === 'roadie' || plan === 'hero') {
+      console.log('💳 Auto-continuing to Stripe checkout for plan:', plan)
+      // Redirect to pricing with special flag to auto-trigger Stripe checkout
+      router.push(`/pricing?autoSelect=${plan}&billing=${billing}`)
+    } else {
+      console.log('❓ Unknown plan, redirecting to pricing page')
+      router.push('/pricing')
+    }
   }
 
   const handleTermsCancel = () => {
