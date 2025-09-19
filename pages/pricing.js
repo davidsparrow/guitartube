@@ -1006,44 +1006,43 @@ export default function Home() {
       
       {/* Payment Processing Overlay */}
       {isProcessingPayment && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* Full-screen background image with zoom animation */}
           <div 
-            className="relative bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 shadow-2xl max-w-md mx-4 text-center overflow-hidden"
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat animate-zoom-in"
             style={{
-              backgroundImage: 'url("/images/guitar_hole_custom_close_pink.png")',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat'
+              backgroundImage: 'url("/images/guitar_boys_arm_arm_sunset.png")',
+              opacity: 1.0,
+              animation: 'zoomIn 8s ease-in-out infinite alternate'
             }}
-          >
-            {/* Dark overlay for text readability inside the card */}
-            <div className="absolute inset-0 bg-black bg-opacity-60 rounded-2xl"></div>
-            
-            {/* Content - positioned above the dark overlay */}
-            <div className="relative z-10">
-              {/* Logo */}
-              <div className="mb-6">
-                <img 
-                  src="/images/gt_logoM_PlayButton.png" 
-                  alt="GuitarTube Logo" 
-                  className="h-16 w-auto mx-auto mb-4"
-                />
-              </div>
-              
-              {/* Spinner */}
-              <div className="flex justify-center mb-6">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
-              </div>
-              
-              {/* Message */}
-              <h2 className="text-2xl font-bold text-white mb-2">Connecting to Payment Partner</h2>
-              <p className="text-gray-300 text-sm mb-4">
-                Please wait while we securely connect you to our payment processor...
-              </p>
-              <p className="text-gray-400 text-xs">
-                This usually takes just a moment
-              </p>
+          />
+          {/* Dark overlay for text readability */}
+          <div className="absolute inset-0 bg-black bg-opacity-60"></div>
+          
+          {/* Content card - transparent, no box styling */}
+          <div className="relative z-10 p-8 max-w-md mx-4 text-center">
+            {/* Logo */}
+            <div className="mb-6">
+              <img 
+                src="/images/gt_logoM_PlayButton.png" 
+                alt="GuitarTube Logo" 
+                className="h-16 w-auto mx-auto mb-4"
+              />
             </div>
+            
+            {/* Spinner */}
+            <div className="flex justify-center mb-6">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
+            </div>
+            
+            {/* Message */}
+            <h2 className="text-2xl font-bold text-white mb-2">Connecting to Payment Partner</h2>
+            <p className="text-gray-300 text-sm mb-4">
+              Please wait while we securely connect you to our payment processor...
+            </p>
+            <p className="text-gray-400 text-xs">
+              This usually takes just a moment
+            </p>
           </div>
         </div>
       )}
