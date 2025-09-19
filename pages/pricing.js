@@ -103,7 +103,8 @@ export default function Home() {
     // Load feature gates
     loadFeatureGates()
 
-    // Initialize Stripe
+    // Initialize Stripe - This is asynchronous and may take time to complete
+    // The auto-selection logic waits for this to complete before proceeding
     const initStripe = async () => {
       console.log('🔄 Initializing Stripe...')
       console.log('📝 Stripe Key exists:', !!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
@@ -135,33 +136,61 @@ export default function Home() {
       autoSelect,
       billing,
       isAuthenticated,
-      user: user?.email
+      user: user?.email,
+      stripeInitialized: !!stripe
     })
 
     if (autoSelect && isAuthenticated) {
       console.log('🚀 Auto-selecting plan after age verification:', autoSelect)
       
-      // Small delay to ensure everything is loaded
-      setTimeout(() => {
-        if (autoSelect === 'freebird') {
-          console.log('🆓 Auto-triggering Freebird selection')
-          handleFreePlanSelection()
-        } else if (autoSelect === 'roadie' || autoSelect === 'hero') {
-          console.log('💳 Auto-triggering Stripe checkout for:', autoSelect)
-          // Update billing cycle if needed
-          if (billing === 'annual') {
-            setIsAnnualBilling(true)
-          } else if (billing === 'monthly') {
-            setIsAnnualBilling(false)
-          }
-          handleCheckout(autoSelect)
-        }
-        
+      // Handle freebird plan immediately (no Stripe needed)
+      if (autoSelect === 'freebird') {
+        console.log('🆓 Auto-triggering Freebird selection')
+        handleFreePlanSelection()
         // Clean up URL
         router.replace('/pricing', undefined, { shallow: true })
-      }, 1000)
+        return
+      }
+      
+      // For paid plans (roadie/hero), wait for Stripe initialization
+      if (autoSelect === 'roadie' || autoSelect === 'hero') {
+        console.log('💳 Auto-triggering Stripe checkout for:', autoSelect)
+        
+        // Update billing cycle if needed
+        if (billing === 'annual') {
+          setIsAnnualBilling(true)
+        } else if (billing === 'monthly') {
+          setIsAnnualBilling(false)
+        }
+        
+        // Wait for Stripe to be initialized before proceeding
+        let retryCount = 0
+        const maxRetries = 20 // 10 seconds total (20 * 500ms)
+        
+        const waitForStripeAndCheckout = () => {
+          if (stripe) {
+            console.log('✅ Stripe is ready, proceeding with checkout for:', autoSelect)
+            handleCheckout(autoSelect)
+            // Clean up URL
+            router.replace('/pricing', undefined, { shallow: true })
+          } else if (retryCount < maxRetries) {
+            retryCount++
+            console.log(`⏳ Stripe not ready yet, retry ${retryCount}/${maxRetries} in 500ms...`)
+            setTimeout(waitForStripeAndCheckout, 500)
+          } else {
+            console.error('❌ Stripe initialization timeout after 10 seconds. Please try clicking the plan button again.')
+            // Show user-friendly error message
+            alert('Payment system is taking longer than expected to load. Please try clicking the plan button again.')
+            // Clean up URL
+            router.replace('/pricing', undefined, { shallow: true })
+          }
+        }
+        
+        // Start the retry mechanism with a small initial delay
+        setTimeout(waitForStripeAndCheckout, 500)
+      }
     }
-  }, [mounted, router.isReady, router.query, isAuthenticated, user])
+  }, [mounted, router.isReady, router.query, isAuthenticated, user, stripe])
 
   // Auto-advance carousel every 20 seconds
   useEffect(() => {
@@ -250,7 +279,8 @@ export default function Home() {
       plan,
       isAuthenticated,
       userEmail: user?.email,
-      userId: user?.id
+      userId: user?.id,
+      stripeInitialized: !!stripe
     })
 
     if (!isAuthenticated) {
@@ -277,8 +307,11 @@ export default function Home() {
 
     console.log('✅ HANDLE CHECKOUT: Age verified, proceeding with Stripe checkout')
 
+    // Enhanced Stripe initialization check with better error handling
     if (!stripe) {
-      console.error('Stripe not initialized')
+      console.error('❌ HANDLE CHECKOUT: Stripe not initialized')
+      console.error('❌ HANDLE CHECKOUT: This should not happen in auto-selection flow')
+      alert('Payment system is not ready. Please try again in a moment.')
       return
     }
 
