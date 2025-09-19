@@ -25,6 +25,7 @@ export default function Home() {
   // Stripe initialization
   const [stripe, setStripe] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false) // New state for payment processing
   const footerRef = useRef()
 
   // Feature Gates for dynamic pricing limits
@@ -156,6 +157,9 @@ export default function Home() {
       if (autoSelect === 'roadie' || autoSelect === 'hero') {
         console.log('💳 Auto-triggering Stripe checkout for:', autoSelect)
         
+        // Set processing state to disable buttons and show loading message
+        setIsProcessingPayment(true)
+        
         // Update billing cycle if needed
         if (billing === 'annual') {
           setIsAnnualBilling(true)
@@ -179,6 +183,8 @@ export default function Home() {
             setTimeout(waitForStripeAndCheckout, 500)
           } else {
             console.error('❌ Stripe initialization timeout after 10 seconds. Please try clicking the plan button again.')
+            // Reset processing state on timeout
+            setIsProcessingPayment(false)
             // Show user-friendly error message
             alert('Payment system is taking longer than expected to load. Please try clicking the plan button again.')
             // Clean up URL
@@ -349,6 +355,7 @@ export default function Home() {
       alert('An error occurred. Please try again.')
     } finally {
       setIsLoading(false)
+      setIsProcessingPayment(false) // Reset processing state
     }
   }
 
@@ -580,7 +587,7 @@ export default function Home() {
 
               <button
                 onClick={handleFreePlanSelection}
-                disabled={isLoading}
+                disabled={isLoading || isProcessingPayment}
                 className="w-full mt-6 bg-white/15 border-2 border-white text-white py-2 text-sm hover:bg-white/25 transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ borderRadius: '60px' }}
               >
@@ -662,7 +669,7 @@ export default function Home() {
 
               <button
                 onClick={() => handleCheckout('roadie')}
-                disabled={isLoading}
+                disabled={isLoading || isProcessingPayment}
                 className="w-full mt-6 bg-orange-500/15 border-2 border-orange-500 text-white py-2 text-sm hover:bg-orange-500/25 transition-colors font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 style={{ borderRadius: '60px' }}
               >
@@ -733,7 +740,7 @@ export default function Home() {
 
               <button
                 onClick={() => handleCheckout('hero')}
-                disabled={isLoading}
+                disabled={isLoading || isProcessingPayment}
                 className="w-full mt-6 text-white py-2 text-sm transition-colors font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center border-2"
                 onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(141, 198, 65, 0.25)'}
                 onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(141, 198, 65, 0.15)'}
@@ -996,6 +1003,37 @@ export default function Home() {
           </div>
         </div>
       </div>
+      
+      {/* Payment Processing Overlay */}
+      {isProcessingPayment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 shadow-2xl max-w-md mx-4 text-center">
+            {/* Logo */}
+            <div className="mb-6">
+              <img 
+                src="/images/gt_logoM_PlayButton.png" 
+                alt="GuitarTube Logo" 
+                className="h-16 w-auto mx-auto mb-4"
+              />
+            </div>
+            
+            {/* Spinner */}
+            <div className="flex justify-center mb-6">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
+            </div>
+            
+            {/* Message */}
+            <h2 className="text-2xl font-bold text-white mb-2">Connecting to Payment Partner</h2>
+            <p className="text-gray-300 text-sm mb-4">
+              Please wait while we securely connect you to our payment processor...
+            </p>
+            <p className="text-gray-400 text-xs">
+              This usually takes just a moment
+            </p>
+          </div>
+        </div>
+      )}
+      
       {/* Footer Component */}
       <Footer ref={footerRef} />
       {/* Auth Modal */}
