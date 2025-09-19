@@ -33,6 +33,12 @@ export default function Home() {
 
   // Testimonial Carousel
   const [currentCarouselPage, setCurrentCarouselPage] = useState(0)
+
+  // Age verification helper function
+  const isAgeVerified = () => {
+    if (typeof document === 'undefined') return false
+    return document.cookie.includes('ageVerified=true')
+  }
   
   // Load feature gates for dynamic pricing limits
   const loadFeatureGates = async () => {
@@ -198,6 +204,14 @@ export default function Home() {
       return
     }
 
+    // Check age verification AFTER auth check
+    if (!isAgeVerified()) {
+      console.log('🔍 Age verification required for plan:', plan)
+      const billingCycle = isAnnualBilling ? 'annual' : 'monthly'
+      router.push(`/age-verify?plan=${plan}&billing=${billingCycle}&redirect=/pricing`)
+      return
+    }
+
     if (!stripe) {
       console.error('Stripe not initialized')
       return
@@ -252,6 +266,13 @@ export default function Home() {
     if (!isAuthenticated) {
       console.log('❌ FREEBIRD SELECTION: User not authenticated')
       setShowAuthModal(true)
+      return
+    }
+
+    // Check age verification AFTER auth check
+    if (!isAgeVerified()) {
+      console.log('🔍 Age verification required for Freebird plan')
+      router.push(`/age-verify?plan=freebird&billing=none&redirect=/pricing`)
       return
     }
 
@@ -334,7 +355,7 @@ export default function Home() {
     }}>
       {/* Full-Screen Background - NEW DARK IMAGE */}
       <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat hidden md:block"
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
           backgroundImage: `url('/images/gt_splashBG4_1200_dark1.png')`,
           width: '100%',
@@ -345,7 +366,7 @@ export default function Home() {
       />
       {/* 50% Dark Overlay */}
       <div
-        className="absolute inset-0 bg-black bg-opacity-60 hidden md:block"
+        className="absolute inset-0 bg-black bg-opacity-60"
         style={{
           width: '100%',
           height: '100%',
