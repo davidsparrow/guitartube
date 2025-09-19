@@ -1,13 +1,15 @@
 // components/MenuModal.js - Standalone Menu Modal Component
 import { useState } from 'react'
+import { useRouter } from 'next/router'
 import { useUser } from '../contexts/UserContext'
 import { useAuth } from '../contexts/AuthContext'
 import { updateUserProfile } from '../lib/supabase'
-import { PiButterflyFill, PiSuitcaseSimpleFill, PiGuitarFill, PiSealQuestionFill, PiShirtFoldedFill, PiRabbitFill } from "react-icons/pi"
+import { PiButterflyFill, PiGuitarFill, PiSealQuestionFill, PiRabbitFill, PiMailboxFill } from "react-icons/pi"
 import { FiLogOut } from "react-icons/fi"
 
 
-export default function MenuModal({ isOpen, onClose, onSupportClick }) {
+export default function MenuModal({ isOpen, onClose }) {
+  const router = useRouter()
   const { profile, userEmail, refreshProfile } = useUser()
   const { isAuthenticated, signOut, resetPassword } = useAuth()
   const [showProfileModal, setShowProfileModal] = useState(false)
@@ -91,22 +93,21 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
   const handleLogout = async () => {
     try {
       await signOut()
-      onClose() // Close the menu modal
+      onClose() // Close the menu modal after logout
     } catch (error) {
       console.error('Logout failed:', error)
     }
   }
 
-  // Handle resume toggle
+  // Handle resume toggle functionality
   const handleResumeToggle = async () => {
     if (!profile?.id || isUpdatingResume) return
 
     setIsUpdatingResume(true)
-
     try {
       const newResumeEnabled = !profile.resume_enabled
 
-      console.log('🔄 Updating resume_enabled:', {
+      console.log('🔄 Updating resume setting:', {
         userId: profile.id,
         currentValue: profile.resume_enabled,
         newValue: newResumeEnabled
@@ -129,31 +130,19 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
 
     } catch (error) {
       console.error('❌ Error in handleResumeToggle:', error)
-      alert('Failed to update resume setting. Please try again.')
+      alert('An error occurred. Please try again.')
     } finally {
       setIsUpdatingResume(false)
     }
   }
 
-
-
   // Handle manage subscription (Stripe Customer Portal)
   const handleManageSubscription = async () => {
     if (!profile?.id || isManagingSubscription) return
 
-    // Validate user has paid subscription
-    if (!profile.subscription_tier || profile.subscription_tier === 'freebird') {
-      alert('Subscription management is only available for paid subscribers (Roadie and Hero plans).')
-      return
-    }
-
     setIsManagingSubscription(true)
-
     try {
-      console.log('🔄 Opening subscription management portal for user:', profile.id)
-
-      // Get current page URL for return
-      const returnUrl = window.location.href
+      console.log('🔄 Opening Stripe Customer Portal for user:', profile.id)
 
       const response = await fetch('/api/stripe/create-portal-session', {
         method: 'POST',
@@ -163,53 +152,41 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
         body: JSON.stringify({
           userId: profile.id,
           userEmail: userEmail,
-          returnUrl: returnUrl
+          returnUrl: window.location.origin
         })
       })
 
       const result = await response.json()
 
-      console.log('🔍 Portal API Response:', {
-        status: response.status,
-        ok: response.ok,
-        result: result
-      });
-
-      if (!response.ok || !result.success) {
-        console.error('❌ Portal API returned error:', result);
-
+      if (!response.ok) {
+        console.error('❌ Portal session creation failed:', result)
+        
         // DEBUG: Add detailed frontend logging
         console.log('🔍 FRONTEND DEBUG: Full error result:', JSON.stringify(result, null, 2))
         console.log('🔍 FRONTEND DEBUG: Support info string:', result.supportInfo)
 
         // Show detailed error message for support
         const errorMessage = result.supportInfo
-          ? `${result.message}\n\nFor support, please copy this information:\n${result.supportInfo}`
-          : result.message || 'Failed to open subscription management'
-
-        console.log('🔍 FRONTEND DEBUG: Message we will show:', errorMessage)
+          ? `Error: ${result.error}\n\nSupport Info: ${result.supportInfo}`
+          : `Error: ${result.error}`
 
         alert(errorMessage)
         return
       }
 
-      console.log('✅ Portal session created successfully, redirecting to:', result.url)
+      console.log('✅ Portal session created successfully:', result)
 
-      // Close modal first, then redirect to Stripe Customer Portal
-      onClose()
-
-      // Small delay to ensure modal closes, then open in new tab
-      setTimeout(() => {
-        console.log('🔄 Opening Stripe Customer Portal in new tab:', result.url)
-        window.open(result.url, '_blank')
-      }, 200)
+      // Redirect to Stripe Customer Portal
+      if (result.url) {
+        window.location.href = result.url
+      } else {
+        console.error('❌ No portal URL returned')
+        alert('Failed to open subscription management. Please try again.')
+      }
 
     } catch (error) {
-      console.error('❌ Error opening subscription management:', error)
-
-      const errorMessage = `Failed to open subscription management: ${error.message}\n\nFor support, please copy this information:\nError: ${error.message}\nUser: ${userEmail}\nError code: CLIENT_SIDE_ERROR`
-
-      alert(errorMessage)
+      console.error('❌ Error in handleManageSubscription:', error)
+      alert('An error occurred. Please try again.')
     } finally {
       setIsManagingSubscription(false)
     }
@@ -217,49 +194,53 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
 
   if (!isOpen) return null
 
-  // Check authentication - show backstage alert for unauthenticated users
+  // Show backstage modal for non-authenticated users
   if (!isAuthenticated) {
     return (
-      <div 
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-        onClick={(e) => {
-          if (e.target === e.currentTarget) {
-            onClose()
-          }
-        }}
-      >
-        <div className="bg-black rounded-2xl shadow-2xl max-w-md w-full relative text-white p-6">
-          {/* Modal Content */}
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold mb-4">🎭 Backstage Access Only</h2>
-            <p className="text-gray-300 text-sm">
-              You're only backstage. Signup to get in front of the crowd!
-            </p>
-          </div>
-          
-          {/* Action Buttons */}
-          <div className="flex space-x-3">
-            <button
-              onClick={() => {
-                onClose()
-                window.location.href = '/pricing'
-              }}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
-            >
-              Start Free
-            </button>
-            <button
-              onClick={onClose}
-              className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors"
-            >
-              Cancel
-            </button>
+      <>
+        {/* Backdrop */}
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              onClose()
+            }
+          }}
+        >
+          <div className="bg-black rounded-2xl shadow-2xl max-w-md w-full relative text-white p-6">
+            {/* Modal Content */}
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold mb-4">🎭 Backstage Access Only</h2>
+              <p className="text-gray-300 text-sm">
+                You're only backstage. Signup to get in front of the crowd!
+              </p>
+            </div>
+            
+            {/* Action Buttons */}
+            <div className="flex space-x-3">
+              <button
+                onClick={() => {
+                  onClose()
+                  window.location.href = '/pricing'
+                }}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              >
+                Start Free
+              </button>
+              <button
+                onClick={onClose}
+                className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      </>
     )
   }
 
+  // Show main menu modal for authenticated users
   return (
     <>
       {/* Menu Modal */}
@@ -307,38 +288,20 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
                   <span>PROFILE</span>
                 </button>
 
-                <button
-                  onClick={() => setShowPlanModal(true)}
-                  className="flex items-center gap-3 w-full text-white hover:text-yellow-400 transition-colors text-lg font-semibold bg-transparent border-none cursor-pointer"
-                >
-                  <PiSuitcaseSimpleFill className="text-xl" />
-                  <span>PLAN DEETS</span>
-                </button>
 
                 <a 
                   href="/how-to-faqs"
                   className="flex items-center gap-3 w-full text-white hover:text-yellow-400 transition-colors text-lg font-semibold"
                 >
-                  <PiGuitarFill className="text-xl" />
+                  <PiSealQuestionFill className="text-xl" />
                   <span>HOW-TO & FAQS</span>
                 </a>
-                
-                <button
-                  onClick={() => {
-                    onClose() // Close menu modal first
-                    if (onSupportClick) onSupportClick() // Then open support modal
-                  }}
-                  className="flex items-center gap-3 w-full text-white hover:text-yellow-400 transition-colors text-lg font-semibold bg-transparent border-none cursor-pointer"
-                >
-                  <PiSealQuestionFill className="text-xl" />
-                  <span>SUPPORT</span>
-                </button>
                 
                 <a 
                   href="/schwag"
                   className="flex items-center gap-3 w-full text-white hover:text-yellow-400 transition-colors text-lg font-semibold"
                 >
-                  <PiShirtFoldedFill className="text-xl" />
+                  <PiGuitarFill className="text-xl" />
                   <span>SCHWAG</span>
                 </a>
                 
@@ -349,6 +312,17 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
                   <PiRabbitFill className="text-xl" />
                   <span>COMMUNITY</span>
                 </a>
+                
+                <button
+                  onClick={() => {
+                    onClose() // Close menu modal first
+                    router.push('/contact') // Navigate to contact page
+                  }}
+                  className="flex items-center gap-3 w-full text-white hover:text-yellow-400 transition-colors text-lg font-semibold bg-transparent border-none cursor-pointer"
+                >
+                  <PiMailboxFill className="text-xl" />
+                  <span>CONTACT</span>
+                </button>
                 
                 <button
                   onClick={handleLogout}
@@ -363,6 +337,39 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
         </div>
       </div>
 
+      {/* Backstage Alert Modal */}
+      {showBackstageAlert && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-black rounded-2xl shadow-2xl max-w-md w-full relative text-white p-6">
+            {/* Modal Content */}
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold mb-4">🎭 Backstage Access Only</h2>
+              <p className="text-gray-300 text-sm">
+                You're only backstage. Signup to get in front of the crowd!
+              </p>
+            </div>
+            
+            <div className="flex space-x-3">
+              <button
+                onClick={() => {
+                  onClose()
+                  router.push('/pricing')
+                }}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              >
+                Start Free
+              </button>
+              <button
+                onClick={() => setShowBackstageAlert(false)}
+                className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Profile Modal */}
       {showProfileModal && (
         <div
@@ -374,34 +381,43 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
           }}
         >
           <div 
-            className="bg-black rounded-2xl shadow-2xl max-w-md w-full relative text-white p-6 max-h-[80vh] overflow-y-auto border border-white"
+            className="bg-black rounded-2xl shadow-2xl max-w-md w-full relative text-white border border-white"
             style={{
-              backgroundImage: 'url("/images/blue_live_edge_electric_guitar.jpg")',
+              backgroundImage: 'url("/images/live_edge_guitar_pink.png")',
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat'
             }}
           >
-            {/* Dark overlay */}
-            <div className="absolute inset-0 bg-black/60 rounded-2xl"></div>
+            {/* Dark overlay - Fixed position to stay over background image */}
+            <div className="absolute inset-0 bg-black/30 rounded-2xl pointer-events-none"></div>
             
             {/* Close Button */}
             <button
               onClick={handleProfileModalClose}
-              className="absolute top-3 right-3 text-gray-300 hover:text-white transition-colors text-xl font-bold z-10"
+              className="absolute top-3 right-3 text-gray-300 hover:text-white transition-colors text-xl font-bold z-20"
             >
               ×
             </button>
             
+            {/* Scrollable content container */}
+            <div 
+              className="relative z-10 p-6 max-h-[80vh] overflow-y-auto profile-modal-scroll"
+              style={{
+                scrollbarWidth: 'thin',
+                scrollbarColor: '#4B5563 transparent'
+              }}
+            >
+            
             {/* Profile Content */}
             <div className="relative z-10" style={{ marginLeft: '25px', marginRight: '25px' }}>
-              {/* Title left-justified with labels; avatar to the right, bottom-aligned */}
-              <div className="flex items-end justify-start mb-4">
+              {/* Title left-justified with labels; avatar right-aligned with Settings button */}
+              <div className="flex items-end justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <PiButterflyFill className="text-white text-xl" />
                   <h2 className="text-xl font-bold text-white">Profile</h2>
                 </div>
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center" style={{ marginLeft: 'calc(8rem - 82px)' }}>
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                   <span className="text-white text-lg font-bold">
                     {userEmail?.charAt(0).toUpperCase() || 'U'}
                   </span>
@@ -412,18 +428,30 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
               <div className="space-y-3 text-sm mb-6">
                 <div className="flex">
                   <span className="text-gray-400 w-32">Name:</span>
-                  <span className="text-white" style={{ marginLeft: '-50px' }}>{profile?.full_name || userEmail?.split('@')[0] || 'User'}</span>
+                  <span className="text-white" style={{ marginLeft: '-65px' }}>{profile?.full_name || userEmail?.split('@')[0] || 'User'}</span>
                 </div>
                 
                 <div className="flex">
                   <span className="text-gray-400 w-32">Email:</span>
-                  <span className="text-white" style={{ marginLeft: '-50px' }}>{userEmail || 'No email'}</span>
+                  <span className="text-white" style={{ marginLeft: '-65px' }}>{userEmail || 'No email'}</span>
+                </div>
+
+                {/* Reset Password Link - Left-aligned with Profile values */}
+                <div className="flex">
+                  <span className="text-gray-400 w-32">Creds:</span>
+                  <button
+                    onClick={handlePasswordReset}
+                    className="text-blue-400 hover:text-blue-300 text-sm underline transition-colors"
+                    style={{ marginLeft: '-65px' }}
+                  >
+                    Reset Password
+                  </button>
                 </div>
 
                 {/* Handle Field */}
                 <div className="flex items-center">
                   <span className="text-gray-400 w-32">Handle:</span>
-                  <div className="flex items-center gap-2" style={{ marginLeft: '-50px' }}>
+                  <div className="flex items-center gap-2" style={{ marginLeft: '-65px' }}>
                     <input
                       type="text"
                       value={handleValue}
@@ -451,34 +479,27 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
 
                 {/* Resume Toggle - Only show for roadie/hero users */}
                 {profile?.subscription_tier && ['roadie', 'hero'].includes(profile.subscription_tier) && (
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <span className="text-gray-400 w-32">Resume Last Video:</span>
-                      <button
-                        onClick={handleResumeToggle}
-                        disabled={isUpdatingResume}
-                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${
-                          profile?.resume_enabled
-                            ? 'bg-yellow-400'
-                            : 'bg-gray-600'
-                        } ${isUpdatingResume ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                        style={{ marginLeft: '10px' }}
-                      >
-                        <span
-                          className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-                            profile?.resume_enabled ? 'translate-x-5' : 'translate-x-1'
-                          }`}
-                        />
-                      </button>
-                    </div>
+                  <div className="flex items-center">
+                    <span className="text-gray-400 w-32">Resume Last Video:</span>
                     <button
-                      onClick={handlePasswordReset}
-                      className="text-blue-400 hover:text-blue-300 text-sm underline transition-colors"
+                      onClick={handleResumeToggle}
+                      disabled={isUpdatingResume}
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${
+                        profile?.resume_enabled
+                          ? 'bg-yellow-400'
+                          : 'bg-gray-600'
+                      } ${isUpdatingResume ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                      style={{ marginLeft: '10px' }}
                     >
-                      Reset Password
+                      <span
+                        className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                          profile?.resume_enabled ? 'translate-x-5' : 'translate-x-1'
+                        }`}
+                      />
                     </button>
                   </div>
                 )}
+
 
                 {/* Action Buttons - Moved below Resume toggle, above Plan Details */}
                 <div className="space-y-2 mt-4">
@@ -490,162 +511,74 @@ export default function MenuModal({ isOpen, onClose, onSupportClick }) {
                 {/* Plan Details Section */}
                 <div className="mt-6 pt-4 border-t border-white/20">
                   <div className="flex items-center gap-2 mb-4">
-                    <PiSuitcaseSimpleFill className="text-white text-xl" />
+                    <PiGuitarFill className="text-white text-xl" />
                     <h3 className="text-lg font-bold text-white">Plan Details</h3>
                   </div>
                   
                   <div className="space-y-3">
                     <div className="flex">
                       <span className="text-gray-400 w-32">Current Plan:</span>
-                      <span className="text-white capitalize" style={{ marginLeft: '10px' }}>{profile?.subscription_tier || 'Freebird'}</span>
-                    </div>
-                    
-                    <div className="flex">
-                      <span className="text-gray-400 w-32">Daily Watch:</span>
-                      <span className="text-white" style={{ marginLeft: '10px' }}>
-                        {profile?.subscription_tier === 'hero' ? '480 minutes (8 hours)' : 
-                         profile?.subscription_tier === 'roadie' ? '180 minutes (3 hours)' : 
-                         '60 minutes (1 hour)'}
+                      <span className="text-white capitalize" style={{ marginLeft: '-13px' }}>
+                        {profile?.subscription_tier || 'Freebird'}
+                        {profile?.subscription_status && ` (${profile.subscription_status})`}
                       </span>
                     </div>
                     
                     <div className="flex">
-                      <span className="text-gray-400 w-32">Daily Search:</span>
-                      <span className="text-white" style={{ marginLeft: '10px' }}>
-                        {profile?.subscription_tier === 'hero' ? 'Unlimited' : 
-                         profile?.subscription_tier === 'roadie' ? '20 searches' : 
-                         '0 searches (blocked)'}
+                      <span className="text-gray-400 w-32">Daily Watch Min:</span>
+                      <span className="text-white" style={{ marginLeft: '-13px' }}>
+                        {profile?.subscription_tier === 'hero' ? `${Math.floor((profile?.total_watch_time_minutes || 0) / 60)}:${String((profile?.total_watch_time_minutes || 0) % 60).padStart(2, '0')} / 480` : 
+                         profile?.subscription_tier === 'roadie' ? `${Math.floor((profile?.total_watch_time_minutes || 0) / 60)}:${String((profile?.total_watch_time_minutes || 0) % 60).padStart(2, '0')} / 180` : 
+                         `${Math.floor((profile?.total_watch_time_minutes || 0) / 60)}:${String((profile?.total_watch_time_minutes || 0) % 60).padStart(2, '0')} / 60`}
                       </span>
                     </div>
                     
                     <div className="flex">
-                      <span className="text-gray-400 w-32">Saved Faves:</span>
-                      <span className="text-white" style={{ marginLeft: '10px' }}>
+                      <span className="text-gray-400 w-32">Daily Searches:</span>
+                      <span className="text-white" style={{ marginLeft: '-13px' }}>
                         {profile?.subscription_tier === 'hero' ? 'Unlimited' : 
-                         profile?.subscription_tier === 'roadie' ? '12 faves' : 
-                         '0 faves (blocked)'}
+                         profile?.subscription_tier === 'roadie' ? `${profile?.daily_searches_used || 0} / 20` : 
+                         `${profile?.daily_searches_used || 0} / 3`}
+                      </span>
+                    </div>
+                    
+                    <div className="flex">
+                      <span className="text-gray-400 w-32">Faves:</span>
+                      <span className="text-white" style={{ marginLeft: '-13px' }}>
+                        {profile?.subscription_tier === 'hero' ? 'Unlimited' : 
+                         profile?.subscription_tier === 'roadie' ? `${profile?.favorites_count || 0} / 12` : 
+                         `${profile?.favorites_count || 0} / 3`}
                       </span>
                     </div>
                     
                     <div className="flex">
                       <span className="text-gray-400 w-32">Billing Cycle:</span>
-                      <span className="text-white" style={{ marginLeft: '10px' }}>Monthly</span>
+                      <span className="text-white" style={{ marginLeft: '-13px' }}>Monthly</span>
                     </div>
                     
                     <div className="flex">
                       <span className="text-gray-400 w-32">Amount:</span>
-                      <span className="text-white" style={{ marginLeft: '10px' }}>
+                      <span className="text-white" style={{ marginLeft: '-13px' }}>
                         ${profile?.subscription_tier === 'hero' ? '19' : 
                           profile?.subscription_tier === 'roadie' ? '10' : '0'}/mo
                       </span>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Manage Subscription Button - At bottom */}
-              <div className="mt-4">
-                <button
-                  onClick={handleManageSubscription}
-                  disabled={isManagingSubscription || !profile?.subscription_tier || profile?.subscription_tier === 'freebird'}
-                  className="w-full bg-green-600/20 border border-green-600 text-green-300 hover:bg-green-600/30 rounded-[60px] px-3 py-2 text-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isManagingSubscription ? 'Opening…' : 'Manage Subscription'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      
-      {/* Plan Modal */}
-      {showPlanModal && (
-        <div 
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setShowPlanModal(false)
-            }
-          }}
-        >
-          <div className="bg-black rounded-2xl shadow-2xl max-w-md w-full relative text-white p-8">
-            {/* Close Button */}
-            <button
-              onClick={() => setShowPlanModal(false)}
-              className="absolute top-4 right-4 text-gray-300 hover:text-white transition-colors text-2xl font-bold"
-            >
-              ×
-            </button>
-            
-            {/* Plan Content */}
-            <div className="text-center mb-6">
-              <h2 className="text-3xl font-bold mb-4">Plan Details</h2>
-            </div>
-            
-            <div className="space-y-4 text-gray-300">
-              <div className="bg-gray-800/50 p-4 rounded-lg">
-                <p className="text-sm text-gray-400 mb-1">Current Plan</p>
-                <p className="font-medium capitalize text-xl">{profile?.subscription_tier || 'Freebird'}</p>
-              </div>
-              
-              <div className="bg-gray-800/50 p-4 rounded-lg">
-                <p className="text-sm text-gray-400 mb-1">Daily Watch Limit</p>
-                <p className="font-medium text-xl">
-                  {profile?.subscription_tier === 'hero' ? '480 minutes (8 hours)' : 
-                   profile?.subscription_tier === 'roadie' ? '180 minutes (3 hours)' : 
-                   '60 minutes (1 hour)'}
-                </p>
-              </div>
-              
-              <div className="bg-gray-800/50 p-4 rounded-lg">
-                <p className="text-sm text-gray-400 mb-1">Daily Search Limit</p>
-                <p className="font-medium text-xl">
-                  {profile?.subscription_tier === 'hero' ? 'Unlimited' : 
-                   profile?.subscription_tier === 'roadie' ? '20 searches' : 
-                   '0 searches (blocked)'}
-                </p>
-              </div>
-              
-              <div className="bg-gray-800/50 p-4 rounded-lg">
-                <p className="text-sm text-gray-400 mb-1">Saved Faves Limit</p>
-                <p className="font-medium text-xl">
-                  {profile?.subscription_tier === 'hero' ? 'Unlimited' : 
-                   profile?.subscription_tier === 'roadie' ? '12 faves' : 
-                   '0 faves (blocked)'}
-                </p>
-              </div>
-              
-              <div className="bg-gray-800/50 p-4 rounded-lg">
-                <p className="text-sm text-gray-400 mb-1">Billing Cycle</p>
-                <p className="font-medium">Monthly</p>
-              </div>
-              
-              <div className="bg-gray-800/50 p-4 rounded-lg">
-                <p className="text-sm text-gray-400 mb-1">Amount</p>
-                <p className="font-medium text-xl">
-                  ${profile?.subscription_tier === 'hero' ? '19' : 
-                    profile?.subscription_tier === 'roadie' ? '10' : '0'}/mo
-                </p>
-              </div>
-              
-              <div className="pt-4 space-y-3">
-                <button
-                  onClick={handleManageSubscription}
-                  disabled={isManagingSubscription}
-                  className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {isManagingSubscription ? 'Opening...' : 'Manage Your Subscription'}
-                </button>
-
-                {profile?.subscription_tier !== 'hero' && (
-                  <button className="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-green-700 transition-colors">
-                    UPGRADE
+                {/* Manage Subscription Button - At bottom */}
+                <div className="mt-4">
+                  <button
+                    onClick={handleManageSubscription}
+                    disabled={isManagingSubscription || !profile?.subscription_tier || profile?.subscription_tier === 'freebird'}
+                    className="w-full bg-green-600/20 border border-green-600 text-green-300 hover:bg-green-600/30 rounded-[60px] px-3 py-2 text-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isManagingSubscription ? 'Opening…' : 'Manage Subscription'}
                   </button>
-                )}
-
-                {/* REMOVED: Broken Profile modal cancel button */}
+                </div>
               </div>
             </div>
+            </div> {/* Close scrollable content container */}
           </div>
         </div>
       )}

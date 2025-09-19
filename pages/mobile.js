@@ -9,7 +9,6 @@ import { RiLogoutCircleRLine } from 'react-icons/ri'
 import { PiHamburger } from 'react-icons/pi'
 import AuthModal from '../components/AuthModal'
 import MenuModal from '../components/MenuModal'
-import SupportModal from '../components/SupportModal'
 import { useAuth } from '../contexts/AuthContext'
 import styles from '../styles/mobile-clean.module.css'
 import { FaTimes, FaSearch } from 'react-icons/fa'
@@ -19,7 +18,6 @@ export default function MobileClean() {
   const { isAuthenticated, signOut } = useAuth()
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [showMenuModal, setShowMenuModal] = useState(false)
-  const [showSupportModal, setShowSupportModal] = useState(false)
 
   return (
     <>
@@ -145,13 +143,6 @@ export default function MobileClean() {
     <MenuModal
       isOpen={showMenuModal}
       onClose={() => setShowMenuModal(false)}
-      onSupportClick={() => setShowSupportModal(true)}
-    />
-
-    {/* Support Modal (invoked from Menu Modal) */}
-    <SupportModal
-      isOpen={showSupportModal}
-      onClose={() => setShowSupportModal(false)}
     />
     </>
   )
