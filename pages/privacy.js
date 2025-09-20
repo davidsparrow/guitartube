@@ -5,6 +5,7 @@ import AuthModal from '../components/AuthModal'
 import MenuModal from '../components/MenuModal'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
+import TopBanner from '../components/TopBanner'
 import { useRouter } from 'next/router'
 
 export default function PrivacyPolicy() {
@@ -55,15 +56,18 @@ export default function PrivacyPolicy() {
       <div 
         className="fixed inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: `url('/images/dark_guitarPink.png')`,
+          backgroundImage: `url('/images/gt_splashBG_1200_dark3.png')`,
           width: '100vw',
           height: '100vh'
         }}
       />
       
+      {/* Top Banner - Admin controlled */}
+      <TopBanner />
+      
       {/* Header Component */}
       <Header 
-        showBrainIcon={false}
+        showBrainIcon={true}
         showSearchIcon={false}
         onAuthClick={handleAuthClick}
         onMenuClick={() => setShowMenuModal(true)}
@@ -71,8 +75,8 @@ export default function PrivacyPolicy() {
       />
 
       {/* Main Content - Privacy Policy */}
-      <div className="relative z-10 flex flex-col items-center justify-center px-6 mt-16 md:mt-20" style={{ 
-        height: 'calc(100vh - 120px)',
+      <div className="relative z-10 flex flex-col items-center justify-center px-6 mt-20 md:mt-24" style={{ 
+        height: 'calc(100vh - 140px)',
         backgroundColor: 'transparent'
       }}>
         <div className="max-w-4xl w-full rounded-2xl p-8 text-white overflow-y-auto max-h-full" style={{ 
